@@ -7,89 +7,89 @@ include "ContainersOps.dfy"
 // ¿usamos tambien una clase InputData en lugar del datatype Object?
 
 //2. en la especificación usamos secuencias y datatypes 
-//Object , que corresponderia a InputDara
+//Object , que corresponderia a InputData
 //Knapsack extendido con mas cosas que correspondería a Solution
 
 //A nivel de especificación tenemos estos datatype
-datatype Object = Object(weight: nat, value: real)  
-datatype Knapsack = Knapsack(objectsSelected: seq<bool>, maxWeight: nat) //poner real a los pesos
+datatype Object = Object(weight: real, value: real)  
+datatype Knapsack = Knapsack(objectsSelected: seq<bool>, maxWeight: real)
 
 
-ghost predicate validInstance(objects: seq<Object>, maxWeight: int)
-{       |objects| > 0
-	 && maxWeight >= 0
-	 && forall i: nat | i < |objects| :: objects[i].weight > 0 && objects[i].value > 0.0
+ghost predicate ValidInstance(objects: seq<Object>, maxWeight: real)
+{       
+	|objects| > 0
+	 && maxWeight >= 0.0
+	 && forall i: nat | i < |objects| :: objects[i].weight > 0.0 && objects[i].value > 0.0
 	 
 }
 
-//Cambiar a reales en lugar de naturales y mejorar los nombres 
-ghost function Weight(objects: seq<Object>, objEndIdx: nat, v: seq<bool>): nat
+//Cambiar a reales en lugar de naturales y mejorar los nombres. Reales hecho.
+ghost function TotalWeight(objects: seq<Object>, objEndIdx: nat, areSelected: seq<bool>): real
 	requires objEndIdx <= |objects|
-	requires objEndIdx <= |v|
+	requires objEndIdx <= |areSelected|
 {
-	var objSel: seq<Object> := selectSeq(objects, v, 0, objEndIdx);
-	var numObjSel: nat := |objSel|;
-	var weightsSel: seq<nat> := mapSeq(objSel, (obj: Object) => obj.weight, 0, numObjSel);
-	sumNat(weightsSel, 0, numObjSel); 
-	sum(weightsSel, 0, numObjSel)
+	var objSelected: seq<Object> := selectSeq(objects, areSelected, 0, objEndIdx);
+	var numSelected: nat := |objSelected|;
+	var weightsSelected: seq<real> := mapSeq(objSelected, (obj: Object) => obj.weight, 0, numSelected);
+	sum_real(weightsSelected, 0, numSelected)
 }
 
-ghost function solutionValue(objects: seq<Object>, objEndIdx: nat, v: seq<bool>): (o: real)
+ghost function SolutionValue(objects: seq<Object>, objEndIdx: nat, areSelected: seq<bool>): (o: real)
 	requires objEndIdx <= |objects|
-	requires objEndIdx <= |v|
+	requires objEndIdx <= |areSelected|
 {
-	var objSel: seq<Object> := selectSeq(objects, v, 0, objEndIdx);
-	var numObjSel: nat := |objSel|;
-	var valuesSel: seq<real> := mapSeq(objSel, (obj: Object) => obj.value, 0, numObjSel);
-	sum_real(valuesSel, 0, numObjSel)
+	var objSelected: seq<Object> := selectSeq(objects, areSelected, 0, objEndIdx);
+	var numSelected: nat := |objSelected|;
+	var valuesSelected: seq<real> := mapSeq(objSelected, (obj: Object) => obj.value, 0, numSelected);
+	sum_real(valuesSelected, 0, numSelected)
 }
 
-ghost predicate validSolution(objects: seq<Object>, objEndIdx: nat, maxWeight: nat, v: seq<bool>)
+ghost predicate ValidSolution(objects: seq<Object>, objEndIdx: nat, maxWeight: real, areSelected: seq<bool>)
 	requires objEndIdx <= |objects|
-	requires objEndIdx <= |v|
+	requires objEndIdx <= |areSelected|
 {
-	Weight(objects, objEndIdx, v) <= maxWeight
+	TotalWeight(objects, objEndIdx, areSelected) <= maxWeight
 }
 
-ghost predicate optimalSolution(objects: seq<Object>, objEndIdx: nat, availableWeight: nat, v: seq<bool>)
-	requires validInstance(objects,availableWeight)
+ghost predicate OptimalSolution(objects: seq<Object>, objEndIdx: nat, availableWeight: real, areSelected: seq<bool>)
+	requires ValidInstance(objects,availableWeight)
 	requires objEndIdx <= |objects|
-	requires objEndIdx <= |v|
-	requires validSolution(objects, objEndIdx, availableWeight, v)
+	requires objEndIdx <= |areSelected|
+	requires ValidSolution(objects, objEndIdx, availableWeight, areSelected)
 {
-	forall otherSolution: seq<bool> | objEndIdx <= |otherSolution| && validSolution(objects, objEndIdx, availableWeight, otherSolution) :: solutionValue(objects, objEndIdx, otherSolution) <= solutionValue(objects, objEndIdx, v)
+	forall otherSolution: seq<bool> | objEndIdx <= |otherSolution| && ValidSolution(objects, objEndIdx, availableWeight, otherSolution) :: SolutionValue(objects, objEndIdx, otherSolution) <= SolutionValue(objects, objEndIdx, areSelected)
 }
 
 
-method {:axiom} computeSolution(objects: array<Object>, maxWeight: int) returns (maxValue: real, objectAssign: array<bool>)
-	requires validInstance(objects[..],maxWeight)
+method {:axiom} ComputeSolution(objects: array<Object>, maxWeight: real) returns (maxValue: real, areSelected: array<bool>)
+	requires ValidInstance(objects[..],maxWeight)
 
-	ensures objectAssign.Length == objects.Length
-	ensures validSolution(objects[..], objects.Length, maxWeight, objectAssign[..])
-	ensures solutionValue(objects[..], objects.Length, objectAssign[..]) == maxValue
-	ensures optimalSolution(objects[..], objects.Length, maxWeight, objectAssign[..])
+	ensures areSelected.Length == objects.Length
+	ensures ValidSolution(objects[..], objects.Length, maxWeight, areSelected[..])
+	ensures SolutionValue(objects[..], objects.Length, areSelected[..]) == maxValue
+	ensures OptimalSolution(objects[..], objects.Length, maxWeight, areSelected[..])
 
 
 method Main() {
 	var objects: array<Object> := new Object[3][
-		Object(8, 1.0),
-		Object(2, 2.0),
-		Object(4, 3.0)
+		Object(8.0, 1.0),
+		Object(2.0, 2.0),
+		Object(4.0, 3.0)
 		];
 
-	var maxWeight: int := 8;
+	var maxWeight: real := 8.0;
 
-	var maxValue, objectAssign := computeSolution(objects, maxWeight);
+	var maxValue, areSelected := ComputeSolution(objects, maxWeight);
 
 	print "The bag admits a weight of: ", maxWeight, "\n";
 	print "The maximum value achievable is: ", maxValue, "\n";
 	print "By putting inside:\n";
 
-	var totalWeight := 0;
+	var totalWeight := 0.0;
 
-	for i: int := 0 to objectAssign.Length
+	for i: int := 0 to areSelected.Length
 	{
-		if(objectAssign[i]) {
+		if(areSelected[i]) {
 			print "Object ", i, " with weight ", objects[i].weight, " and value ", objects[i].value, "\n";
 			totalWeight := totalWeight + objects[i].weight;
 		}
