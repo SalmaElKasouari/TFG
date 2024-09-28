@@ -1,7 +1,4 @@
-20/09/2024
-*****************
-
-Notas sobre los tipos:
+NOTAS SOBRE LOS TIPOS
 1. Implementacion --> usar arrays y clases
     - Clase Solution y clase InputData.
 
@@ -11,6 +8,11 @@ Notas sobre los tipos:
 
 
 
+ALGORITMO
+Método KnapsackVA (en VA.dfy) es la implementación del la vuelta atrás que resuelve el problema de la mochila.
 
-- Hacer especificación general: usar la del knapsack de Daniel y añadirle la llamada que inicia la VA.
+Dudas:
+- Si no pongo ps.objectsAssign en el modifies bs" se queja ("modifies ps, ps.objectsAssign).
+- Clausula decreases
+- Postcondición de bs
 
