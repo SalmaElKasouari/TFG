@@ -1,4 +1,5 @@
 include "Solution.dfy"
+//include "Input.dfy"
 
 /*
 Método general que llama a la vuelta atrás. Se implementará de manera que el árbol de exploraciín sea un árbol 
@@ -6,70 +7,82 @@ binario, donde las etapas son los objetos que debemos tratar y las ramas represe
 
 Tenemos ps (partial solution) y bs (best solution) de entrada y salida. El ps se irá rellenando con la vuelta atrás,
 el bs guardará la mejor solución encontrada hasta el momento. Este último estará incializado a ceros, debido a que
-tratamos con un problema de maximización. 
-
-    Precondición ps: la solución parcial debe ser valida en todo momento (respetar las restricciones del problema).
-    Postcondición ps: tambien valid (?)
-
-    Precondición bs: bs debe ser valida (?)
-    Postcondición bs: no puede haber ninguna otra solución mejor que esta. El bs es lo máximo entre lo que me llega y lo que tengo por explorar.
-        bs = max (viejo bs, extension de ps actual)
+tratamos con un problema de maximización.
 
 */
 
+method KnapsackVA(items: array<Item>, maxWeight: real, ps: Solution, bs: Solution) returns (bestValue: real)
+  modifies ps, ps.itemsAssign, bs
 
-method KnapsackVA(ps: Solution, bs: Solution) returns (bestValue: real) 
-    modifies ps, ps.objectsAssign, bs
-    
-    requires ps.k >= 0 && ps.k < ps.objectsAssign.Length
-    requires ps.k >= 0 && ps.k < ps.objects.Length
+  //Precondiciones
+  requires 0 <= ps.k < ps.itemsAssign.Length
 
-    requires ps.ValidSolution()
-    ensures ps.ValidSolution() // (?)
+  requires ps.Valid(items, maxWeight) //en lugar de esto
+  //requires Input(items, maxWeight).Model(ps).Valid(Model(ps).) //se pondría algo como esto
 
-    requires bs.ValidSolution() // (?)
-    //ensures bs.ValidSolution() && bs.k == bs.objects.Length && bs.totalValue >= old(bs.totalValue) && bs.totalValue >= ps.totalValue
+  requires bs.Valid(items, maxWeight)
 
-    decreases ps.objects.Length - ps.k + 1
+
+  //Postcondiciones
+  ensures ps.Valid(items, maxWeight) //usar input
+  ensures bs.Valid(items, maxWeight) //usar input
+
+  ensures ps.itemsAssign == old(ps.itemsAssign)
+  ensures ps.k == old(ps.k)
+  ensures ps.totalValue == old(ps.totalValue)
+  ensures ps.totalWeight == old(ps.totalWeight)
+
+  ensures bs.totalValue >= old(bs.totalValue)
+  ensures bs.totalValue >= ps.totalValue
+  ensures bs.totalValue == old(bs.totalValue) || bs.totalValue > ps.totalValue
+  ensures bs.k <= items.Length
+  ensures bs.totalValue >= old(bs.totalValue)
+  ensures bs.totalWeight >= old(bs.totalWeight)
+  ensures bs.k == items.Length
+
+  decreases ps.itemsAssign.Length - ps.k + 1
 {
 
-    // RAMA SI COGEMOS EL OBJETO
-    ps.objectsAssign[ps.k] := true;
-    ps.totalWeight := ps.totalWeight + ps.objects[ps.k].weight; // marcar
-    ps.totalValue := ps.totalValue + ps.objects[ps.k].value; // marcar
-    ps.k := ps.k + 1; // marcar
-    if ps.ValidSolution() {
-        if (ps.k == ps.objects.Length) { // hemos tratado todos los objetos
-            if (ps.totalValue > bs.totalValue) {
-                bs.totalValue := ps.totalValue;
-                bs.totalWeight := ps.totalWeight;
-                bs.objectsAssign := ps.objectsAssign;
-                bs.k := ps.k;
-            }   
-        }    
-        else { // la solución es completable --> llamada recursiva
-           //bestValue := KnapsackVA(ps, bs);
-        }
+  // RAMA SI COGEMOS EL OBJETO
+  ps.itemsAssign[ps.k] := true;
+  ps.totalWeight := ps.totalWeight + items[ps.k].weight; // marcar
+  ps.totalValue := ps.totalValue + items[ps.k].value; // marcar
+  ps.k := ps.k + 1; // marcar
+  if ps.Valid(items, maxWeight) {
+    if (ps.k == items.Length) { // hemos tratado todos los objetos
+      if (ps.totalValue > bs.totalValue) {
+        bs.totalValue := ps.totalValue;
+        bs.totalWeight := ps.totalWeight;
+        bs.itemsAssign := ps.itemsAssign;
+        bs.k := ps.k;
+      }
     }
-    ps.k := ps.k - 1; // desmarcar
-    ps.totalWeight := ps.totalWeight - ps.objects[ps.k].weight; //desmarcar
-    ps.totalValue := ps.totalValue - ps.objects[ps.k].value; // desmarcar
-
-    
-    // RAMA NO COGEMOS EL OBJETO
-    ps.objectsAssign[ps.k] := false;
-    ps.k := ps.k + 1;
-    if (ps.k == ps.objects.Length) { // hemos tratado todos los objetos
-        if (ps.totalValue > bs.totalValue) {
-            bs.totalValue := ps.totalValue;
-            bs.totalWeight := ps.totalWeight;
-            bs.objectsAssign := ps.objectsAssign;
-            bs.k := ps.k;
-        }   
-    }    
     else { // la solución es completable --> llamada recursiva
-        //bestValue := KnapsackVA(ps, bs);
+      bestValue := KnapsackVA(items, maxWeight, ps, bs);
     }
-    
-    bestValue := bs.totalValue;
+  }
+  ps.k := ps.k - 1; // desmarcar
+  ps.totalWeight := ps.totalWeight - items[ps.k].weight; //desmarcar
+  ps.totalValue := ps.totalValue - items[ps.k].value; // desmarcar
+
+
+  // RAMA NO COGEMOS EL OBJETO
+  ps.itemsAssign[ps.k] := false;
+  ps.k := ps.k + 1;
+  if (ps.k == items.Length) { // hemos tratado todos los objetos
+    if (ps.totalValue > bs.totalValue) {
+      bs.totalValue := ps.totalValue;
+      bs.totalWeight := ps.totalWeight;
+      bs.itemsAssign := ps.itemsAssign;
+      bs.k := ps.k;
+    }
+  }
+  else { // la solución es completable --> llamada recursiva
+    bestValue := KnapsackVA(items, maxWeight, ps, bs);
+  }
+  ps.k := ps.k -1;
+
+  bestValue := bs.totalValue;
 }
+
+
