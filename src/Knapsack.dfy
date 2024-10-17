@@ -1,6 +1,8 @@
 include "Math.dfy"
 include "ContainersOps.dfy"
 include "Especificacion.dfy"
+include "Solution.dfy"
+include "VA.dfy"
 
 ghost predicate ValidInstance(items: seq<ItemData>, maxWeight: real)
 {       
@@ -58,6 +60,7 @@ method {:axiom} ComputeSolution(items: array<ItemData>, maxWeight: real) returns
 
 
 method Main() {
+	//Descripción del problema
 	var items: array<ItemData> := new ItemData[3][
 		ItemData(8.0, 1.0),
 		ItemData(2.0, 2.0),
@@ -66,21 +69,36 @@ method Main() {
 
 	var maxWeight: real := 8.0;
 
-	var maxValue, itemsAssign := ComputeSolution(items, maxWeight);
+	// Elementos para resolver el problema
+
+	// Partial solution (ps)
+	var itemsAssign: array<bool> := new bool[3][
+		false,
+		false,
+		false
+		];
+  	var totalValue: real := 0.0;
+  	var totalWeight: real := 0.0;
+  	var k: int := 0;
+	var ps := new Solution(itemsAssign, totalValue, totalWeight, k);
+
+	// Best solution (bs)
+	var itemsAssign2: array<bool>:= new bool[3][
+		false,
+		false,
+		false
+		];
+  	var totalValue2: real := 0.0;
+  	var totalWeight2: real := 0.0;
+  	var k2: int := 0;
+	var bs := new Solution(itemsAssign2, totalValue2, totalWeight2, k2);
+
+	//Quiero que sea void pero method pide un retorno
+	var maxValue := KnapsackVA(items, maxWeight, ps, bs); //problema, se espera array<Item> no de array<ItemData>
 
 	print "The bag admits a weight of: ", maxWeight, "\n";
 	print "The maximum value achievable is: ", maxValue, "\n";
 	print "By putting inside:\n";
 
-	var totalWeight := 0.0;
-
-	for i: int := 0 to itemsAssign.Length
-	{
-		if(itemsAssign[i]) {
-			print "ItemData ", i, " with weight ", items[i].weight, " and value ", items[i].value, "\n";
-			totalWeight := totalWeight + items[i].weight;
-		}
-	}
-
-	print "\nTotal weight: ", totalWeight, "\n";
+	print "\nTotal weight: ", bs.totalWeight, "\n";
 }

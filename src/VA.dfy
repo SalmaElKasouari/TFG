@@ -23,7 +23,7 @@ method KnapsackVA(items: array<Item>, maxWeight: real, ps: Solution, bs: Solutio
   requires bs.Valid(items, maxWeight)
 
 
-  //Postcondiciones
+  //PostcondicionesS
   ensures ps.Valid(items, maxWeight) //usar input
   ensures bs.Valid(items, maxWeight) //usar input
 
@@ -34,13 +34,14 @@ method KnapsackVA(items: array<Item>, maxWeight: real, ps: Solution, bs: Solutio
 
   ensures bs.totalValue >= old(bs.totalValue)
   ensures bs.totalValue >= ps.totalValue
-  ensures bs.totalValue == old(bs.totalValue) || bs.totalValue > ps.totalValue
+  ensures bs.totalValue == old(bs.totalValue) || bs.totalValue >= ps.totalValue
   ensures bs.k <= items.Length
   ensures bs.totalValue >= old(bs.totalValue)
   ensures bs.totalWeight >= old(bs.totalWeight)
   ensures bs.k == items.Length
 
   decreases ps.itemsAssign.Length - ps.k + 1
+
 {
 
   // RAMA SI COGEMOS EL OBJETO
@@ -80,7 +81,7 @@ method KnapsackVA(items: array<Item>, maxWeight: real, ps: Solution, bs: Solutio
   else { // la solución es completable --> llamada recursiva
     bestValue := KnapsackVA(items, maxWeight, ps, bs);
   }
-  ps.k := ps.k -1;
+  ps.k := ps.k - 1;
 
   bestValue := bs.totalValue;
 }

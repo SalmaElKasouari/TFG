@@ -1,3 +1,5 @@
+include "Especificacion.dfy"
+
 class Item {
   const weight: real
   const value:  real
@@ -11,6 +13,8 @@ class Item {
     this.weight > 0.0 && this.value > 0.0
   }
 
-
+  ghost function Model() : ItemData {
+    ItemData(this.weight, this.value)
+  }
 
 }

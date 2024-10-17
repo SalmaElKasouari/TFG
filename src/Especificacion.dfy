@@ -6,11 +6,13 @@ datatype ItemData = ItemData(weight: real, value: real) {
   }
 }
 
+datatype InputData = InputData(itemsD: seq<ItemData>, maxWeight: real)
+
 datatype SolutionData = SolutionData(itemsAssign: seq<bool>, totalWeight: real, totalValue: real, k: int) {
-  ghost function Valid(itemsD: seq<ItemData>, maxWeight: real) : bool {
+  ghost predicate Valid(input: InputData){
     0 <= k <= |itemsAssign| &&
-    |itemsAssign| == |itemsD|
-    && totalWeight <= maxWeight    
+    |itemsAssign| == |input.itemsD|
+    && totalWeight <= input.maxWeight    
   }
 
 }

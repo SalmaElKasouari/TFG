@@ -13,7 +13,7 @@ class Input {
         this.maxWeight := maxWeight;
     }
 
-    /*Dada un solution la transforma en un solutionData */
+    /* Dada un solution la transforma en un solutionData */
     method Model(solution: Solution) returns (sd: SolutionData)
         requires solution.Valid(this.items, this.maxWeight) //necesitamos que la solucion sea valida
     {
@@ -43,4 +43,10 @@ class Input {
     //      |sd.itemsAssign| == items.Length &&
     //      sd.totalWeight <= maxWeight
     // }
+
+    ghost function Model() : InputData 
+        reads this, items
+    {
+        InputData(seq (items.Length, i reads this, items requires 0 <= i < items.Length => items[i].Model()) , maxWeight)
+    }
 }
