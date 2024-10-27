@@ -1,7 +1,5 @@
-include "Math.dfy"
-include "ContainersOps.dfy"
-include "Especificacion.dfy"
-include "Solution.dfy"
+include "../../Math.dfy"
+include "../../ContainersOps.dfy"
 include "VA.dfy"
 include "Input.dfy"
 
@@ -50,7 +48,7 @@ method Main() {
   	var k2: int := 0;
 	var bs := new Solution(itemsAssign2, totalValue2, totalWeight2, k2);
 
-	KnapsackVA(input, ps, bs);
+	//KnapsackVA(input, ps, bs);
 
 	print "The bag admits a weight of: ", maxWeight, "\n";
 	print "The maximum value achievable is: ", bs.totalValue, "\n";

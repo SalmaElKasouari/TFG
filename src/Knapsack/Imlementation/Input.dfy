@@ -1,5 +1,5 @@
-include "Solution.dfy"
-include "Especificacion.dfy"
+include "Item.dfy"
+include "../Specification/InputData.dfy"
 
 class Input {
   var items: array<Item>

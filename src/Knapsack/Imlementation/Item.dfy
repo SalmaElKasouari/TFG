@@ -1,4 +1,4 @@
-include "Especificacion.dfy"
+include "../Specification/ItemData.dfy"
 
 class Item {
   const weight: real

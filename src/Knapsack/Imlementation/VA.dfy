@@ -1,3 +1,4 @@
+
 include "Solution.dfy"
 include "Input.dfy"
 
@@ -11,26 +12,24 @@ tratamos con un problema de maximización.
 
 */
 
-method KnapsackVA(input: Input, ps: Solution, bs: Solution)
-  modifies ps, ps.itemsAssign, bs
+method KnapsackVA(input: Input, ps: Solution, bs: Solution) //poner o no (bs : Solution?)
+  modifies ps, ps.itemsAssign, bs, bs.itemsAssign
 
   //Precondiciones
   requires input.Valid()
-  requires 0 <= ps.k < ps.itemsAssign.Length
-
-  requires ps.Valid(input)  
-  requires bs.Valid(input)
-
+  requires ps.Partial(input)  
+  //requires bs.Valid() no tiene sentido si bs puede venir como null (bs : Solution?)
 
   //Postcondiciones
-  ensures ps.Valid(input)
+  ensures ps.Partial(input)
   ensures bs.Valid(input)
 
-  ensures ps.itemsAssign == old(ps.itemsAssign)
-  ensures ps.k == old(ps.k)
-  ensures ps.totalValue == old(ps.totalValue)
-  ensures ps.totalWeight == old(ps.totalWeight)
+  ensures ps.Model().itemsAssign == old(ps.Model().itemsAssign)
+  ensures ps.Model().k == old(ps.k)
+  ensures ps.Model().TotalValue(input.Model().items) == old(ps.Model().TotalValue(input.Model().items))
+  ensures ps.Model().TotalWeight(input.Model().items) == old(ps.Model().TotalWeight(input.Model().items))
 
+  // Lo de abajo lo modifico cuando haga lo de OptimalExtension
   ensures bs.totalValue >= old(bs.totalValue)
   ensures bs.totalValue >= ps.totalValue
   ensures bs.totalValue == old(bs.totalValue) || bs.totalValue >= ps.totalValue
@@ -39,12 +38,17 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
   ensures bs.totalWeight >= old(bs.totalWeight)
   ensures bs.k == input.items.Length
 
-  decreases ps.itemsAssign.Length - ps.k + 1
+  // Función de cota
+  decreases ps.Bound()
 
 {
+
   // Asertos para comprobar que sean valid las solutions
-  assert ps.Valid(input);
-  assert bs.Valid(input);
+  assert ps.Partial(input); 
+  assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight;
+  assert ps.Model().TotalValue(input.Model().items) == ps.totalValue;
+  // aquí bien, pero despues de modificar campos de ps falla valid
+
 
   // RAMA SI COGEMOS EL OBJETO
   ps.itemsAssign[ps.k] := true;
@@ -52,11 +56,12 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
   ps.totalValue := ps.totalValue + input.items[ps.k].value; // marcar
   ps.k := ps.k + 1; // marcar
 
-  assert input.Valid(); //ok
+  assert input.Valid(); //ok, porque no se modifica
   assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight; //ver
-  assert ps.Model().Value(input.Model().items) == ps.totalValue; //ver
+  
+  assert ps.Model().TotalValue(input.Model().items) == ps.totalValue; //ver
 
-  assert ps.Valid(input); //falla por 56 y 57, ver funciones con detalle
+  assert ps.Valid(input); //falla por 59 y 61, ver funciones con detalle
   
   
   assume false;
