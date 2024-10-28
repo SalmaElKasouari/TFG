@@ -17,15 +17,22 @@ Método KnapsackVA (en VA.dfy) es la implementación del la vuelta atrás que re
 
 Mundo de la implementación
 - Item
+- Input
 - Solution
-
 
 Mundo de la especificación
 - ItemData
 - InputData
+- SolutionData
 
-Mundo intermedio
-- Input
+Model() --> transforma datos de la implementación a la especificación
 
-model() --> transforma un array del mundo de la implementación a una secuencia (seq) del mundo de la especificación
+----------------------------
+28/10/2024
+
+Partial() --> una solución parcial es válida
+Valid() --> una solución final (completa) es válida
+
+bs.Optimal() --> bs es mejor que cualquier otra solución
+bs.OptimalExtension(ps, input) ---> Para todo ps' que esxtiende a ps, bs es mejor que ps' (en términos de Value)
 

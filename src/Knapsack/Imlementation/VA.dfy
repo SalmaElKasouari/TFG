@@ -29,13 +29,11 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution) //poner o no (bs : S
   ensures ps.Model().TotalValue(input.Model().items) == old(ps.Model().TotalValue(input.Model().items))
   ensures ps.Model().TotalWeight(input.Model().items) == old(ps.Model().TotalWeight(input.Model().items))
 
-  // Lo de abajo lo modifico cuando haga lo de OptimalExtension
-  ensures bs.totalValue >= old(bs.totalValue)
-  ensures bs.totalValue >= ps.totalValue
-  ensures bs.totalValue == old(bs.totalValue) || bs.totalValue >= ps.totalValue
-  ensures bs.k <= input.items.Length
-  ensures bs.totalValue >= old(bs.totalValue)
-  ensures bs.totalWeight >= old(bs.totalWeight)
+  
+  ensures forall s : Solution | s.Model().OptimalExtension(ps.Model(), input.Model()) :: s.Model().TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items)
+  ensures bs.Model().TotalWeight(input.Model().items) >= old(bs.Model().TotalWeight(input.Model().items))
+  ensures bs.Model().TotalValue(input.Model().items) >= old(bs.Model().TotalValue(input.Model().items))
+  ensures bs.Model().TotalValue(input.Model().items) == old(bs.Model().TotalValue(input.Model().items)) || bs.Model().TotalValue(input.Model().items) >= old(bs.Model().TotalValue(input.Model().items)) //o no se ha modificado, o se ha encontrado un nuevo valor mejor
   ensures bs.k == input.items.Length
 
   // Función de cota

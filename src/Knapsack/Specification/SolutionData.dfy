@@ -44,6 +44,18 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     forall otherSolution: SolutionData | otherSolution.Valid(input) :: otherSolution.TotalValue(input.items) <= TotalValue(input.items)
   }
 
-  
+  ghost predicate Extends(ps : SolutionData) // ps es prefijo de ps' (el que llama a la función), (ps y ps' iguales hasta k)
+    requires |this.itemsAssign| == |ps.itemsAssign|
+  { 
+    forall i :: 0 <= i < this.k ==> this.itemsAssign[i] == ps.itemsAssign[i]
+  }
+
+  ghost predicate OptimalExtension(ps : SolutionData, input : InputData)
+    requires ps.Partial(input)
+    requires input.Valid()
+  {
+    && this.Extends(ps)
+    && forall s | s.Valid(input) && s.Extends(ps) :: s.TotalValue(input.items) <= this.TotalValue(input.items)
+  }
   
 }
