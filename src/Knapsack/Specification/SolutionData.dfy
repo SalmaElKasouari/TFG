@@ -32,9 +32,8 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   }
 
   ghost predicate Valid(input: InputData){
-    && 0 <= k <= |itemsAssign| 
-    && |itemsAssign| == |input.items|
-    && this.TotalWeight(input.items) <= input.maxWeight
+    && k == |itemsAssign| 
+    && Partial(input)
   }
 
   ghost predicate Optimal(input: InputData)
@@ -46,16 +45,28 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
   ghost predicate Extends(ps : SolutionData) // ps es prefijo de ps' (el que llama a la función), (ps y ps' iguales hasta k)
     requires |this.itemsAssign| == |ps.itemsAssign|
+    requires this.k <= |this.itemsAssign|
+    requires ps.k <= this.k 
   { 
-    forall i :: 0 <= i < this.k ==> this.itemsAssign[i] == ps.itemsAssign[i]
+    forall i | 0 <= i < ps.k :: this.itemsAssign[i] == ps.itemsAssign[i]
   }
 
   ghost predicate OptimalExtension(ps : SolutionData, input : InputData)
-    requires ps.Partial(input)
-    requires input.Valid()
+    requires input.Valid()  
   {
+    && this.Valid(input)
+    && ps.Partial(input) 
     && this.Extends(ps)
-    && forall s | s.Valid(input) && s.Extends(ps) :: s.TotalValue(input.items) <= this.TotalValue(input.items)
+    && forall s : SolutionData | s.Valid(input) && s.Extends(ps) :: s.TotalValue(input.items) <= this.TotalValue(input.items)
+  }
+
+  ghost predicate equalsSolutions(s : SolutionData)
+    requires |this.itemsAssign| == |s.itemsAssign|
+    requires this.k <= |this.itemsAssign|
+    requires s.k <= |s.itemsAssign| 
+  { 
+    && this.k == s.k
+    && forall i | 0 <= i < this.k :: this.itemsAssign[i] == s.itemsAssign[i]
   }
   
 }

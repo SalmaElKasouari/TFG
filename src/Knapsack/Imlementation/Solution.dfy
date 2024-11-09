@@ -14,27 +14,21 @@ class Solution {
     this.totalWeight := totalW;
     this.k := k';
   }
-
-  ghost predicate ValidateElements(input : Input) //pongo esta función porque es comun para Valid y Partial
-    reads this, itemsAssign, input, input.items
-  {
+ 
+  ghost predicate Partial (input : Input)
+    reads this, this.itemsAssign, input, input.items
+  {    
+    && 0 <= this.k <= this.itemsAssign.Length
     && Model().Valid(input.Model())
     && Model().TotalWeight(input.Model().items) == totalWeight
     && Model().TotalValue(input.Model().items) == totalValue
   }
 
-  ghost predicate Partial (input : Input)
-    reads this, itemsAssign, input, input.items
-  {
-    && 0 <= this.k < this.itemsAssign.Length
-    && ValidateElements(input)
-  }
-
   ghost predicate Valid (input : Input) // solución completa (final)
-    reads this, itemsAssign, input, input.items
+    reads this, this.itemsAssign, input, input.items
   {
     && this.k == this.itemsAssign.Length
-    && ValidateElements(input)
+    && Partial(input)
   }
 
   ghost function Model() : SolutionData
@@ -44,7 +38,7 @@ class Solution {
   }
 
   ghost predicate Optimal(input: Input)
-    reads this, itemsAssign, input, input.items
+    reads this, this.itemsAssign, input, input.items
 
     requires this.Valid(input)  // que la solución que llama al predicado sea completa --> valid
     requires input.Valid() // la entrada debe ser valida
@@ -58,8 +52,34 @@ class Solution {
     this.itemsAssign.Length - this.k + 1
   }
 
-  //Extends
-  //OptimalExtension
+  ghost predicate Extends(ps : Solution)
+    reads this, this.itemsAssign, ps, ps.itemsAssign
+
+    requires this.itemsAssign.Length == ps.itemsAssign.Length
+    requires this.k <= this.itemsAssign.Length   
+    requires ps.k <= this.k
+  {
+    this.Model().Extends(ps.Model())
+  }
+
+  ghost predicate OptimalExtension(ps : Solution, input : Input)
+    reads this, this.itemsAssign, ps, ps.itemsAssign, input, input.items
+    
+    requires input.Valid()
+  {
+    this. Model().OptimalExtension(ps.Model(), input.Model())
+  }
+
+  ghost predicate equalsSolutions(ps : Solution)
+    reads this, this.itemsAssign, ps, ps.itemsAssign
+
+    requires this.itemsAssign.Length == ps.itemsAssign.Length
+    requires this.k <= this.itemsAssign.Length
+    requires ps.k <= ps.itemsAssign.Length
+    requires ps.k == this.k   
+  {
+    this.Model().equalsSolutions(ps.Model())
+  }
 
 
 }

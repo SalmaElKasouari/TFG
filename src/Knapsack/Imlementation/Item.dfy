@@ -9,12 +9,19 @@ class Item {
     this.value := v;
   }
 
-  ghost predicate Valid () {
+    ghost function Model() : ItemData
+    reads this
+  {
+    ItemData(this.weight, this.value)
+  }
+
+  ghost predicate Valid ()
+    reads this
+  {
+    //this.Model().Valid()
     this.weight > 0.0 && this.value > 0.0
   }
 
-  ghost function Model() : ItemData {
-    ItemData(this.weight, this.value)
-  }
+
 
 }
