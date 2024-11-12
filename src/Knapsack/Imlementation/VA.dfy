@@ -25,19 +25,21 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
   
   //Postcondiciones
   ensures ps.Model().Partial(input.Model()) //dentro ya comprueba ps.itemsAssign.Length == input.items.Length
-  ensures ps.Model().equalsSolutions(old(ps.Model())) // las ps actual y antigua deben ser iguales hasta la k
+  ensures ps.Model().equals(old(ps.Model())) // las ps actual y antigua deben ser iguales hasta la k
   
   //La mejor solución debe ser válida
   ensures bs.Model().Valid(input.Model()) //dentro ya comprueba bs.itemsAssign.Length == input.items.Length
   
   //La mejor solución deber ser una extension optima de ps 
-  ensures bs.Model().OptimalExtension(ps.Model(), input.Model())
+  ensures bs.Model().OptimalExtension(ps.Model(), input.Model()) || bs.Model().equals(old(bs.Model()))
 
   //Cualquier extension optima de ps, su valor debe ser menor o igual que la mejor solucion (bs).
   ensures forall s : Solution | s.Model().OptimalExtension(ps.Model(), input.Model()) :: s.Model().TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items) // Esta postcond Dafny no la puede verificar porque no hay cuerpo del metodo supongo
 
   // Si bs cambia, su nuevo valor total debe ser mayor o igual al valor anterior
   ensures bs.Model().TotalValue(input.Model().items) >= old(bs.Model().TotalValue(input.Model().items))
+
+  //Se deduce que bs es el maximo de ( ,)
 
 {
 

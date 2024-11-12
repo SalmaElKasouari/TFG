@@ -7,7 +7,7 @@ include "Input.dfy"
 	El método ComputeSolution toma un input y calcula la solución óptima mediante la llamada a un método de 
 	vuelta atrás (KnapsackVA).
  */
-method {:axiom} ComputeSolution(input: Input) returns (solution: Solution)
+method ComputeSolution(input: Input) returns (solution: Solution)
 	requires input.Model().Valid()
 
 	ensures solution.Valid(input)
@@ -17,20 +17,20 @@ method {:axiom} ComputeSolution(input: Input) returns (solution: Solution)
 	var size := input.items.Length;
 
 	// Construir partial solution (ps)
-	var itemsAssign: array<bool> := new bool[size]; //se inicializan a falsos por defecto
+	var itemsAssign: array<bool> := new bool[size](i => false); //se inicializan a falsos por defecto, inicializarlos a false
   	var totalValue: real := 0.0;
   	var totalWeight: real := 0.0;
   	var k: int := 0;
 	var ps := new Solution(itemsAssign, totalValue, totalWeight, k);
-	//assert ps.Partial(input);
+	assert ps.Partial(input);
 
 	// Construir best solution (bs)
-	var itemsAssign2: array<bool> := new bool[size]; //se inicializan a falsos por defecto
+	var itemsAssign2: array<bool> := new bool[size](i => false); //se inicializan a falsos por defecto
   	var totalValue2: real := 0.0;
   	var totalWeight2: real := 0.0;
   	var k2: int := size;
 	var bs := new Solution(itemsAssign2, totalValue2, totalWeight2, k2);
-	//assert bs.Partial(input);
+	assert bs.Valid(input);
 
 	KnapsackVA(input, ps, bs);
 

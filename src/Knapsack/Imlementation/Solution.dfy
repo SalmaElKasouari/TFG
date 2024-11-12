@@ -8,18 +8,27 @@ class Solution {
   var totalWeight: real
   var k: nat
 
-  constructor(itemsAssign: array<bool>, totalV: real, totalW: real, k': nat) {
+  constructor(itemsAssign: array<bool>, totalV: real, totalW: real, k': nat) 
+    //constructor con nombre requires campo a campo 
+    ensures itemsAssign == this.itemsAssign
+    ensures this.totalValue == totalV
+    ensures this.totalWeight == totalW
+    ensures this.k == k'
+
+  {
     this.itemsAssign := itemsAssign;
     this.totalValue := totalV;
     this.totalWeight := totalW;
     this.k := k';
   }
+
+  
  
   ghost predicate Partial (input : Input)
     reads this, this.itemsAssign, input, input.items
   {    
     && 0 <= this.k <= this.itemsAssign.Length
-    && Model().Valid(input.Model())
+    && Model().Partial(input.Model())
     && Model().TotalWeight(input.Model().items) == totalWeight
     && Model().TotalValue(input.Model().items) == totalValue
   }
@@ -67,7 +76,7 @@ class Solution {
     
     requires input.Valid()
   {
-    this. Model().OptimalExtension(ps.Model(), input.Model())
+    this.Model().OptimalExtension(ps.Model(), input.Model())
   }
 
   ghost predicate equalsSolutions(ps : Solution)
@@ -78,7 +87,7 @@ class Solution {
     requires ps.k <= ps.itemsAssign.Length
     requires ps.k == this.k   
   {
-    this.Model().equalsSolutions(ps.Model())
+    this.Model().equals(ps.Model())
   }
 
 

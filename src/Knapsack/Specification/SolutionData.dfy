@@ -60,7 +60,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     && forall s : SolutionData | s.Valid(input) && s.Extends(ps) :: s.TotalValue(input.items) <= this.TotalValue(input.items)
   }
 
-  ghost predicate equalsSolutions(s : SolutionData)
+  ghost predicate equals(s : SolutionData)
     requires |this.itemsAssign| == |s.itemsAssign|
     requires this.k <= |this.itemsAssign|
     requires s.k <= |s.itemsAssign| 
