@@ -9,12 +9,10 @@ class Solution {
   var k: nat
 
   constructor(itemsAssign: array<bool>, totalV: real, totalW: real, k': nat) 
-    //constructor con nombre requires campo a campo 
     ensures itemsAssign == this.itemsAssign
     ensures this.totalValue == totalV
     ensures this.totalWeight == totalW
     ensures this.k == k'
-
   {
     this.itemsAssign := itemsAssign;
     this.totalValue := totalV;
@@ -22,7 +20,15 @@ class Solution {
     this.k := k';
   }
 
-  
+  lemma SumOfFalsesEqualsZero(input : Input)
+    requires k <= itemsAssign.Length
+    requires itemsAssign.Length == input.items.Length
+    requires forall i | 0 <= i < itemsAssign.Length :: !itemsAssign[i]   
+
+    ensures  Model().TotalWeight(input.Model().items) == 0.0
+  {
+    // demostración
+  }
  
   ghost predicate Partial (input : Input)
     reads this, this.itemsAssign, input, input.items

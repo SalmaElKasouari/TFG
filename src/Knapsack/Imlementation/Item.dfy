@@ -4,7 +4,10 @@ class Item {
   const weight: real
   const value:  real
 
-  constructor(w: real, v: real) {
+  constructor(w: real, v: real) 
+    ensures this.weight == w
+    ensures this.value == v
+  {
     this.weight := w;
     this.value := v;
   }

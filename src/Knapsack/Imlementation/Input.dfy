@@ -5,7 +5,10 @@ class Input {
   var items: array<Item>
   var maxWeight: real
 
-  constructor(items: array<Item>, maxWeight: real) {
+  constructor(items: array<Item>, maxWeight: real) 
+    ensures this.items == items
+    ensures this.maxWeight == maxWeight
+  {
     this.items := items;
     this.maxWeight := maxWeight;
   }
