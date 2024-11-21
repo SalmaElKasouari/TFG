@@ -7,56 +7,48 @@ include "Input.dfy"
 	El método ComputeSolution toma un input y calcula la solución óptima mediante la llamada a un método de 
 	vuelta atrás (KnapsackVA).
  */
-method ComputeSolution(input: Input) returns (solution: Solution) //llamarlo bs
-	requires input.Model().Valid()
+method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
+	requires input.Valid()
 
-	ensures solution.Valid(input)
-	ensures solution.Optimal(input)
+	ensures bs.Valid(input)
+	ensures bs.Optimal(input)
 	
 {
-	// assert solution.Valid(input) by {
-	// 	assert solution.k == solution.itemsAssign.Length;
-    // 	assert solution.Partial(input);
-	// }
 
-	// assert solution.Model().Optimal(input.Model()) by {
-	// 	assert input.Valid(); //ok
-	// 	assert solution.Valid(input); 
-	// }
 
 	var size := input.items.Length;
 
 	// Construir partial solution (ps)
-	var itemsAssign: array<bool> := new bool[size](i => false);
-  	var totalValue: real := 0.0;
-  	var totalWeight: real := 0.0;
-  	var k: int := 0;
-	var ps := new Solution(itemsAssign, totalValue, totalWeight, k);
+	var ps_itemsAssign: array<bool> := new bool[size](i => false);
+  	var ps_totalValue: real := 0.0;
+  	var ps_totalWeight: real := 0.0;
+  	var ps_k: int := 0;
+	var ps := new Solution(ps_itemsAssign, ps_totalValue, ps_totalWeight, ps_k);
 	ghost var oldpsmodel := ps.Model();
 	assert ps.Partial(input) by {
 		assert ps.Model().Partial(input.Model()); // ok
 	}
 
-	// Construir best solution (bs)
-	var itemsAssign2: array<bool> := new bool[size](i => false);
-  	var totalValue2: real := 0.0;
-  	var totalWeight2: real := 0.0;
-  	var k2: int := size;
-	var bs := new Solution(itemsAssign2, totalValue2, totalWeight2, k2);
+	// Construir best solution (bs) SE PUEDE PONER CONSTRUCTOR VACIO Y LLAMARLO EN UNA LINEA 
+	var bs_itemsAssign: array<bool> := new bool[size](i => false);
+  	var bs_totalValue: real := 0.0;
+  	var bs_totalWeight: real := 0.0;
+  	var bs_k: int := size;
+	bs := new Solution(bs_itemsAssign, bs_totalValue, bs_totalWeight, bs_k);
 	ghost var oldbsmodel := bs.Model();
 
 	assert bs.Valid(input) by {
 		bs.Model().SumOfFalsesEqualsZero(input.Model());	
 	}
 	KnapsackVA(input, ps, bs);
-	solution := bs;
 
-	
-	//Ver las postcondiciones de KnapsackVA corresponden con las postcondiciones de ComputeSolution:	
-	// 1) La primera postcondición es trivial, si conseguimos verificar que bs.Valid() es verdadero, solution también lo será (hacemos solution := bs)
+		
+	// 1) La primera postcondición es trivial, ya que hay una poscondición en VA que asegura que bs es valid
 
-
-	assert bs.Model().Optimal(input.Model()) by {
+	/*
+	* Demostración de bs.Optimal() a partir de las otras poscondiciones sobre bs que encontramos en VA
+	*/
+	assert bs.Optimal(input) by {
 		forall otherSolution: SolutionData | otherSolution.Valid(input.Model()) 
 		ensures otherSolution.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items) {
 			assert otherSolution.Extends(ps.Model());			

@@ -57,34 +57,7 @@ class Solution {
     this.itemsAssign.Length - this.k + 1
   }
 
-  ghost predicate Extends(ps : Solution)
-    reads this, this.itemsAssign, ps, ps.itemsAssign
-
-    requires this.itemsAssign.Length == ps.itemsAssign.Length
-    requires this.k <= this.itemsAssign.Length   
-    requires ps.k <= this.k
-  {
-    this.Model().Extends(ps.Model())
-  }
-
-  ghost predicate OptimalExtension(ps : Solution, input : Input)
-    reads this, this.itemsAssign, ps, ps.itemsAssign, input, input.items
-    
-    requires input.Valid()
-  {
-    this.Model().OptimalExtension(ps.Model(), input.Model())
-  }
-
-  ghost predicate equalsSolutions(ps : Solution)
-    reads this, this.itemsAssign, ps, ps.itemsAssign
-
-    requires this.itemsAssign.Length == ps.itemsAssign.Length
-    requires this.k <= this.itemsAssign.Length
-    requires ps.k <= ps.itemsAssign.Length
-    requires ps.k == this.k   
-  {
-    this.Model().equals(ps.Model())
-  }
+  
 
 
 }

@@ -31,10 +31,9 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
   ensures bs.Valid(input) //dentro ya comprueba bs.itemsAssign.Length == input.items.Length
   
   //La mejor solución deber ser una extension optima de ps 
-  ensures bs.OptimalExtension(ps, input) || bs.Model().equals(old(bs.Model()))
+  ensures bs.Model().OptimalExtension(ps.Model(), input.Model()) || bs.Model().equals(old(bs.Model()))
 
   //Cualquier extension optima de ps, su valor debe ser menor o igual que la mejor solucion (bs).
-  
   ensures forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) :: s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items) // Esta postcond Dafny no la puede verificar porque no hay cuerpo del metodo supongo
 
   // Si bs cambia, su nuevo valor total debe ser mayor o igual al valor anterior
