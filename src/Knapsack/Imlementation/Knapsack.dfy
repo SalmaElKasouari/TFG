@@ -32,6 +32,7 @@ method ComputeSolution(input: Input) returns (solution: Solution) //llamarlo bs
   	var totalWeight: real := 0.0;
   	var k: int := 0;
 	var ps := new Solution(itemsAssign, totalValue, totalWeight, k);
+	ghost var oldpsmodel := ps.Model();
 	assert ps.Partial(input) by {
 		assert ps.Model().Partial(input.Model()); // ok
 	}
@@ -42,25 +43,10 @@ method ComputeSolution(input: Input) returns (solution: Solution) //llamarlo bs
   	var totalWeight2: real := 0.0;
   	var k2: int := size;
 	var bs := new Solution(itemsAssign2, totalValue2, totalWeight2, k2);
-	
+	ghost var oldbsmodel := bs.Model();
+
 	assert bs.Valid(input) by {
-		assert bs.k == bs.itemsAssign.Length;
-		assert bs.Partial(input) by {
-			assert 0 <= bs.k <= bs.itemsAssign.Length;
-			assert bs.Model().Partial(input.Model()) by {
-				assert 0 <= bs.k <= bs.itemsAssign.Length;
-				assert itemsAssign.Length == input.items.Length;
-				assert bs.Model().TotalWeight(input.Model().items) <= input.maxWeight by {
-					bs.Model().SumOfFalsesEqualsZero(input.Model()); // lemma suma falsos = 0
-				}
-			}			
-			assert bs.Model().TotalWeight(input.Model().items) == bs.totalWeight by {
-				bs.Model().SumOfFalsesEqualsZero(input.Model());
-			}
-			assert bs.Model().TotalValue(input.Model().items) == bs.totalValue by {
-				bs.Model().SumOfFalsesEqualsZero(input.Model());
-			}
-		}		
+		bs.Model().SumOfFalsesEqualsZero(input.Model());	
 	}
 	KnapsackVA(input, ps, bs);
 	solution := bs;
@@ -68,35 +54,14 @@ method ComputeSolution(input: Input) returns (solution: Solution) //llamarlo bs
 	
 	//Ver las postcondiciones de KnapsackVA corresponden con las postcondiciones de ComputeSolution:	
 	// 1) La primera postcondición es trivial, si conseguimos verificar que bs.Valid() es verdadero, solution también lo será (hacemos solution := bs)
-	assert bs.Valid(input) by {
-		assert bs.k == bs.itemsAssign.Length;
-		assert bs.Partial(input) by {
-			assert 0 <= bs.k <= bs.itemsAssign.Length;
-			assert bs.Model().Partial(input.Model()) by {
-				assert 0 <= bs.k <= bs.itemsAssign.Length;
-				assert itemsAssign.Length == input.items.Length;
-				assert bs.Model().TotalWeight(input.Model().items) <= input.maxWeight by {
-					bs.Model().SumOfFalsesEqualsZero(input.Model()); // lemma suma falsos = 0
-				}
-			}			
-			assert bs.Model().TotalWeight(input.Model().items) == bs.totalWeight by {
-				bs.Model().SumOfFalsesEqualsZero(input.Model());
-			}
-			assert bs.Model().TotalValue(input.Model().items) == bs.totalValue by {
-				bs.Model().SumOfFalsesEqualsZero(input.Model());
-			}
-		}		
+
+
+	assert bs.Model().Optimal(input.Model()) by {
+		forall otherSolution: SolutionData | otherSolution.Valid(input.Model()) 
+		ensures otherSolution.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items) {
+			assert otherSolution.Extends(ps.Model());			
+		}
 	}
-
-	assert solution.Valid(input); // 
-	// 2) La segunda postcondición necesita un lemma
-	//lemma para inferir la siguiente postcond
-	assert bs.Optimal(input);
-	assert solution.Optimal(input);
-
-	// forall s : SolutionData {   Esto se usar para el lema de optimal
-	// 	lemma
-	// }
 }
 
 
