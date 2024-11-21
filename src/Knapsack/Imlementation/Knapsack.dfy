@@ -51,30 +51,50 @@ method ComputeSolution(input: Input) returns (solution: Solution) //llamarlo bs
 				assert 0 <= bs.k <= bs.itemsAssign.Length;
 				assert itemsAssign.Length == input.items.Length;
 				assert bs.Model().TotalWeight(input.Model().items) <= input.maxWeight by {
-					bs.SumOfFalsesEqualsZero(input); // lemma suma falsos = 0
+					bs.Model().SumOfFalsesEqualsZero(input.Model()); // lemma suma falsos = 0
 				}
+			}			
+			assert bs.Model().TotalWeight(input.Model().items) == bs.totalWeight by {
+				bs.Model().SumOfFalsesEqualsZero(input.Model());
 			}
-			assume false;
-			//lemma suma falsos = 0
-			assert bs.Model().TotalWeight(input.Model().items) == bs.totalWeight; //error
-			assert bs.Model().TotalValue(input.Model().items) == bs.totalValue; //error
-		}
-		
+			assert bs.Model().TotalValue(input.Model().items) == bs.totalValue by {
+				bs.Model().SumOfFalsesEqualsZero(input.Model());
+			}
+		}		
 	}
-	//KnapsackVA(input, ps, bs);
+	KnapsackVA(input, ps, bs);
 	solution := bs;
 
 	
 	//Ver las postcondiciones de KnapsackVA corresponden con las postcondiciones de ComputeSolution:	
-	// 1) La primera postcondición en trivial	
-	assert bs.Valid(input); // si bs es valid,
-	assert solution.Valid(input); // como hacemos solution := bs ---> solution también es valid
+	// 1) La primera postcondición es trivial, si conseguimos verificar que bs.Valid() es verdadero, solution también lo será (hacemos solution := bs)
+	assert bs.Valid(input) by {
+		assert bs.k == bs.itemsAssign.Length;
+		assert bs.Partial(input) by {
+			assert 0 <= bs.k <= bs.itemsAssign.Length;
+			assert bs.Model().Partial(input.Model()) by {
+				assert 0 <= bs.k <= bs.itemsAssign.Length;
+				assert itemsAssign.Length == input.items.Length;
+				assert bs.Model().TotalWeight(input.Model().items) <= input.maxWeight by {
+					bs.Model().SumOfFalsesEqualsZero(input.Model()); // lemma suma falsos = 0
+				}
+			}			
+			assert bs.Model().TotalWeight(input.Model().items) == bs.totalWeight by {
+				bs.Model().SumOfFalsesEqualsZero(input.Model());
+			}
+			assert bs.Model().TotalValue(input.Model().items) == bs.totalValue by {
+				bs.Model().SumOfFalsesEqualsZero(input.Model());
+			}
+		}		
+	}
+
+	assert solution.Valid(input); // 
 	// 2) La segunda postcondición necesita un lemma
 	//lemma para inferir la siguiente postcond
-	//assert bs.Optimal(input);
+	assert bs.Optimal(input);
 	assert solution.Optimal(input);
 
-	// forall s : SolutionData {   Esto se usar para el lema que quiero poner en la linea 70 (ver notas de la reunion)
+	// forall s : SolutionData {   Esto se usar para el lema de optimal
 	// 	lemma
 	// }
 }

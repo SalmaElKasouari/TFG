@@ -19,16 +19,6 @@ class Solution {
     this.totalWeight := totalW;
     this.k := k';
   }
-
-  lemma SumOfFalsesEqualsZero(input : Input)
-    requires k <= itemsAssign.Length
-    requires itemsAssign.Length == input.items.Length
-    requires forall i | 0 <= i < itemsAssign.Length :: !itemsAssign[i]   
-
-    ensures  Model().TotalWeight(input.Model().items) == 0.0
-  {
-    // demostración
-  }
  
   ghost predicate Partial (input : Input)
     reads this, this.itemsAssign, input, input.items
