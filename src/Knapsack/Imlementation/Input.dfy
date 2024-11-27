@@ -16,7 +16,7 @@ class Input {
   ghost function Model() : InputData
     reads this, items
   {
-    InputData(seq (items.Length, i reads this, items requires 0 <= i < items.Length => items[i].Model()) , maxWeight)
+    InputData(seq(items.Length, i reads this, items requires 0 <= i < items.Length  => items[i].Model()), maxWeight)
   }
 
   ghost predicate Valid()

@@ -4,7 +4,7 @@ class Item {
   const weight: real
   const value:  real
 
-  constructor(w: real, v: real) 
+  constructor(w: real, v: real)
     ensures this.weight == w
     ensures this.value == v
   {
@@ -12,16 +12,15 @@ class Item {
     this.value := v;
   }
 
-    ghost function Model() : ItemData
+  ghost function Model() : ItemData
     reads this
   {
     ItemData(this.weight, this.value)
   }
 
-  ghost predicate Valid ()
+  ghost predicate Valid()
     reads this
   {
-    //this.Model().Valid()
     this.weight > 0.0 && this.value > 0.0
   }
 

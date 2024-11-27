@@ -10,10 +10,8 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     requires 0 <= startIdx <= endIdx <= |a| 
     requires endIdx <= |b|
     requires forall i | 0 <= i < |b| :: !b[i]
-
     ensures selectSeq(a, b, startIdx, endIdx) == []
-  {
-  
+  {  
     if startIdx == endIdx { //Base
       assert true;
     } 
@@ -28,24 +26,13 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   lemma SumOfFalsesEqualsZero(input : InputData)
     requires k <= |itemsAssign|
     requires |itemsAssign| == |input.items|
-    requires forall i | 0 <= i < |itemsAssign| :: !itemsAssign[i]   
-
+    requires forall i | 0 <= i < |itemsAssign| :: !itemsAssign[i]
     ensures TotalWeight(input.items) == 0.0 && TotalValue(input.items) == 0.0
   {
-    //Demo: Si ningun objeto ha sido seleccionado (todos asignados a false --> array objetos seleccionado es vacio), la suma total de los pesos/valores de los objetos escogidos (ninguno) es 0:
-    //Mi pensamiento era que si se podia hacer directamente con la propiedad que dice que la sum([]) es 0, pero el problema realmente esta en demostrar que el array es vacío
+    // Si ningun objeto ha sido seleccionado (todos asignados a false --> array objetos seleccionado es vacio), la suma total de los pesos/valores de los objetos escogidos (ninguno) es 0:
       assert selectSeq(input.items, itemsAssign, 0, k) == [] by {
         selectSeqFalses(input.items, itemsAssign, 0, k);
-        
-        // if k == 0 { // no existen objetos
-        //   assert selectSeq(input.items, itemsAssign, 0, k) == []; // es capaz de inducirlo por su caso base
-        // } // trivial
-        // else { // existen objetos
-        //   assert forall i | 0 <= i < k :: !itemsAssign[i]; // pero sabemos que están a false (precondición)
-        //   //he llegado a la conclusión de que se necesita otro lemma auxiliar para reflejar que la comstrucción del array objetos seleccionados
-        // }
       }
-
   }
 
   ghost function TotalWeight(items: seq<ItemData>): real
