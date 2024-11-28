@@ -43,13 +43,19 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
 {
 
   if (ps.k == input.items.Length) { // hemos tratado todos los objetos
-  forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) :: s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
     if (ps.totalValue > bs.totalValue) {
       bs.totalValue := ps.totalValue;
       bs.totalWeight := ps.totalWeight;
       bs.itemsAssign := ps.itemsAssign; //copiar elemento a elemento (metodo aparte)
       bs.k := ps.k;
     }
+  
+  assert ps.totalValue <= bs.totalValue;
+  forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model())
+  ensures s == ps.Model() {
+    
+  }
+
   }
   else {
     assume false;
