@@ -21,7 +21,7 @@ class Solution {
   }
  
   ghost predicate Partial (input : Input)
-    reads this, this.itemsAssign, input, input.items
+    reads this, this.itemsAssign, input, input.items, set i | 0 <= i < input.items.Length :: input.items[i]
   {    
     && 0 <= this.k <= this.itemsAssign.Length
     && Model().Partial(input.Model())

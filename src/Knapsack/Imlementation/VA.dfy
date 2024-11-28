@@ -27,6 +27,9 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
 
   ensures ps.Partial(input) //dentro ya comprueba ps.itemsAssign.Length == input.items.Length
   ensures ps.Model().equals(old(ps.Model())) // las ps actual y antigua deben ser iguales hasta la k
+  ensures ps.k == old (ps.k)
+  ensures ps.totalValue == old(ps.totalValue)
+  ensures ps.totalWeight == old(ps.totalWeight)
 
   //La mejor solución debe ser válida
   ensures bs.Valid(input) //dentro ya comprueba bs.itemsAssign.Length == input.items.Length
@@ -96,7 +99,16 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
     KnapsackVA(input, ps, bs);
 
     ps.k := ps.k - 1;
-    assume ps.Partial(input);
+
+    
+    assert ps.Partial(input) by { //demo con igualdad campos con ensures
+      assert 0 <= ps.k <= ps.itemsAssign.Length;
+      assert ps.Model().Partial(input.Model());
+      assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight;
+      assert ps.Model().TotalValue(input.Model().items) == ps.totalValue;
+    }
+    //assume bs.Model().OptimalExtension(ps.Model(), input.Model()) || bs.Model().equals(old(bs.Model()));
+
   }
 
 }
