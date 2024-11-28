@@ -47,7 +47,7 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
     if (ps.totalValue > bs.totalValue) {
       bs.totalValue := ps.totalValue;
       bs.totalWeight := ps.totalWeight;
-      bs.itemsAssign := ps.itemsAssign; //copiar elemento a elemento (metodo aparte)
+      //bs.itemsAssign := ps.itemsAssign; //copiar elemento a elemento (metodo aparte)
       bs.k := ps.k;
     }
 
@@ -85,6 +85,14 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
       ps.itemsAssign[ps.k] := false;
       ps.k := ps.k + 1;
 
+      assert ps.Partial(input) by {
+        assume false;
+        assert 0 <= ps.k <= ps.itemsAssign.Length;
+        assert ps.Model().Partial(input.Model());
+        assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight;
+        assert ps.Model().TotalValue(input.Model().items) == ps.totalValue;
+      }
+      
       KnapsackVA(input, ps, bs);
 
       ps.k := ps.k - 1;
