@@ -58,14 +58,21 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
 
   }
   else {
-    assume false;
+   
     // RAMA SI COGEMOS EL OBJETO
     var valid := ps.totalWeight + input.items[ps.k].weight <= input.maxWeight;
-    if (valid) { //si uso ps.Partial() no deja asignar valores a los campos de ps
+    if (valid) {
       ps.itemsAssign[ps.k] := true;
       ps.totalWeight := ps.totalWeight + input.items[ps.k].weight;
       ps.totalValue := ps.totalValue + input.items[ps.k].value;
       ps.k := ps.k + 1;
+      assert ps.Partial(input) by {
+        assume false;
+        assert 0 <= ps.k <= ps.itemsAssign.Length;
+        assert ps.Model().Partial(input.Model());
+        assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight;
+        assert ps.Model().TotalValue(input.Model().items) == ps.totalValue;
+      }
 
       KnapsackVA(input, ps, bs);
 
@@ -75,22 +82,12 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
     }
 
 
-
+   assume false;
     // // RAMA NO COGEMOS EL OBJETO
     ps.itemsAssign[ps.k] := false;
     ps.k := ps.k + 1;
-
-    if (ps.k == input.items.Length) { // hemos tratado todos los objetos
-      if (ps.totalValue > bs.totalValue) {
-        bs.totalValue := ps.totalValue;
-        bs.totalWeight := ps.totalWeight;
-        bs.itemsAssign := ps.itemsAssign;
-        bs.k := ps.k;
-      }
-    }
-    else { // la solución es completable --> llamada recursiva
-      KnapsackVA(input, ps, bs);
-    }
+    
+    KnapsackVA(input, ps, bs);    
 
     ps.k := ps.k - 1;
   }
