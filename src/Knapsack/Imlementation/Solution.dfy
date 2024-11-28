@@ -30,7 +30,7 @@ class Solution {
   }
 
   ghost predicate Valid (input : Input) // solución completa (final)
-    reads this, this.itemsAssign, input, input.items
+    reads this, this.itemsAssign, input, input.items, set i | 0 <= i < input.items.Length :: input.items[i]
   {
     && this.k == this.itemsAssign.Length
     && Partial(input)
@@ -43,7 +43,7 @@ class Solution {
   }
 
   ghost predicate Optimal(input: Input)
-    reads this, this.itemsAssign, input, input.items
+    reads this, this.itemsAssign, input, input.items, set i | 0 <= i < input.items.Length :: input.items[i]
 
     requires this.Valid(input)  // que la solución que llama al predicado sea completa --> valid
     requires input.Valid() // la entrada debe ser valida
