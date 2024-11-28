@@ -11,7 +11,7 @@ class Item {
     this.weight := w;
     this.value := v;
   }
-
+  
   ghost function Model() : ItemData
     reads this
   {

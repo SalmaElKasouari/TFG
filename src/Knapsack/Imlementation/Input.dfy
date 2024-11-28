@@ -13,14 +13,21 @@ class Input {
     this.maxWeight := maxWeight;
   }
 
-  ghost function Model() : InputData
-    reads this, items
+  ghost function ModelAt (i : nat) : ItemData
+    reads this, items, items[i]
+    requires i < items.Length
   {
-    InputData(seq(items.Length, i reads this, items requires 0 <= i < items.Length  => items[i].Model()), maxWeight)
+    items[i].Model()
+  }
+
+  ghost function Model() : InputData
+    reads this, items, set i | 0 <= i < items.Length :: items[i]
+  {
+    InputData(seq(items.Length, ModelAt), maxWeight)
   }
 
   ghost predicate Valid()
-    reads this, items
+    reads this, items, set i | 0 <= i < items.Length :: items[i] //añadido esto ultimo, era necesario también
   {
     this.Model().Valid()
   }
