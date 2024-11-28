@@ -61,8 +61,7 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
   else {
 
     // RAMA SI COGEMOS EL OBJETO
-    var valid := ps.totalWeight + input.items[ps.k].weight <= input.maxWeight;
-    if (valid) {
+    if (ps.totalWeight + input.items[ps.k].weight <= input.maxWeight) {
       ps.itemsAssign[ps.k] := true;
       ps.totalWeight := ps.totalWeight + input.items[ps.k].weight;
       ps.totalValue := ps.totalValue + input.items[ps.k].value;
@@ -80,23 +79,24 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
       ps.k := ps.k - 1;
       ps.totalWeight := ps.totalWeight - input.items[ps.k].weight;
       ps.totalValue := ps.totalValue - input.items[ps.k].value;
-
-      // RAMA NO COGEMOS EL OBJETO
-      ps.itemsAssign[ps.k] := false;
-      ps.k := ps.k + 1;
-
-      assert ps.Partial(input) by {
-        assume false;
-        assert 0 <= ps.k <= ps.itemsAssign.Length;
-        assert ps.Model().Partial(input.Model());
-        assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight;
-        assert ps.Model().TotalValue(input.Model().items) == ps.totalValue;
-      }
-      
-      KnapsackVA(input, ps, bs);
-
-      ps.k := ps.k - 1;
     }
+
+    // RAMA NO COGEMOS EL OBJETO
+    ps.itemsAssign[ps.k] := false;
+    ps.k := ps.k + 1;
+
+    assert ps.Partial(input) by {
+      assume false;
+      assert 0 <= ps.k <= ps.itemsAssign.Length;
+      assert ps.Model().Partial(input.Model());
+      assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight;
+      assert ps.Model().TotalValue(input.Model().items) == ps.totalValue;
+    }
+
+    KnapsackVA(input, ps, bs);
+
+    ps.k := ps.k - 1;
+    assume ps.Partial(input);
   }
 
 }
