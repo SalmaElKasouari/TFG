@@ -21,6 +21,9 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
   requires ps.Partial(input)
   requires bs.Valid(input)
 
+  requires bs.itemsAssign != ps.itemsAssign
+  requires bs != ps
+
   ensures ps.Partial(input) //dentro ya comprueba ps.itemsAssign.Length == input.items.Length
   ensures ps.Model().equals(old(ps.Model())) // las ps actual y antigua deben ser iguales hasta la k
 
@@ -38,7 +41,15 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
 
 {
 
-  if (ps.k < input.items.Length) {
+  if (ps.k == input.items.Length) { // hemos tratado todos los objetos
+        if (ps.totalValue > bs.totalValue) {
+          bs.totalValue := ps.totalValue;
+          bs.totalWeight := ps.totalWeight;
+          bs.itemsAssign := ps.itemsAssign; //copiar elemento a elemento (metodo aparte)
+          bs.k := ps.k;
+        }
+  }
+  else {
 
     // RAMA SI COGEMOS EL OBJETO
     var valid := ps.totalWeight + input.items[ps.k].weight <= input.maxWeight;
@@ -46,19 +57,9 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
       ps.itemsAssign[ps.k] := true;
       ps.totalWeight := ps.totalWeight + input.items[ps.k].weight;
       ps.totalValue := ps.totalValue + input.items[ps.k].value;
-      ps.k := ps.k + 1;
+      ps.k := ps.k + 1;      
 
-      if (ps.k == input.items.Length) { // hemos tratado todos los objetos
-        if (ps.totalValue > bs.totalValue) {
-          bs.totalValue := ps.totalValue;
-          bs.totalWeight := ps.totalWeight;
-          bs.itemsAssign := ps.itemsAssign;
-          bs.k := ps.k;
-        }
-      }
-      else { // la solución es completable --> llamada recursiva
-        KnapsackVA(input, ps, bs);
-      }
+      KnapsackVA(input, ps, bs);
 
       ps.k := ps.k - 1;
       ps.totalWeight := ps.totalWeight - input.items[ps.k].weight;
@@ -68,23 +69,23 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
 
 
     // // RAMA NO COGEMOS EL OBJETO
-    // ps.itemsAssign[ps.k] := false;
-    // ps.k := ps.k + 1;
+    ps.itemsAssign[ps.k] := false;
+    ps.k := ps.k + 1;
 
-    // if (ps.k == input.items.Length) { // hemos tratado todos los objetos
-    //   if (ps.totalValue > bs.totalValue) {
-    //     bs.totalValue := ps.totalValue;
-    //     bs.totalWeight := ps.totalWeight;
-    //     bs.itemsAssign := ps.itemsAssign;
-    //     bs.k := ps.k;
-    //   }
-    // }
-    // else { // la solución es completable --> llamada recursiva
-    //   KnapsackVA(input, ps, bs);
-    // }
+    if (ps.k == input.items.Length) { // hemos tratado todos los objetos
+      if (ps.totalValue > bs.totalValue) {
+        bs.totalValue := ps.totalValue;
+        bs.totalWeight := ps.totalWeight;
+        bs.itemsAssign := ps.itemsAssign;
+        bs.k := ps.k;
+      }
+    }
+    else { // la solución es completable --> llamada recursiva
+      KnapsackVA(input, ps, bs);
+    }
 
-    // ps.k := ps.k - 1;
-
+    ps.k := ps.k - 1;
   }
+
 }
 
