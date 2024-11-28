@@ -15,7 +15,8 @@ tratamos con un problema de maximización.
 
 method KnapsackVA(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound() // Función de cota
-  modifies ps, ps.itemsAssign, bs, bs.itemsAssign
+  modifies ps`totalValue, ps`totalWeight, ps`k, ps.itemsAssign
+  modifies bs`totalValue, bs`totalWeight, bs`k, bs.itemsAssign
 
   requires input.Valid()
   requires ps.Partial(input)
@@ -34,8 +35,8 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
   ensures bs.Model().OptimalExtension(ps.Model(), input.Model()) || bs.Model().equals(old(bs.Model()))
 
   //Cualquier extension optima de ps, su valor debe ser menor o igual que la mejor solucion (bs).
-  ensures forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) :: 
-  s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items) // Esta postcond Dafny no la puede verificar porque no hay cuerpo del metodo supongo
+  ensures forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
+            s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items) // Esta postcond Dafny no la puede verificar porque no hay cuerpo del metodo supongo
 
   // Si bs cambia, su nuevo valor total debe ser mayor o igual al valor anterior
   ensures bs.Model().TotalValue(input.Model().items) >= old(bs.Model().TotalValue(input.Model().items))
@@ -49,16 +50,16 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
       bs.itemsAssign := ps.itemsAssign; //copiar elemento a elemento (metodo aparte)
       bs.k := ps.k;
     }
-  
-  assert ps.totalValue <= bs.totalValue;
-  forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model())
-  ensures s == ps.Model() {
-    
-  }
+
+    assert ps.totalValue <= bs.totalValue;
+    forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model())
+      ensures s == ps.Model() {
+
+    }
 
   }
   else {
-   
+
     // RAMA SI COGEMOS EL OBJETO
     var valid := ps.totalWeight + input.items[ps.k].weight <= input.maxWeight;
     if (valid) {
@@ -79,17 +80,15 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
       ps.k := ps.k - 1;
       ps.totalWeight := ps.totalWeight - input.items[ps.k].weight;
       ps.totalValue := ps.totalValue - input.items[ps.k].value;
+
+      // RAMA NO COGEMOS EL OBJETO
+      ps.itemsAssign[ps.k] := false;
+      ps.k := ps.k + 1;
+
+      KnapsackVA(input, ps, bs);
+
+      ps.k := ps.k - 1;
     }
-
-
-   assume false;
-    // // RAMA NO COGEMOS EL OBJETO
-    ps.itemsAssign[ps.k] := false;
-    ps.k := ps.k + 1;
-    
-    KnapsackVA(input, ps, bs);    
-
-    ps.k := ps.k - 1;
   }
 
 }
