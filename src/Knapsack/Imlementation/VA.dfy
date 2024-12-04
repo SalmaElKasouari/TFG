@@ -21,7 +21,6 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
   requires input.Valid()
   requires ps.Partial(input)
   requires bs.Valid(input)
-
   requires bs.itemsAssign != ps.itemsAssign
   requires bs != ps
 
@@ -32,14 +31,14 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
   ensures ps.totalWeight == old(ps.totalWeight)
 
   //La mejor solución debe ser válida
-  ensures bs.Valid(input) //dentro ya comprueba bs.itemsAssign.Length == input.items.Length
+  ensures bs.Valid(input)
 
   //La mejor solución deber ser una extension optima de ps
   ensures bs.Model().OptimalExtension(ps.Model(), input.Model()) || bs.Model().equals(old(bs.Model()))
 
   //Cualquier extension optima de ps, su valor debe ser menor o igual que la mejor solucion (bs).
   ensures forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
-            s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items) // Esta postcond Dafny no la puede verificar porque no hay cuerpo del metodo supongo
+            s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items)
 
   // Si bs cambia, su nuevo valor total debe ser mayor o igual al valor anterior
   ensures bs.Model().TotalValue(input.Model().items) >= old(bs.Model().TotalValue(input.Model().items))
@@ -48,16 +47,12 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
 
   if (ps.k == input.items.Length) { // hemos tratado todos los objetos
     if (ps.totalValue > bs.totalValue) {
-      bs.totalValue := ps.totalValue;
-      bs.totalWeight := ps.totalWeight;
-      //bs.itemsAssign := ps.itemsAssign; //copiar elemento a elemento (metodo aparte)
-      bs.k := ps.k;
+      bs.Copy(ps);
     }
 
     assert ps.totalValue <= bs.totalValue;
     forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model())
-      ensures s == ps.Model() {
-
+      ensures s.equals(ps.Model()) {
     }
 
   }
@@ -70,10 +65,12 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
       ps.totalValue := ps.totalValue + input.items[ps.k].value;
       ps.k := ps.k + 1;
       assert ps.Partial(input) by {
-        assume false;
+        assume false; 
         assert 0 <= ps.k <= ps.itemsAssign.Length;
         assert ps.Model().Partial(input.Model());
+        //lemma para totalweight
         assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight;
+        //lemma para totalvalue
         assert ps.Model().TotalValue(input.Model().items) == ps.totalValue;
       }
 
@@ -101,7 +98,7 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
     ps.k := ps.k - 1;
 
     
-    assert ps.Partial(input) by { //demo con igualdad campos con ensures
+    assert ps.Partial(input) by { //demo con igualdad campos (old y actual) con ensures
       assert 0 <= ps.k <= ps.itemsAssign.Length;
       assert ps.Model().Partial(input.Model());
       assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight;

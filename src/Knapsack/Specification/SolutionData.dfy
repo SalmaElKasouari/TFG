@@ -35,6 +35,27 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
       }
   }
 
+  lemma RemoveComponentMaintainsWeightSum(items: seq<ItemData>)
+    requires k <= |items|
+    requires k <= |itemsAssign|
+    requires |itemsAssign| == |items|
+    ensures TotalWeight(selectSeq(items, itemsAssign, 0, |items|)) ==
+            TotalWeight(selectSeq(items, itemsAssign, 0, |items| - 1)) + items[|items| - 1].weight
+
+{
+  //demo
+}
+
+lemma AddFalsePreservesWeight(input: InputData, itemsAssign: seq<bool>)
+    requires k < |itemsAssign| && k < |input.items|
+    requires |itemsAssign| == |input.items|
+    requires itemsAssign[k] == false
+    ensures TotalWeight(selectSeq(input.items, itemsAssign, 0, k + 1)) ==
+            TotalWeight(selectSeq(input.items, itemsAssign, 0, k))
+{
+  //demo
+}
+
   ghost function TotalWeight(items: seq<ItemData>): real
     requires k <= |items|
     requires k <= |itemsAssign|

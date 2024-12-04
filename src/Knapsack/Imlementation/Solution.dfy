@@ -57,6 +57,25 @@ class Solution {
     this.itemsAssign.Length - this.k + 1
   }
 
+  method Copy(s : Solution) 
+    modifies this`totalValue, this`totalWeight, this`k
+    requires this.k == this.itemsAssign.Length
+    requires s.k == s.itemsAssign.Length
+    requires this.itemsAssign.Length == s.itemsAssign.Length
+    
+    ensures this.totalValue == s.totalValue
+    ensures this.totalWeight == s.totalWeight
+    ensures this.k == s.k
+    //ensures forall i | 0 <= i < this.itemsAssign.Length :: this.itemsAssign[i] == s.itemsAssign[i]
+  {
+    this.totalValue := s.totalValue;
+    this.totalWeight := s.totalWeight;
+    this.k := s.k;
+    // Copiar los elementos del array uno por uno
+    // for i := 0 to s.itemsAssign.Length - 1 {
+    //   this.itemsAssign[i] := s.itemsAssign[i];
+    // }
+  }
   
 
 
