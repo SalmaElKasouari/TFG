@@ -55,7 +55,7 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
       ensures s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items) {
         assert s.equals(ps.Model());
         calc {
-          s.TotalValue(input.Model().items); { EqualTotalValueAndTotalWeight(s, ps.Model(), input.Model());}
+          s.TotalValue(input.Model().items); { s.EqualTotalValueAndTotalWeight(ps.Model(), input.Model());}
           ps.Model().TotalValue(input.Model().items);
           {assume false;}
         }

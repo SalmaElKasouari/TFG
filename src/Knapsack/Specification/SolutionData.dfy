@@ -66,14 +66,14 @@ lemma {:verify false} AddFalsePreservesWeight(input: InputData, itemsAssign: seq
     sum_real(weightsSelected, 0, numSelected)
   }
 
-  lemma EqualTotalValueAndTotalWeight(s1 : SolutionData, s2 : SolutionData, input : InputData)
-    requires |input.items| == |s1.itemsAssign| == |s2.itemsAssign|
-    requires s1.k <= |s1.itemsAssign|
-    requires s2.k <= |s2.itemsAssign| 
-    requires s1.equals(s2)
-    ensures s1.TotalValue(input.items) == s2.TotalValue(input.items)
-    ensures s1.TotalWeight(input.items) == s2.TotalWeight(input.items)
-    
+  lemma EqualTotalValueAndTotalWeight(s : SolutionData, input : InputData)
+    requires |input.items| == |this.itemsAssign| == |s.itemsAssign|
+    requires this.k <= |this.itemsAssign|
+    requires s.k <= |s.itemsAssign| 
+    requires this.equals(s)
+    ensures this.TotalValue(input.items) == s.TotalValue(input.items)
+    ensures this.TotalWeight(input.items) == s.TotalWeight(input.items)
+
   
 
   ghost function TotalValue(items: seq<ItemData>): (o: real)
