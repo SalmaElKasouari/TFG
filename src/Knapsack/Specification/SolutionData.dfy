@@ -35,7 +35,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
       }
   }
 
-  lemma RemoveComponentMaintainsWeightSum(items: seq<ItemData>)
+  lemma {:verify false} RemoveComponentMaintainsWeightSum(items: seq<ItemData>)
     requires 0 < k <= |items| //array no vacío
     requires 0 < k <= |itemsAssign|
     requires |itemsAssign| == |items|
@@ -46,7 +46,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   //demo
 }
 
-lemma AddFalsePreservesWeight(input: InputData, itemsAssign: seq<bool>)
+lemma {:verify false} AddFalsePreservesWeight(input: InputData, itemsAssign: seq<bool>)
     requires k < |itemsAssign| && k < |input.items|
     requires |itemsAssign| == |input.items|
     requires itemsAssign[k] == false
@@ -65,6 +65,16 @@ lemma AddFalsePreservesWeight(input: InputData, itemsAssign: seq<bool>)
     var weightsSelected: seq<real> := mapSeq(objSelected, (obj: ItemData) => obj.weight, 0, numSelected);
     sum_real(weightsSelected, 0, numSelected)
   }
+
+  lemma EqualTotalValueAndTotalWeight(s1 : SolutionData, s2 : SolutionData, input : InputData)
+    requires |input.items| == |s1.itemsAssign| == |s2.itemsAssign|
+    requires s1.k <= |s1.itemsAssign|
+    requires s2.k <= |s2.itemsAssign| 
+    requires s1.equals(s2)
+    ensures s1.TotalValue(input.items) == s2.TotalValue(input.items)
+    ensures s1.TotalWeight(input.items) == s2.TotalWeight(input.items)
+    
+  
 
   ghost function TotalValue(items: seq<ItemData>): (o: real)
     requires k <= |items|

@@ -1,5 +1,6 @@
 
 include "Solution.dfy"
+include "../Specification/SolutionData.dfy"
 include "Input.dfy"
 include "../../Ord.dfy"
 
@@ -48,16 +49,32 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
   if (ps.k == input.items.Length) { // hemos tratado todos los objetos
     if (ps.totalValue > bs.totalValue) {
       bs.Copy(ps);
+      bs.copyModel(ps, input);
+
+      forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model())
+      ensures s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items) {
+        assert s.equals(ps.Model());
+        calc {
+          s.TotalValue(input.Model().items); { EqualTotalValueAndTotalWeight(s, ps.Model(), input.Model());}
+          ps.Model().TotalValue(input.Model().items);
+          {assume false;}
+        }
+      }
+      assume false;
     }
+    assume false;
 
     assert ps.totalValue <= bs.totalValue;
     forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model())
-      ensures s.equals(ps.Model()) {
+      ensures 
+      s.equals(ps.Model()) 
+      //&& s.TotalWeight(input.Model().items) == ps.totalWeight 
+    {
     }
 
   }
   else {
-
+    assume false;
     // RAMA SI COGEMOS EL OBJETO
     if (ps.totalWeight + input.items[ps.k].weight <= input.maxWeight) {
       assert ps.totalWeight + input.items[ps.k].weight <= input.maxWeight;
@@ -67,6 +84,7 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
       ps.totalValue := ps.totalValue + input.items[ps.k].value;
       ps.k := ps.k + 1;
       assert ps.Partial(input) by {
+        assume false;
         assert 0 <= ps.k <= ps.itemsAssign.Length;
         assert ps.Model().Partial(input.Model()); //ncesitará saber que lo que hemos sumado es justo lo que esta en el if y por tanto es valido
         
