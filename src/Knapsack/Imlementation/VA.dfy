@@ -60,16 +60,20 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
 
     // RAMA SI COGEMOS EL OBJETO
     if (ps.totalWeight + input.items[ps.k].weight <= input.maxWeight) {
+      assert ps.totalWeight + input.items[ps.k].weight <= input.maxWeight;
+
       ps.itemsAssign[ps.k] := true;
       ps.totalWeight := ps.totalWeight + input.items[ps.k].weight;
       ps.totalValue := ps.totalValue + input.items[ps.k].value;
       ps.k := ps.k + 1;
       assert ps.Partial(input) by {
-        assume false; 
         assert 0 <= ps.k <= ps.itemsAssign.Length;
-        assert ps.Model().Partial(input.Model());
-        //lemma para totalweight
-        assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight;
+        assert ps.Model().Partial(input.Model()); //ncesitará saber que lo que hemos sumado es justo lo que esta en el if y por tanto es valido
+        
+        //lemma para totalweight        
+        assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight by {
+          ps.Model().RemoveComponentMaintainsWeightSum(input.Model().items);
+        }
         //lemma para totalvalue
         assert ps.Model().TotalValue(input.Model().items) == ps.totalValue;
       }
@@ -86,10 +90,12 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
     ps.k := ps.k + 1;
 
     assert ps.Partial(input) by {
-      assume false;
+      //assume false;
       assert 0 <= ps.k <= ps.itemsAssign.Length;
       assert ps.Model().Partial(input.Model());
+      //lemma de a una suma total le añadimos un obieto no selecionado (false) igue siendo la misma uma porq suma 0
       assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight;
+      //lemma
       assert ps.Model().TotalValue(input.Model().items) == ps.totalValue;
     }
 

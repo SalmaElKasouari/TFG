@@ -36,8 +36,8 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   }
 
   lemma RemoveComponentMaintainsWeightSum(items: seq<ItemData>)
-    requires k <= |items|
-    requires k <= |itemsAssign|
+    requires 0 < k <= |items| //array no vacío
+    requires 0 < k <= |itemsAssign|
     requires |itemsAssign| == |items|
     ensures TotalWeight(selectSeq(items, itemsAssign, 0, |items|)) ==
             TotalWeight(selectSeq(items, itemsAssign, 0, |items| - 1)) + items[|items| - 1].weight
