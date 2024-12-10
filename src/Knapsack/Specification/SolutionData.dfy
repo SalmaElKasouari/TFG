@@ -23,17 +23,18 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     del nuevo elemento.
   */
   static lemma AddTrueMaintainsSumConsistency(s1 : SolutionData, s2 : SolutionData, input : InputData) //s1 viejo, s2 nuevo
-    requires 0 < s1.k == s2.k <= |input.items| //array no vacío
-    requires 0 < s1.k == s2.k <= |input.items| - 1 //array no vacío
-    requires 0 < s1.k <= |s1.itemsAssign|
-    requires s2.k == s1.k + 1
-    requires s1.itemsAssign[..s1.k - 1] + [true] == s2.itemsAssign
+    decreases s1.k
+    requires 0 <= s1.k <= |s1.itemsAssign|
+    requires 0 < s2.k <= |s2.itemsAssign|
+    requires |s2.itemsAssign| == |s1.itemsAssign| == |input.items|
+    requires s2.k == s1.k + 1 
+    requires s1.itemsAssign[..s1.k] + [true] == s2.itemsAssign[..s2.k]
     ensures s1.TotalWeight(input.items) + input.items[s1.k].weight ==
             s2.TotalWeight(input.items)
     ensures s1.TotalValue(input.items) + input.items[s1.k].value ==
             s2.TotalValue(input.items)
-  {
-
+  {    
+    s1.EqualTotalValueAndTotalWeight(SolutionData(s2.itemsAssign, s2.k-1), input);    
   }
 
   /*
@@ -42,22 +43,24 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     como se ve en la definición de Totalweight y TotalValue) 
   */
   static lemma AddFalsePreservesWeight(s1 : SolutionData, s2 : SolutionData, input : InputData) //s1 viejo, s2 nuevo
-    requires 0 < s1.k == s2.k <= |input.items| //array no vacío
-    requires 0 < s1.k == s2.k <= |input.items| - 1 //array no vacío
-    requires 0 < s1.k <= |s1.itemsAssign|
-    requires s2.k == s1.k + 1
-    requires s1.itemsAssign[..s1.k - 1] + [false] == s2.itemsAssign
+    decreases s1.k
+    requires 0 <= s1.k <= |s1.itemsAssign|
+    requires 0 < s2.k <= |s2.itemsAssign|
+    requires |s2.itemsAssign| == |s1.itemsAssign| == |input.items|
+    requires s2.k == s1.k + 1 
+    requires s1.itemsAssign[..s1.k] + [false] == s2.itemsAssign[..s2.k]
     ensures s1.TotalWeight(input.items) == s2.TotalWeight(input.items)
     ensures s1.TotalValue(input.items) == s2.TotalValue(input.items)
   {
-
+    s1.EqualTotalValueAndTotalWeight(SolutionData(s2.itemsAssign, s2.k-1), input);
   }
 
   /*
     Este lema establece que el peso y valor totales de una SolutionData es igual al peso y valor totales 
     del modelo de nuestra solución objeto (Solution).    
   */
-  lemma EqualTotalValueAndTotalWeight(s : SolutionData, input : InputData)
+  lemma {:induction this,s} EqualTotalValueAndTotalWeight(s : SolutionData, input : InputData)
+    decreases k
     requires |input.items| == |this.itemsAssign| == |s.itemsAssign|
     requires this.k <= |this.itemsAssign|
     requires s.k <= |s.itemsAssign|
@@ -65,7 +68,15 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     ensures this.TotalValue(input.items) == s.TotalValue(input.items)
     ensures this.TotalWeight(input.items) == s.TotalWeight(input.items) 
     {
-      
+      if k == 0 {
+        
+      }
+      else if itemsAssign[k-1] {
+        SolutionData(itemsAssign, k - 1).EqualTotalValueAndTotalWeight(SolutionData(s.itemsAssign, s.k-1), input);
+      }
+      else {
+        SolutionData(itemsAssign, k - 1).EqualTotalValueAndTotalWeight(SolutionData(s.itemsAssign, s.k-1), input);
+      }
     }
 
   

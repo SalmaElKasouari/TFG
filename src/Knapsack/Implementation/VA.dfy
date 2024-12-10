@@ -74,28 +74,61 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
     // RAMA SI COGEMOS EL OBJETO
     if (ps.totalWeight + input.items[ps.k].weight <= input.maxWeight) {
       assert ps.totalWeight + input.items[ps.k].weight <= input.maxWeight;
-      var oldps := ps.Model();
+      ghost var oldps := ps.Model();
+      ghost var oldtotalWeight := ps.totalWeight;
+      ghost var oldtotalValue := ps.totalValue;
+
       ps.itemsAssign[ps.k] := true;
       ps.totalWeight := ps.totalWeight + input.items[ps.k].weight;
       ps.totalValue := ps.totalValue + input.items[ps.k].value;
       ps.k := ps.k + 1;
-      assert ps.Partial(input) by {        
-        assert 0 <= ps.k <= ps.itemsAssign.Length;
-        assert ps.Model().Partial(input.Model()) by { // (?) necesitará saber que lo que hemos sumado es justo lo que esta en el if y por tanto es valido
-          assert 0 <= ps.Model().k <= |ps.Model().itemsAssign|;
-          assert ps.Model().TotalWeight(input.Model().items) <= input.maxWeight by {
-            ps.Model().ValidSumEnsuresPartial(input.Model()); //(?)
-          }
-        } 
+      
+      assert ps.Partial(input) by { 
+        assert oldps.Partial(input.Model()); 
+        assert oldtotalWeight == oldps.TotalWeight(input.Model().items);
+        assert oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight;
+        calc {
+          ps.Model().TotalWeight(input.Model().items);
+          {SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());}
+          oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
+          {assume input.Model().items[ps.k - 1].weight == input.items[..][ps.k - 1].weight;}
+          oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
+           <= input.maxWeight;
+        }
+        calc {
+          ps.totalWeight;
+          oldtotalWeight + input.items[ps.k - 1].weight;
+          oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
+          {assume input.Model().items[ps.k - 1].weight == input.items[..][ps.k - 1].weight;
+          SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
+          }          
+          ps.Model().TotalWeight(input.Model().items);
+        }
+
+        calc {
+          ps.totalValue;
+          oldtotalValue + input.items[ps.k - 1].value;
+          oldps.TotalValue(input.Model().items) + input.items[ps.k - 1].value;
+          {assume input.Model().items[ps.k - 1].value == input.items[..][ps.k - 1].value;
+          SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
+          }          
+          ps.Model().TotalValue(input.Model().items);
+        }
+
+        // assert ps.Model().Partial(input.Model()) by { // (?) necesitará saber que lo que hemos sumado es justo lo que esta en el if y por tanto es valido
+        //   assert ps.Model().TotalWeight(input.Model().items) <= input.maxWeight by {
+        //     ps.Model().ValidSumEnsuresPartial(input.Model()); //(?)
+        //   }
+        // } 
         
-        //lemma para totalweight        
-        assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight by {
-          ps.Model().AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
-        }
-        //lemma para totalvalue
-        assert ps.Model().TotalValue(input.Model().items) == ps.totalValue by {
-          ps.Model().AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
-        }
+        // //lemma para totalweight        
+        // assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight by {
+        //   ps.Model().AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
+        // }
+        // //lemma para totalvalue
+        // assert ps.Model().TotalValue(input.Model().items) == ps.totalValue by {
+        //   ps.Model().AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
+        // }
       }
 
       KnapsackVA(input, ps, bs);
