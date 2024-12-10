@@ -5,25 +5,8 @@ include "../../Math.dfy"
 
 datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
-  static lemma {:induction} selectSeqFalses<T>(a :seq<T>, b : seq<bool>, startIdx : nat, endIdx : nat) // Ya no sería necesario porq hemos reescrito TotalWeight y TotalValue
-    decreases endIdx - startIdx
-    requires 0 <= startIdx <= endIdx <= |a|
-    requires endIdx <= |b|
-    requires forall i | 0 <= i < |b| :: !b[i]
-    ensures selectSeq(a, b, startIdx, endIdx) == []
-  {
-    if startIdx == endIdx { //Base
-      assert true;
-    }
-    else if b[startIdx] { // Esto nunca se alcanza porque todos son falsos (precondición)
-      assert false;
-    }
-    else {
-      selectSeqFalses(a, b, startIdx + 1, endIdx);
-    }
-  }
-
-  lemma {:verify false} SumOfFalsesEqualsZero(input : InputData)
+  lemma SumOfFalsesEqualsZero(input : InputData)
+    decreases k
     requires k <= |itemsAssign|
     requires |itemsAssign| == |input.items|
     requires forall i | 0 <= i < |itemsAssign| :: !itemsAssign[i]
@@ -32,27 +15,6 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   {
     /* Si ningun objeto ha sido seleccionado (todos asignados a false --> array objetos seleccionado es vacio), 
     la suma total de los pesos/valores de los objetos escogidos (ninguno) es 0 */
-
-    if k == 0 {
-      assert TotalWeight(input.items) == 0.0 && TotalValue(input.items) == 0.0;
-    }
-    else if itemsAssign[k-1] {
-      assert false;
-    }
-    else { // !itemsAssign[k-1]
-      // Inducción: el peso/valor total hasta k es igual al peso/valor total hasta k-1 (se suma 0 por ser false)
-      assert TotalWeight(input.items) == 0.0 by {
-        assert SolutionData(itemsAssign, k).TotalWeight(input.items) == SolutionData(itemsAssign, k - 1).TotalWeight(input.items) + (if itemsAssign[k-1] then input.items[k-1].weight else 0.0);
-        assert !itemsAssign[k-1];
-        assert SolutionData(itemsAssign, k).TotalWeight(input.items) == SolutionData(itemsAssign, k - 1).TotalWeight(input.items);
-      }
-
-      assert TotalValue(input.items) == 0.0 by {
-        assert SolutionData(itemsAssign, k).TotalValue(input.items) == SolutionData(itemsAssign, k - 1).TotalValue(input.items) + (if itemsAssign[k-1] then input.items[k-1].weight else 0.0);
-        assert !itemsAssign[k-1];
-        assert SolutionData(itemsAssign, k).TotalValue(input.items) == SolutionData(itemsAssign, k - 1).TotalValue(input.items);
-      }
-    }
   }
 
   /*
@@ -60,10 +22,10 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     y los valores del conjunto total (s2) se actualiza de manera consistente al incluir el peso y el valor 
     del nuevo elemento.
   */
-  lemma AddTrueMaintainsSumConsistency(s1 : SolutionData, s2 : SolutionData, input : InputData) //s1 viejo, s2 nuevo
+  static lemma AddTrueMaintainsSumConsistency(s1 : SolutionData, s2 : SolutionData, input : InputData) //s1 viejo, s2 nuevo
     requires 0 < s1.k == s2.k <= |input.items| //array no vacío
     requires 0 < s1.k == s2.k <= |input.items| - 1 //array no vacío
-    requires 0 < k <= |itemsAssign|
+    requires 0 < s1.k <= |s1.itemsAssign|
     requires s2.k == s1.k + 1
     requires s1.itemsAssign[..s1.k - 1] + [true] == s2.itemsAssign
     ensures s1.TotalWeight(input.items) + input.items[s1.k].weight ==
@@ -71,18 +33,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     ensures s1.TotalValue(input.items) + input.items[s1.k].value ==
             s2.TotalValue(input.items)
   {
-    assert input.items == input.items[..|input.items| - 1] + [input.items[|input.items| - 1]];
-    assert s1.TotalWeight(input.items) + input.items[s1.k].weight == s2.TotalWeight(input.items) by {
-      calc {
-        s2.TotalWeight(input.items);
-        s1.TotalWeight(input.items[..|input.items| - 1] + [input.items[|input.items| - 1]]);
-        s1.TotalWeight(input.items) + input.items[s1.k].weight;
-      }
-    }
 
-    // Lo intuye directamente
-    assert s1.TotalWeight(input.items) + input.items[s1.k].weight == s2.TotalWeight(input.items);
-    assert s1.TotalValue(input.items) + input.items[s1.k].value == s2.TotalValue(input.items);
   }
 
   /*
@@ -90,23 +41,16 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     y los valores sigue siendo la misma y no se ve alterada (ya que no sumaría el peso del objeto
     como se ve en la definición de Totalweight y TotalValue) 
   */
-  lemma AddFalsePreservesWeight(s1 : SolutionData, s2 : SolutionData, input : InputData) //s1 viejo, s2 nuevo
+  static lemma AddFalsePreservesWeight(s1 : SolutionData, s2 : SolutionData, input : InputData) //s1 viejo, s2 nuevo
     requires 0 < s1.k == s2.k <= |input.items| //array no vacío
     requires 0 < s1.k == s2.k <= |input.items| - 1 //array no vacío
-    requires 0 < k <= |itemsAssign|
+    requires 0 < s1.k <= |s1.itemsAssign|
     requires s2.k == s1.k + 1
     requires s1.itemsAssign[..s1.k - 1] + [false] == s2.itemsAssign
     ensures s1.TotalWeight(input.items) == s2.TotalWeight(input.items)
     ensures s1.TotalValue(input.items) == s2.TotalValue(input.items)
   {
-    assert s1.TotalWeight(input.items) == s2.TotalWeight(input.items);
-    assert s1.TotalValue(input.items) == s2.TotalValue(input.items);
 
-    //assert input.items == input.items[..|input.items| - 1] + [input.items[|input.items| - 1]];
-    // assert s1.TotalWeight(input.items) + input.items[s1.k].weight == s2.TotalWeight(input.items) by {
-    //   assert s2.TotalWeight(input.items) == s1.TotalWeight(input.items[..|input.items| - 1] + [input.items[|input.items| - 1]]);
-    //   assert s1.TotalWeight(input.items[..|input.items| - 1] + [input.items[|input.items| - 1]]) == s1.TotalWeight(input.items) + input.items[s1.k].weight;
-    // }
   }
 
   /*
@@ -148,7 +92,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     if k == 0 then
       0.0
     else if itemsAssign[k-1] then
-      SolutionData(itemsAssign, k - 1).TotalValue(items) + items[k-1].weight
+      SolutionData(itemsAssign, k - 1).TotalValue(items) + items[k-1].value
     else
       SolutionData(itemsAssign, k - 1).TotalValue(items)
   }
