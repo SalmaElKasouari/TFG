@@ -91,7 +91,7 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
           ps.Model().TotalWeight(input.Model().items);
           {SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());}
           oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
-          {assume input.Model().items[ps.k - 1].weight == input.items[..][ps.k - 1].weight;}
+          {input.inputDataItems(ps.k-1);}
           oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
            <= input.maxWeight;
         }
@@ -99,7 +99,7 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
           ps.totalWeight;
           oldtotalWeight + input.items[ps.k - 1].weight;
           oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
-          {assume input.Model().items[ps.k - 1].weight == input.items[..][ps.k - 1].weight;
+          { input.inputDataItems(ps.k-1);
           SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
           }          
           ps.Model().TotalWeight(input.Model().items);
@@ -109,26 +109,11 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
           ps.totalValue;
           oldtotalValue + input.items[ps.k - 1].value;
           oldps.TotalValue(input.Model().items) + input.items[ps.k - 1].value;
-          {assume input.Model().items[ps.k - 1].value == input.items[..][ps.k - 1].value;
+          {input.inputDataItems(ps.k-1);
           SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
           }          
           ps.Model().TotalValue(input.Model().items);
         }
-
-        // assert ps.Model().Partial(input.Model()) by { // (?) necesitará saber que lo que hemos sumado es justo lo que esta en el if y por tanto es valido
-        //   assert ps.Model().TotalWeight(input.Model().items) <= input.maxWeight by {
-        //     ps.Model().ValidSumEnsuresPartial(input.Model()); //(?)
-        //   }
-        // } 
-        
-        // //lemma para totalweight        
-        // assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight by {
-        //   ps.Model().AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
-        // }
-        // //lemma para totalvalue
-        // assert ps.Model().TotalValue(input.Model().items) == ps.totalValue by {
-        //   ps.Model().AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
-        // }
       }
 
       KnapsackVA(input, ps, bs);
@@ -137,34 +122,27 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
       ps.totalWeight := ps.totalWeight - input.items[ps.k].weight;
       ps.totalValue := ps.totalValue - input.items[ps.k].value;
     }
-
+    
+    ghost var oldps := ps.Model();
     // RAMA NO COGEMOS EL OBJETO
-    assume false;
     ps.itemsAssign[ps.k] := false;
     ps.k := ps.k + 1;
 
     assert ps.Partial(input) by {
-      //assume false;
-      assert 0 <= ps.k <= ps.itemsAssign.Length;
-      assert ps.Model().Partial(input.Model());
-      //lemma de a una suma total le añadimos un obieto no selecionado (false) igue siendo la misma uma porq suma 0
-      assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight;
-      //lemma
-      assert ps.Model().TotalValue(input.Model().items) == ps.totalValue;
+      SolutionData.AddFalsePreservesWeightValue(oldps, ps.Model(), input.Model());
+      input.inputDataItems(ps.k-1);
     }
 
     KnapsackVA(input, ps, bs);
 
     ps.k := ps.k - 1;
 
-    
-    assert ps.Partial(input) by { //demo con igualdad campos (old y actual) con ensures
-      assert 0 <= ps.k <= ps.itemsAssign.Length;
-      assert ps.Model().Partial(input.Model());
-      assert ps.Model().TotalWeight(input.Model().items) == ps.totalWeight;
-      assert ps.Model().TotalValue(input.Model().items) == ps.totalValue;
-    }
-    //assume bs.Model().OptimalExtension(ps.Model(), input.Model()) || bs.Model().equals(old(bs.Model()));
+  //La mejor solución deber ser una extension optima de ps
+  assume bs.Model().OptimalExtension(ps.Model(), input.Model()) || bs.Model().equals(old(bs.Model()));
+
+  //Cualquier extension optima de ps, su valor debe ser menor o igual que la mejor solucion (bs).
+  assume forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
+            s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
 
   }
 

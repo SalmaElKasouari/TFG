@@ -42,7 +42,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     y los valores sigue siendo la misma y no se ve alterada (ya que no sumaría el peso del objeto
     como se ve en la definición de Totalweight y TotalValue) 
   */
-  static lemma AddFalsePreservesWeight(s1 : SolutionData, s2 : SolutionData, input : InputData) //s1 viejo, s2 nuevo
+  static lemma AddFalsePreservesWeightValue(s1 : SolutionData, s2 : SolutionData, input : InputData) //s1 viejo, s2 nuevo
     decreases s1.k
     requires 0 <= s1.k <= |s1.itemsAssign|
     requires 0 < s2.k <= |s2.itemsAssign|
