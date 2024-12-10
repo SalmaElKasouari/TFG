@@ -63,8 +63,12 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     requires s.k <= |s.itemsAssign|
     requires this.equals(s)
     ensures this.TotalValue(input.items) == s.TotalValue(input.items)
-    ensures this.TotalWeight(input.items) == s.TotalWeight(input.items)
+    ensures this.TotalWeight(input.items) == s.TotalWeight(input.items) 
+    {
+      
+    }
 
+  
   lemma ValidSumEnsuresPartial(input : InputData) //(?)
     requires 0 <= k < |input.items|
     requires 0 <= k < |itemsAssign|
