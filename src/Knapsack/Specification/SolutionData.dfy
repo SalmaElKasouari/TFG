@@ -2,6 +2,8 @@ include "InputData.dfy"
 include "ItemData.dfy"
 include "../../ContainersOps.dfy"
 include "../../Math.dfy"
+include "../Implementation/Input.dfy"
+include "../Implementation/Solution.dfy"
 
 datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
@@ -27,14 +29,14 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     requires 0 <= s1.k <= |s1.itemsAssign|
     requires 0 < s2.k <= |s2.itemsAssign|
     requires |s2.itemsAssign| == |s1.itemsAssign| == |input.items|
-    requires s2.k == s1.k + 1 
+    requires s2.k == s1.k + 1
     requires s1.itemsAssign[..s1.k] + [true] == s2.itemsAssign[..s2.k]
     ensures s1.TotalWeight(input.items) + input.items[s1.k].weight ==
             s2.TotalWeight(input.items)
     ensures s1.TotalValue(input.items) + input.items[s1.k].value ==
             s2.TotalValue(input.items)
-  {    
-    s1.EqualTotalValueAndTotalWeight(SolutionData(s2.itemsAssign, s2.k-1), input);    
+  {
+    s1.EqualTotalValueAndTotalWeight(SolutionData(s2.itemsAssign, s2.k-1), input);
   }
 
   /*
@@ -47,7 +49,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     requires 0 <= s1.k <= |s1.itemsAssign|
     requires 0 < s2.k <= |s2.itemsAssign|
     requires |s2.itemsAssign| == |s1.itemsAssign| == |input.items|
-    requires s2.k == s1.k + 1 
+    requires s2.k == s1.k + 1
     requires s1.itemsAssign[..s1.k] + [false] == s2.itemsAssign[..s2.k]
     ensures s1.TotalWeight(input.items) == s2.TotalWeight(input.items)
     ensures s1.TotalValue(input.items) == s2.TotalValue(input.items)
@@ -66,25 +68,18 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     requires s.k <= |s.itemsAssign|
     requires this.equals(s)
     ensures this.TotalValue(input.items) == s.TotalValue(input.items)
-    ensures this.TotalWeight(input.items) == s.TotalWeight(input.items) 
-    {
-      if k == 0 {
-        
-      }
-      else if itemsAssign[k-1] {
-        SolutionData(itemsAssign, k - 1).EqualTotalValueAndTotalWeight(SolutionData(s.itemsAssign, s.k-1), input);
-      }
-      else {
-        SolutionData(itemsAssign, k - 1).EqualTotalValueAndTotalWeight(SolutionData(s.itemsAssign, s.k-1), input);
-      }
-    }
+    ensures this.TotalWeight(input.items) == s.TotalWeight(input.items)
+  {
+    if k == 0 {
 
-  
-  lemma ValidSumEnsuresPartial(input : InputData) //(?)
-    requires 0 <= k < |input.items|
-    requires 0 <= k < |itemsAssign|
-    requires this.TotalWeight(input.items) <= input.maxWeight
-    ensures this.Partial(input)
+    }
+    else if itemsAssign[k-1] {
+      SolutionData(itemsAssign, k - 1).EqualTotalValueAndTotalWeight(SolutionData(s.itemsAssign, s.k-1), input);
+    }
+    else {
+      SolutionData(itemsAssign, k - 1).EqualTotalValueAndTotalWeight(SolutionData(s.itemsAssign, s.k-1), input);
+    }
+  }
 
   ghost function TotalWeight(items: seq<ItemData>): real
     decreases k
@@ -112,6 +107,54 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
       SolutionData(itemsAssign, k - 1).TotalValue(items)
   }
 
+  lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtotalWeight: real, oldtotalValue: real) //añadidos todos los requires necesarios, falla la suma pero en VA va bien
+    requires 1 <= ps.k <= ps.itemsAssign.Length == input.items.Length
+    requires 0 <= oldps.k <= |oldps.itemsAssign|
+    requires ps.k == oldps.k + 1
+    requires ps.itemsAssign.Length == |oldps.itemsAssign| == input.items.Length
+    requires oldps.itemsAssign[..oldps.k] + [true] == ps.itemsAssign[..ps.k]
+    requires oldps.Partial(input.Model())
+    requires oldtotalWeight == oldps.TotalWeight(input.Model().items)
+    requires oldtotalValue == oldps.TotalValue(input.Model().items)
+    requires oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight
+    ensures ps.Partial(input)
+  {
+    assert oldps.Partial(input.Model());
+    assert oldtotalWeight == oldps.TotalWeight(input.Model().items);
+    assert oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight;
+
+    calc {
+       ps.Model().TotalWeight(input.Model().items);
+      { SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model()); }
+       oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
+      { input.InputDataItems(ps.k - 1); }
+       oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
+    <= input.maxWeight;
+    }
+
+    calc {
+      ps.totalWeight;
+      oldtotalWeight + input.items[ps.k - 1].weight;
+      oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
+      { input.InputDataItems(ps.k - 1);
+        SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
+      }
+      ps.Model().TotalWeight(input.Model().items);
+    }
+
+    calc {
+      ps.totalValue;
+      oldtotalValue + input.items[ps.k - 1].value;
+      oldps.TotalValue(input.Model().items) + input.items[ps.k - 1].value;
+      { input.InputDataItems(ps.k - 1);
+        SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
+      }
+      ps.Model().TotalValue(input.Model().items);
+    }
+
+    assert ps.Partial(input);
+  }
+
   ghost predicate Partial (input: InputData){
     && 0 <= k <= |itemsAssign|
     && |itemsAssign| == |input.items|
@@ -137,6 +180,30 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   {
     forall i | 0 <= i < ps.k :: this.itemsAssign[i] == ps.itemsAssign[i]
   }
+
+  /*
+  Si una bs es una extesnion optima de ps + true o de ps + false, entonces bs es una extension optima de ps
+  */
+  lemma OptimalExtensionOfTrueOrFalseBranch(input: Input, ps: Solution, bs: Solution)
+    requires input.Valid()
+    requires ps.Partial(input)
+    requires bs.Valid(input)
+    requires ps.k < input.items.Length
+    requires
+      || bs.Model().OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k + 1), input.Model())
+      || bs.Model().OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := false], ps.k + 1), input.Model())
+
+    ensures bs.Model().OptimalExtension(ps.Model(), input.Model())
+  {
+    assume false;
+    if (bs.Model().OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := false], ps.k + 1), input.Model())) {
+    
+    }
+    else {
+
+    }    
+  }
+
 
   ghost predicate OptimalExtension(ps : SolutionData, input : InputData)
     requires input.Valid()

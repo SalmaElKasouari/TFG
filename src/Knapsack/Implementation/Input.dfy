@@ -5,7 +5,7 @@ class Input {
   var items: array<Item>
   var maxWeight: real
 
-  constructor(items: array<Item>, maxWeight: real) 
+  constructor(items: array<Item>, maxWeight: real)
     ensures this.items == items
     ensures this.maxWeight == maxWeight
   {
@@ -58,9 +58,36 @@ class Input {
     this.Model().Valid()
   }
 
-   lemma InputDataItems(k:int)
-  requires 0 <= k < items.Length
-  ensures items[k].weight == Model().items[k].weight
-  ensures items[k].value == Model().items[k].value
-  {}
+  lemma InputDataItems(k:int)
+    requires 0 <= k < items.Length
+    ensures items[k].weight == Model().items[k].weight
+    ensures items[k].value == Model().items[k].value
+  {
+    assert Model().items[k].weight == items[k].weight;
+    assert Model().items[k].value == items[k].value;
+  }
+
+  lemma InputDataItemsForAll()
+    ensures forall k | 0 <= k < items.Length ::
+              items[k].weight == Model().items[k].weight &&
+              items[k].value == Model().items[k].value
+  {
+    var n := items.Length;
+
+    if n == 0 {
+      assert forall k | 0 <= k < items.Length ::
+          items[k].weight == Model().items[k].weight &&
+          items[k].value == Model().items[k].value;
+    }
+    else {
+      forall k | 0 <= k < items.Length
+        ensures items[k].weight == Model().items[k].weight &&
+                items[k].value == Model().items[k].value
+      {
+        InputDataItems(k);
+      }
+    }
+  }
+
+
 }
