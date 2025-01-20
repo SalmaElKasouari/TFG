@@ -107,54 +107,6 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
       SolutionData(itemsAssign, k - 1).TotalValue(items)
   }
 
-  lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtotalWeight: real, oldtotalValue: real) //añadidos todos los requires necesarios, falla la suma pero en VA va bien
-    requires 1 <= ps.k <= ps.itemsAssign.Length == input.items.Length
-    requires 0 <= oldps.k <= |oldps.itemsAssign|
-    requires ps.k == oldps.k + 1
-    requires ps.itemsAssign.Length == |oldps.itemsAssign| == input.items.Length
-    requires oldps.itemsAssign[..oldps.k] + [true] == ps.itemsAssign[..ps.k]
-    requires oldps.Partial(input.Model())
-    requires oldtotalWeight == oldps.TotalWeight(input.Model().items)
-    requires oldtotalValue == oldps.TotalValue(input.Model().items)
-    requires oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight
-    ensures ps.Partial(input)
-  {
-    assert oldps.Partial(input.Model());
-    assert oldtotalWeight == oldps.TotalWeight(input.Model().items);
-    assert oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight;
-
-    calc {
-       ps.Model().TotalWeight(input.Model().items);
-      { SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model()); }
-       oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
-      { input.InputDataItems(ps.k - 1); }
-       oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
-    <= input.maxWeight;
-    }
-
-    calc {
-      ps.totalWeight;
-      oldtotalWeight + input.items[ps.k - 1].weight;
-      oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
-      { input.InputDataItems(ps.k - 1);
-        SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
-      }
-      ps.Model().TotalWeight(input.Model().items);
-    }
-
-    calc {
-      ps.totalValue;
-      oldtotalValue + input.items[ps.k - 1].value;
-      oldps.TotalValue(input.Model().items) + input.items[ps.k - 1].value;
-      { input.InputDataItems(ps.k - 1);
-        SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
-      }
-      ps.Model().TotalValue(input.Model().items);
-    }
-
-    assert ps.Partial(input);
-  }
-
   ghost predicate Partial (input: InputData){
     && 0 <= k <= |itemsAssign|
     && |itemsAssign| == |input.items|

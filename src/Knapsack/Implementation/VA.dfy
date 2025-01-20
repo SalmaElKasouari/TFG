@@ -14,6 +14,56 @@ tratamos con un problema de maximización.
 
 */
 
+lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtotalWeight: real, oldtotalValue: real) //añadidos todos los requires necesarios, falla la suma pero en VA va bien
+    requires 1 <= ps.k <= ps.itemsAssign.Length == input.items.Length
+    requires 0 <= oldps.k <= |oldps.itemsAssign|
+    requires ps.k == oldps.k + 1
+    requires ps.itemsAssign.Length == |oldps.itemsAssign| == input.items.Length
+    requires oldps.itemsAssign[..oldps.k] + [true] == ps.itemsAssign[..ps.k]
+    requires oldps.Partial(input.Model())
+    requires oldtotalWeight == oldps.TotalWeight(input.Model().items)
+    requires oldtotalValue == oldps.TotalValue(input.Model().items)
+    requires oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight
+    requires oldtotalWeight == ps.totalWeight - input.items[oldps.k].weight
+    requires oldtotalValue == ps.totalValue - input.items[oldps.k].value
+    ensures ps.Partial(input)
+  {
+    assert oldps.Partial(input.Model());
+    assert oldtotalWeight == oldps.TotalWeight(input.Model().items);
+    assert oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight;
+
+    calc {
+       ps.Model().TotalWeight(input.Model().items);
+      { SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model()); }
+       oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
+      { input.InputDataItems(ps.k - 1); }
+       oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
+    <= input.maxWeight;
+    }
+
+    calc {
+      ps.totalWeight;
+      oldtotalWeight + input.items[ps.k - 1].weight;
+      oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
+      { input.InputDataItems(ps.k - 1);
+        SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
+      }
+      ps.Model().TotalWeight(input.Model().items);
+    }
+
+    calc {
+      ps.totalValue;
+      oldtotalValue + input.items[ps.k - 1].value;
+      oldps.TotalValue(input.Model().items) + input.items[ps.k - 1].value;
+      { input.InputDataItems(ps.k - 1);
+        SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
+      }
+      ps.Model().TotalValue(input.Model().items);
+    }
+
+    assert ps.Partial(input);
+  }
+
 method KnapsackVABaseCase(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound() // Función de cota
   modifies ps`totalValue, ps`totalWeight, ps`k, ps.itemsAssign
@@ -105,7 +155,6 @@ method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
 
 {
   ghost var oldps := ps.Model();
-  // RAMA NO COGEMOS EL OBJETO
   ps.itemsAssign[ps.k] := false;
   ps.k := ps.k + 1;
 
@@ -173,38 +222,7 @@ method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
   ps.totalValue := ps.totalValue + input.items[ps.k].value;
   ps.k := ps.k + 1;
 
-  assert ps.Partial(input) by {
-    assert oldps.Partial(input.Model());
-    assert oldtotalWeight == oldps.TotalWeight(input.Model().items);
-    assert oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight;
-    calc {
-       ps.Model().TotalWeight(input.Model().items);
-      {SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());}
-       oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
-      {input.InputDataItems(ps.k-1);}
-       oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
-    <= input.maxWeight;
-    }
-    calc {
-      ps.totalWeight;
-      oldtotalWeight + input.items[ps.k - 1].weight;
-      oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
-      { input.InputDataItems(ps.k-1);
-        SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
-      }
-      ps.Model().TotalWeight(input.Model().items);
-    }
-
-    calc {
-      ps.totalValue;
-      oldtotalValue + input.items[ps.k - 1].value;
-      oldps.TotalValue(input.Model().items) + input.items[ps.k - 1].value;
-      {input.InputDataItems(ps.k-1);
-       SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
-      }
-      ps.Model().TotalValue(input.Model().items);
-    }
-  }
+  PartialConsistency(ps, oldps, input, oldtotalWeight, oldtotalValue); //añadidos todos los requires necesarios, falla la suma pero en VA va bien
 
   KnapsackVA(input, ps, bs);
 
