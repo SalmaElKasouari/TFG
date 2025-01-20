@@ -158,12 +158,12 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
   lemma EqualsOptimalextension(ps1 : SolutionData, ps2: SolutionData, input : InputData)
     requires this.Valid(input)
+    requires input.Valid()
     requires ps1.Partial(input)
     requires ps2.Partial(input)
     requires this.OptimalExtension(ps1, input)
     ensures this.OptimalExtension(ps2, input)
-  {
-  }
+  
 
 
   ghost predicate OptimalExtension(ps : SolutionData, input : InputData)

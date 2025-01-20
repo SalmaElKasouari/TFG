@@ -179,7 +179,6 @@ method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
   assert forall s : SolutionData | s.Valid(input.Model()) && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k:=false],ps.k+1)) ::
       s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
 
-
 }
 
 method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
@@ -307,9 +306,12 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
     else if oldbs.equals(old(bs.Model())) { //bs.Model().equals(oldbs)
 
     }
-    else {
+    else { //sale de la rama true
       assert bs.Model().equals(oldbs);
 
+      assert old@L(ps.Model()).equals(ps.Model());
+      assert old@L(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)).equals(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1));
+      bs.Model().EqualsOptimalextension(old@L(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)), SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1), input.Model());
       assert oldbs.OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1), input.Model());
     }
 
