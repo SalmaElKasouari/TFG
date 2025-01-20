@@ -311,11 +311,12 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
 
       assert old@L(ps.Model()).equals(ps.Model());
       assert old@L(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)).equals(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1));
+      assert old(ps.totalWeight + input.items[ps.k].weight <= input.maxWeight);
       bs.Model().EqualsOptimalextension(old@L(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)), SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1), input.Model());
       assert oldbs.OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1), input.Model());
     }
 
-    assume  forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
+    assert  forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
         s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
 
   }

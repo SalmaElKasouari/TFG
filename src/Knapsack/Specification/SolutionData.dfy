@@ -133,34 +133,13 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     forall i | 0 <= i < ps.k :: this.itemsAssign[i] == ps.itemsAssign[i]
   }
 
-  /*
-  Si una bs es una extesnion optima de ps + true o de ps + false, entonces bs es una extension optima de ps
-  */
-  lemma OptimalExtensionOfTrueOrFalseBranch(input: Input, ps: Solution, bs: Solution)
-    requires input.Valid()
-    requires ps.Partial(input)
-    requires bs.Valid(input)
-    requires ps.k < input.items.Length
-    requires
-      || bs.Model().OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k + 1), input.Model())
-      || bs.Model().OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := false], ps.k + 1), input.Model())
-
-    ensures bs.Model().OptimalExtension(ps.Model(), input.Model())
-  {
-    assume false;
-    if (bs.Model().OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := false], ps.k + 1), input.Model())) {
-
-    }
-    else {
-
-    }
-  }
-
   lemma EqualsOptimalextension(ps1 : SolutionData, ps2: SolutionData, input : InputData)
     requires this.Valid(input)
     requires input.Valid()
-    requires ps1.Partial(input)
-    requires ps2.Partial(input)
+    requires |ps1.itemsAssign| == |ps2.itemsAssign|
+    requires ps1.k <= |ps1.itemsAssign|
+    requires ps2.k <= |ps2.itemsAssign|
+    requires ps1.equals(ps2)
     requires this.OptimalExtension(ps1, input)
     ensures this.OptimalExtension(ps2, input)
   
