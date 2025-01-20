@@ -149,11 +149,20 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   {
     assume false;
     if (bs.Model().OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := false], ps.k + 1), input.Model())) {
-    
+
     }
     else {
 
-    }    
+    }
+  }
+
+  lemma EqualsOptimalextension(ps1 : SolutionData, ps2: SolutionData, input : InputData)
+    requires this.Valid(input)
+    requires ps1.Partial(input)
+    requires ps2.Partial(input)
+    requires this.OptimalExtension(ps1, input)
+    ensures this.OptimalExtension(ps2, input)
+  {
   }
 
 

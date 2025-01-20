@@ -15,54 +15,54 @@ tratamos con un problema de maximización.
 */
 
 lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtotalWeight: real, oldtotalValue: real) //añadidos todos los requires necesarios, falla la suma pero en VA va bien
-    requires 1 <= ps.k <= ps.itemsAssign.Length == input.items.Length
-    requires 0 <= oldps.k <= |oldps.itemsAssign|
-    requires ps.k == oldps.k + 1
-    requires ps.itemsAssign.Length == |oldps.itemsAssign| == input.items.Length
-    requires oldps.itemsAssign[..oldps.k] + [true] == ps.itemsAssign[..ps.k]
-    requires oldps.Partial(input.Model())
-    requires oldtotalWeight == oldps.TotalWeight(input.Model().items)
-    requires oldtotalValue == oldps.TotalValue(input.Model().items)
-    requires oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight
-    requires oldtotalWeight == ps.totalWeight - input.items[oldps.k].weight
-    requires oldtotalValue == ps.totalValue - input.items[oldps.k].value
-    ensures ps.Partial(input)
-  {
-    assert oldps.Partial(input.Model());
-    assert oldtotalWeight == oldps.TotalWeight(input.Model().items);
-    assert oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight;
+  requires 1 <= ps.k <= ps.itemsAssign.Length == input.items.Length
+  requires 0 <= oldps.k <= |oldps.itemsAssign|
+  requires ps.k == oldps.k + 1
+  requires ps.itemsAssign.Length == |oldps.itemsAssign| == input.items.Length
+  requires oldps.itemsAssign[..oldps.k] + [true] == ps.itemsAssign[..ps.k]
+  requires oldps.Partial(input.Model())
+  requires oldtotalWeight == oldps.TotalWeight(input.Model().items)
+  requires oldtotalValue == oldps.TotalValue(input.Model().items)
+  requires oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight
+  requires oldtotalWeight == ps.totalWeight - input.items[oldps.k].weight
+  requires oldtotalValue == ps.totalValue - input.items[oldps.k].value
+  ensures ps.Partial(input)
+{
+  assert oldps.Partial(input.Model());
+  assert oldtotalWeight == oldps.TotalWeight(input.Model().items);
+  assert oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight;
 
-    calc {
-       ps.Model().TotalWeight(input.Model().items);
-      { SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model()); }
-       oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
-      { input.InputDataItems(ps.k - 1); }
-       oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
-    <= input.maxWeight;
-    }
-
-    calc {
-      ps.totalWeight;
-      oldtotalWeight + input.items[ps.k - 1].weight;
-      oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
-      { input.InputDataItems(ps.k - 1);
-        SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
-      }
-      ps.Model().TotalWeight(input.Model().items);
-    }
-
-    calc {
-      ps.totalValue;
-      oldtotalValue + input.items[ps.k - 1].value;
-      oldps.TotalValue(input.Model().items) + input.items[ps.k - 1].value;
-      { input.InputDataItems(ps.k - 1);
-        SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
-      }
-      ps.Model().TotalValue(input.Model().items);
-    }
-
-    assert ps.Partial(input);
+  calc {
+     ps.Model().TotalWeight(input.Model().items);
+    { SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model()); }
+     oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
+    { input.InputDataItems(ps.k - 1); }
+     oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
+  <= input.maxWeight;
   }
+
+  calc {
+    ps.totalWeight;
+    oldtotalWeight + input.items[ps.k - 1].weight;
+    oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
+    { input.InputDataItems(ps.k - 1);
+      SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
+    }
+    ps.Model().TotalWeight(input.Model().items);
+  }
+
+  calc {
+    ps.totalValue;
+    oldtotalValue + input.items[ps.k - 1].value;
+    oldps.TotalValue(input.Model().items) + input.items[ps.k - 1].value;
+    { input.InputDataItems(ps.k - 1);
+      SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model());
+    }
+    ps.Model().TotalValue(input.Model().items);
+  }
+
+  assert ps.Partial(input);
+}
 
 method KnapsackVABaseCase(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound() // Función de cota
@@ -165,14 +165,18 @@ method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
 
   KnapsackVA(input, ps, bs);
 
+  label L:
+
   ps.k := ps.k - 1;
 
+  assert SolutionData(ps.Model().itemsAssign[ps.k := false], ps.k + 1) == old@L(ps.Model());
+
   //La mejor solución deber ser una extension optima de ps
-  assume bs.Model().OptimalExtension( SolutionData(ps.Model().itemsAssign[ps.k:=false],ps.k+1), input.Model())
+  assert bs.Model().OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k:=false], ps.k+1), input.Model())
          || bs.Model().equals(old(bs.Model()));
 
   //Cualquier extension optima de ps, su valor debe ser menor o igual que la mejor solucion (bs).
-  assume forall s : SolutionData | s.Valid(input.Model()) && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k:=false],ps.k+1)) ::
+  assert forall s : SolutionData | s.Valid(input.Model()) && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k:=false],ps.k+1)) ::
       s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
 
 
@@ -226,19 +230,21 @@ method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
 
   KnapsackVA(input, ps, bs);
 
+  label L: 
+
   ps.k := ps.k - 1;
   ps.totalWeight := ps.totalWeight - input.items[ps.k].weight;
   ps.totalValue := ps.totalValue - input.items[ps.k].value;
 
+  assert SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k + 1) == old@L(ps.Model());
+
   //La mejor solución deber ser una extension optima de ps
-  assume bs.Model().OptimalExtension( SolutionData(ps.Model().itemsAssign[ps.k:=true],ps.k+1), input.Model())
+  assert bs.Model().OptimalExtension( SolutionData(ps.Model().itemsAssign[ps.k:=true],ps.k+1), input.Model())
          || bs.Model().equals(old(bs.Model()));
 
   //Cualquier extension optima de ps, su valor debe ser menor o igual que la mejor solucion (bs).
-  assume forall s : SolutionData | s.Valid(input.Model()) && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k:=true],ps.k+1)) ::
+  assert forall s : SolutionData | s.Valid(input.Model()) && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k:=true],ps.k+1)) ::
       s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
-
-
 }
 
 method KnapsackVA(input: Input, ps: Solution, bs: Solution)
@@ -281,6 +287,8 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
       KnapsackVATrueBranch(input, ps, bs);
     }
 
+    label L:
+
     ghost var oldbs := bs.Model();
     assert ps.Model().equals(old(ps.Model()));
     assert oldbs.OptimalExtension( SolutionData(ps.Model().itemsAssign[ps.k:=true],ps.k+1), input.Model())
@@ -289,17 +297,21 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
 
     KnapsackVAFalseBranch(input, ps, bs);
 
-    assert bs.Model().OptimalExtension( SolutionData(ps.Model().itemsAssign[ps.k:=false],ps.k+1), input.Model())
+    assert bs.Model().OptimalExtension( SolutionData(ps.Model().itemsAssign[ps.k:=false], ps.k+1), input.Model())
            || bs.Model().equals(oldbs);
     assert ps.Model().equals(old(ps.Model()));
 
-    if bs.Model().OptimalExtension( SolutionData(ps.Model().itemsAssign[ps.k:=false],ps.k+1), input.Model())
-    {}
-    else //bs.Model().equals(oldbs)
-    if oldbs.equals(old(bs.Model())) {}
+    if bs.Model().OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := false], ps.k+1), input.Model()) {
+
+    }
+    else if oldbs.equals(old(bs.Model())) { //bs.Model().equals(oldbs)
+
+    }
     else {
       assert bs.Model().equals(oldbs);
-      assume oldbs.OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k:=true],ps.k+1),input.Model());}
+
+      assert oldbs.OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1), input.Model());
+    }
 
     assume  forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
         s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
