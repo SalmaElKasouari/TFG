@@ -1,19 +1,13 @@
-
 include "Solution.dfy"
 include "../Specification/SolutionData.dfy"
 include "Input.dfy"
 include "../../Ord.dfy"
 
 /*
-Método general que llama a la vuelta atrás. Se implementará de manera que el árbol de exploraciín sea un árbol 
-binario, donde las etapas son los objetos que debemos tratar y las ramas representan la decisión de coger el objeto.
-
-Tenemos ps (partial solution) y bs (best solution) de entrada y salida. El ps se irá rellenando con la vuelta atrás,
-el bs guardará la mejor solución encontrada hasta el momento. Este último estará incializado a ceros, debido a que
-tratamos con un problema de maximización.
-
+Este lema establece que si extendemos una solución parcial (oldps) añadiendo un elemento asignado como (true) 
+dando lugar a una nueva solución parcial (ps), entonces ps también cumple con las propiedades de consistencia 
+parcial definidas por el método Partial.
 */
-
 lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtotalWeight: real, oldtotalValue: real) //añadidos todos los requires necesarios, falla la suma pero en VA va bien
   requires 1 <= ps.k <= ps.itemsAssign.Length == input.items.Length
   requires 0 <= oldps.k <= |oldps.itemsAssign|
@@ -64,6 +58,9 @@ lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtot
   assert ps.Partial(input);
 }
 
+/*
+Método que trata el caso base del arbol de exploración, esto es, cuando ya se han tratado todos los objetos.
+*/
 method KnapsackVABaseCase(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound() // Función de cota
   modifies ps`totalValue, ps`totalWeight, ps`k, ps.itemsAssign
@@ -120,6 +117,9 @@ method KnapsackVABaseCase(input: Input, ps: Solution, bs: Solution)
   }
 }
 
+/*
+Método que trata la rama de NO coger el objeto
+*/
 method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),0 // Función de cota
   modifies ps`totalValue, ps`totalWeight, ps`k, ps.itemsAssign
@@ -181,6 +181,9 @@ method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
 
 }
 
+/*
+Método que trata la rama de SI coger el objeto
+*/
 method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),0 // Función de cota
   modifies ps`totalValue, ps`totalWeight, ps`k, ps.itemsAssign
@@ -246,6 +249,14 @@ method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
       s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
 }
 
+/*
+Método general que llama a la vuelta atrás. Se implementará de manera que el árbol de exploraciín sea un árbol 
+binario, donde las etapas son los objetos que debemos tratar y las ramas representan la decisión de coger el objeto.
+
+Tenemos ps (partial solution) y bs (best solution) de entrada y salida. El ps se irá rellenando con la vuelta atrás,
+el bs guardará la mejor solución encontrada hasta el momento. Este último estará incializado a ceros, debido a que
+tratamos con un problema de maximización.
+*/
 method KnapsackVA(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),1 // Función de cota
   modifies ps`totalValue, ps`totalWeight, ps`k, ps.itemsAssign
