@@ -58,7 +58,11 @@ class Input {
     this.Model().Valid()
   }
 
-  lemma InputDataItems(k:int)
+  /*
+  Este lema establece que el peso y valor de un cierto k en items coinciden con el peso y el valor correspondientes
+  en el modelo de items.
+  */
+  lemma InputDataItems(k : int)
     requires 0 <= k < items.Length
     ensures items[k].weight == Model().items[k].weight
     ensures items[k].value == Model().items[k].value
@@ -67,6 +71,10 @@ class Input {
     assert Model().items[k].value == items[k].value;
   }
 
+  /*
+  Este lema es una genrealización del lema anterior. Establece que para cada item en items, el peso y el valor de ese 
+  item coinciden con el peso y el valor correspondientes en el modelo.
+  */
   lemma InputDataItemsForAll()
     ensures forall k | 0 <= k < items.Length ::
               items[k].weight == Model().items[k].weight &&

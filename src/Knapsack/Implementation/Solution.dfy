@@ -57,6 +57,10 @@ class Solution {
     this.itemsAssign.Length - this.k + 1
   }
 
+  /*
+  Este lema establece que si s es una solución válida por un input y this tiene el mismo modelo, peso acumulado 
+  y valor acumulado que s,nentonces this también será válida para el mismo input.
+  */
   lemma copyModel (s : Solution, input : Input) 
     requires s.Valid(input)
     requires s.Model() == this.Model()

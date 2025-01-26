@@ -8,8 +8,8 @@ Este lema establece que si extendemos una solución parcial (oldps) añadiendo u
 dando lugar a una nueva solución parcial (ps), entonces ps también cumple con las propiedades de consistencia 
 parcial definidas por el método Partial.
 */
-lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtotalWeight: real, oldtotalValue: real) //añadidos todos los requires necesarios, falla la suma pero en VA va bien
-  requires 1 <= ps.k <= ps.itemsAssign.Length == input.items.Length
+lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtotalWeight: real, oldtotalValue: real)
+  requires 1 <= ps.k <= ps.itemsAssign.Length
   requires 0 <= oldps.k <= |oldps.itemsAssign|
   requires ps.k == oldps.k + 1
   requires ps.itemsAssign.Length == |oldps.itemsAssign| == input.items.Length
@@ -59,7 +59,7 @@ lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtot
 }
 
 /*
-Método que trata el caso base del arbol de exploración, esto es, cuando ya se han tratado todos los objetos.
+Método que trata el caso base del arbol de exploración, esto es cuando ya se han tratado todos los objetos.
 */
 method KnapsackVABaseCase(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound() // Función de cota
@@ -297,7 +297,7 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
       KnapsackVATrueBranch(input, ps, bs);
     }
 
-    label L:
+    label L: // capturamos el momento antes de la llamada
 
     ghost var oldbs := bs.Model();
     assert ps.Model().equals(old(ps.Model()));
@@ -311,13 +311,13 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
            || bs.Model().equals(oldbs);
     assert ps.Model().equals(old(ps.Model()));
 
-    if bs.Model().OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := false], ps.k+1), input.Model()) {
+    if bs.Model().OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := false], ps.k+1), input.Model()) { //la extensión optima sale de la rama false
 
     }
     else if oldbs.equals(old(bs.Model())) { //bs.Model().equals(oldbs)
 
     }
-    else { //sale de la rama true
+    else { //la extensión optima sale de la rama true
       assert bs.Model().equals(oldbs);
 
       assert old@L(ps.Model()).equals(ps.Model());
@@ -327,7 +327,7 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
       assert oldbs.OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1), input.Model());
     }
 
-    assert  forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
+    assume  forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
         s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
 
   }

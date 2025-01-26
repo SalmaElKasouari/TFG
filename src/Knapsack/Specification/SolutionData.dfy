@@ -8,7 +8,7 @@ include "../Implementation/Solution.dfy"
 datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
   /*
-  este lema establece que dado un itemsAssign cuyas posiciones son todas a false, es decir, que ningun objeto ha sido seleccionado, 
+  Este lema establece que dado un itemsAssign cuyas posiciones son todas a false, es decir, que ningun objeto ha sido seleccionado, 
   garantiza que la suma de los pesos y de los valores son es nula.
   */
   lemma SumOfFalsesEqualsZero(input : InputData)
@@ -22,7 +22,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   }
 
   /*
-    Este lema establece que dada una solución s1 y se extiende añadiendo un elemento a true generando una nueva 
+    Este lema establece que dada una solución s1 que se extiende añadiendo un elemento a true generando una nueva 
     solución s2, la suma de los pesos y los valores de s2 se actualiza de manera consistente al incluir el peso y
     el valor del nuevo elemento.
   */
@@ -42,9 +42,9 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   }
 
   /*
-    Este lema establece que dada una solución s1 y se extiende añadiendo un elemento a false generando una nueva 
-    solución s2, sigue siendo la misma y no se ve alterada (ya que no sumaría el peso del objeto
-    como se ve en la definición de Totalweight y TotalValue).
+    Este lema establece que dada una solución s1 que se extiende añadiendo un elemento a false generando una nueva 
+    solución s2, la sumas de los pesos y los valores siguen siendo las mismas y no se ven alteradas (ya que no sumaría 
+    el peso/valor del objeto como se ve en la definición de Totalweight y TotalValue).
   */
   static lemma AddFalsePreservesWeightValue(s1 : SolutionData, s2 : SolutionData, input : InputData) //s1 viejo, s2 nuevo
     decreases s1.k
@@ -60,9 +60,9 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   }
 
   /*
-    Este lema establece que las sumas totales del pesoy el valor de un solución de tipo SolutionData, son iguales 
-    a las de otra solución objeto (Solution). Ocurre lo mismo con la suma de los valores. Grantiza que dos soluciones 
-    consideradas iguales producen los mismos resultados.
+    Este lema establece que la suma total de los pesos de una solución de tipo SolutionData, es igual
+    a la de otra solución objeto (Solution). Ocurre lo mismo con la suma de los valores. 
+    Grantiza que dos soluciones consideradas iguales producen los mismos resultados.
   */
   lemma {:induction this, s} EqualTotalValueAndTotalWeight(s : SolutionData, input : InputData)
     decreases k
@@ -136,10 +136,9 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     forall i | 0 <= i < ps.k :: this.itemsAssign[i] == ps.itemsAssign[i]
   }
 
-  
   /*
-  Dadas dos soluciones parciales ps1 y ps2 que son idénticas (igualdad de campos) y sabiendo que bs es una 
-  extension óptima de ps1, entonces bs también es extensión optima de bs2.
+  Este lema establece que dadas dos soluciones parciales ps1 y ps2 que son idénticas (igualdad de campos) y 
+  sabiendo que bs es una extension óptima de ps1, entonces bs también es extensión optima de ps2.
   */
   lemma EqualsOptimalextension(ps1 : SolutionData, ps2: SolutionData, input : InputData)
     requires this.Valid(input)
@@ -150,8 +149,22 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     requires ps1.equals(ps2)
     requires this.OptimalExtension(ps1, input)
     ensures this.OptimalExtension(ps2, input)
-    //DEMOSTRAR
+  {
 
+    assert ps1.k == ps2.k && forall i | 0 <= i < ps1.k :: ps1.itemsAssign[i] == ps2.itemsAssign[i]; //def clave de equals
+
+    assert this.OptimalExtension(ps2, input) by {
+      assert ps2.Partial(input) by {
+        assert 0 <= ps2.k <= |ps2.itemsAssign|;
+        assert |ps2.itemsAssign| == |input.items|;
+        assert ps2.TotalWeight(input.items) <= input.maxWeight by {
+          EqualSolutionsHaveEqualWeightsAndValues(ps1, ps2, input);
+        }
+      }
+      assert this.Extends(ps2);
+      assert forall s : SolutionData | s.Valid(input) && s.Extends(ps2) :: s.TotalValue(input.items) <= this.TotalValue(input.items);
+    }
+  }
 
   ghost predicate OptimalExtension(ps : SolutionData, input : InputData)
     requires input.Valid()
@@ -160,6 +173,36 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     && ps.Partial(input)
     && this.Extends(ps)
     && forall s : SolutionData | s.Valid(input) && s.Extends(ps) :: s.TotalValue(input.items) <= this.TotalValue(input.items)
+  }
+
+  /*
+  Este lema establece que dadas dos soluciones s1 y s2 que son idénticas (igualdad de campos), tienen las mismas 
+  sumas de pesos y valores. Esto es por que el contenido de itemsAssign de cada solución es igual y los cálculos 
+  acumulativos de pesos y valores serán idénticos.
+  */
+  lemma EqualSolutionsHaveEqualWeightsAndValues(s1: SolutionData, s2: SolutionData, input : InputData)
+    decreases s1.k
+    requires input.Valid()
+    requires |s1.itemsAssign| == |s2.itemsAssign|
+    requires s1.k <= |s1.itemsAssign|
+    requires s2.k <= |s2.itemsAssign|
+    requires s1.equals(s2)
+    requires s1.k <= |input.items|
+    requires s1.k <= |s1.itemsAssign|
+    requires s2.k <= |input.items|
+    requires s2.k <= |s2.itemsAssign|
+    ensures s1.TotalWeight(input.items) == s2.TotalWeight(input.items)
+    ensures s1.TotalValue(input.items) == s2.TotalValue(input.items)
+  {
+    assert s1.k == s2.k && forall i | 0 <= i < s1.k :: s1.itemsAssign[i] == s2.itemsAssign[i]; //equals  
+
+    if s1.k == 0 { // Trivial, las sumas son 0.0
+      assert s1.TotalWeight(input.items) == s2.TotalWeight(input.items);
+    }
+    else {
+      EqualSolutionsHaveEqualWeightsAndValues(SolutionData(s1.itemsAssign, s1.k - 1), SolutionData(s2.itemsAssign, s1.k - 1), input);
+    }
+    //Por definición de TotalWeight y TotalValue, el lema se demuestra automaticamente con la clausula decreases s1.k
   }
 
   ghost predicate equals(s : SolutionData)
