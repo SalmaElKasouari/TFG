@@ -8,8 +8,9 @@ include "../Implementation/Solution.dfy"
 datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
   /*
-  Este lema establece que dado un itemsAssign cuyas posiciones son todas a false, es decir, que ningun objeto ha sido seleccionado, 
-  garantiza que la suma de los pesos y de los valores son es nula.
+  Este lema establece que dado un itemsAssign cuyas posiciones son todas a false, es decir, que ningun objeto ha 
+  sido seleccionado, garantiza que la suma de los pesos y de los valores son es nula. Se utiliza en ComputeSolution 
+  para demostrar que ps es inicialmente Partial.
   */
   lemma SumOfFalsesEqualsZero(input : InputData)
     decreases k
@@ -24,7 +25,8 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   /*
     Este lema establece que dada una solución s1 que se extiende añadiendo un elemento a true generando una nueva 
     solución s2, la suma de los pesos y los valores de s2 se actualiza de manera consistente al incluir el peso y
-    el valor del nuevo elemento.
+    el valor del nuevo elemento. Se utiliza en el lema PartialConsistency para garantizar la consistencia de los
+    datos entre las versiones antigua y actual del modelo.
   */
   static lemma AddTrueMaintainsSumConsistency(s1 : SolutionData, s2 : SolutionData, input : InputData) //s1 viejo, s2 nuevo
     decreases s1.k
@@ -44,7 +46,8 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   /*
     Este lema establece que dada una solución s1 que se extiende añadiendo un elemento a false generando una nueva 
     solución s2, la sumas de los pesos y los valores siguen siendo las mismas y no se ven alteradas (ya que no sumaría 
-    el peso/valor del objeto como se ve en la definición de Totalweight y TotalValue).
+    el peso/valor del objeto como se ve en la definición de Totalweight y TotalValue). Se utiliza en 
+    KnapsackVAFalseBranch para demostrar que ps sigue siendo Partial después de asignar el objeto k a false.
   */
   static lemma AddFalsePreservesWeightValue(s1 : SolutionData, s2 : SolutionData, input : InputData) //s1 viejo, s2 nuevo
     decreases s1.k
@@ -62,7 +65,8 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   /*
     Este lema establece que la suma total de los pesos de una solución de tipo SolutionData, es igual
     a la de otra solución objeto (Solution). Ocurre lo mismo con la suma de los valores. 
-    Grantiza que dos soluciones consideradas iguales producen los mismos resultados.
+    Grantiza que dos soluciones consideradas iguales producen los mismos resultados. Se utliza para demostrar el
+    lema AddTrueMaintainsSumConsistency.
   */
   lemma {:induction this, s} EqualTotalValueAndTotalWeight(s : SolutionData, input : InputData)
     decreases k
@@ -138,9 +142,10 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
   /*
   Este lema establece que dadas dos soluciones parciales ps1 y ps2 que son idénticas (igualdad de campos) y 
-  sabiendo que bs es una extension óptima de ps1, entonces bs también es extensión optima de ps2.
+  sabiendo que bs es una extension óptima de ps1, entonces bs también es extensión optima de ps2. Se utiliza en 
+  KnapsackVA para verificar que bs es la extensión óptima de ps al salir de la rama true.
   */
-  lemma EqualsOptimalextension(ps1 : SolutionData, ps2: SolutionData, input : InputData)
+  lemma EqualsOptimalExtension(ps1 : SolutionData, ps2: SolutionData, input : InputData)
     requires this.Valid(input)
     requires input.Valid()
     requires |ps1.itemsAssign| == |ps2.itemsAssign|
@@ -178,7 +183,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   /*
   Este lema establece que dadas dos soluciones s1 y s2 que son idénticas (igualdad de campos), tienen las mismas 
   sumas de pesos y valores. Esto es por que el contenido de itemsAssign de cada solución es igual y los cálculos 
-  acumulativos de pesos y valores serán idénticos.
+  acumulativos de pesos y valores serán idénticos. Se utiliza para demostrar el lema EqualsOptimalextension.
   */
   lemma EqualSolutionsHaveEqualWeightsAndValues(s1: SolutionData, s2: SolutionData, input : InputData)
     decreases s1.k

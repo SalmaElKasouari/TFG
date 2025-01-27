@@ -14,8 +14,6 @@ method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
 	ensures bs.Optimal(input)
 	
 {
-
-
 	var size := input.items.Length;
 
 	// Construir partial solution (ps)
@@ -26,10 +24,10 @@ method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
 	var ps := new Solution(ps_itemsAssign, ps_totalValue, ps_totalWeight, ps_k);
 	ghost var oldpsmodel := ps.Model();
 	assert ps.Partial(input) by {
-		assert ps.Model().Partial(input.Model()); // ok
+		assert ps.Model().Partial(input.Model());
 	}
 
-	// Construir best solution (bs) SE PUEDE PONER CONSTRUCTOR VACIO Y LLAMARLO EN UNA LINEA 
+	// Construir best solution (bs)
 	var bs_itemsAssign: array<bool> := new bool[size](i => false);
   	var bs_totalValue: real := 0.0;
   	var bs_totalWeight: real := 0.0;

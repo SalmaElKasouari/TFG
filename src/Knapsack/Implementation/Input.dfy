@@ -60,7 +60,7 @@ class Input {
 
   /*
   Este lema establece que el peso y valor de un cierto k en items coinciden con el peso y el valor correspondientes
-  en el modelo de items.
+  en el modelo de items. Se utiliza para demostrar el lema InputDataItemsForAll.
   */
   lemma InputDataItems(k : int)
     requires 0 <= k < items.Length

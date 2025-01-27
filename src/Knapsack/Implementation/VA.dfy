@@ -6,7 +6,8 @@ include "../../Ord.dfy"
 /*
 Este lema establece que si extendemos una solución parcial (oldps) añadiendo un elemento asignado como (true) 
 dando lugar a una nueva solución parcial (ps), entonces ps también cumple con las propiedades de consistencia 
-parcial definidas por el método Partial.
+parcial definidas por el método Partial. Se utiliza en KnapsackVATrueBranch para garantizar que ps sigue siendo 
+Partial depues de añadirle un objeto cuyo peso no hacía sobrepsar el peso maximo.
 */
 lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtotalWeight: real, oldtotalValue: real)
   requires 1 <= ps.k <= ps.itemsAssign.Length
@@ -228,7 +229,7 @@ method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
   ps.totalValue := ps.totalValue + input.items[ps.k].value;
   ps.k := ps.k + 1;
 
-  PartialConsistency(ps, oldps, input, oldtotalWeight, oldtotalValue); //añadidos todos los requires necesarios, falla la suma pero en VA va bien
+  PartialConsistency(ps, oldps, input, oldtotalWeight, oldtotalValue);
 
   KnapsackVA(input, ps, bs);
 
@@ -312,10 +313,12 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
     assert ps.Model().equals(old(ps.Model()));
 
     if bs.Model().OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := false], ps.k+1), input.Model()) { //la extensión optima sale de la rama false
-
+      assert forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
+        s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
     }
-    else if oldbs.equals(old(bs.Model())) { //bs.Model().equals(oldbs)
-
+    else if oldbs.equals(old(bs.Model())) {
+      assert forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
+        s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
     }
     else { //la extensión optima sale de la rama true
       assert bs.Model().equals(oldbs);
@@ -323,13 +326,17 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
       assert old@L(ps.Model()).equals(ps.Model());
       assert old@L(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)).equals(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1));
       assert old(ps.totalWeight + input.items[ps.k].weight <= input.maxWeight);
-      bs.Model().EqualsOptimalextension(old@L(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)), SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1), input.Model());
+      bs.Model().EqualsOptimalExtension(old@L(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)), SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1), input.Model());
       assert oldbs.OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1), input.Model());
-    }
-
-    assume  forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
+      
+      assert forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
         s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
+    }    
 
+    //Falta esta postcondiicon, la pongo en cada caso. 
+    // En el ultimo queda verificado gracias que hemos veriifcado la del optimalExtension. En las dos anteriores
+    // la del optimalExtension las verifica automaticamnete pero esta del forall no.
+    // assert forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
+    //     s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
   }
-
 }

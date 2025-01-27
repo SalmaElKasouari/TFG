@@ -59,7 +59,8 @@ class Solution {
 
   /*
   Este lema establece que si s es una solución válida por un input y this tiene el mismo modelo, peso acumulado 
-  y valor acumulado que s,nentonces this también será válida para el mismo input.
+  y valor acumulado que s, entonces this también será válida para el mismo input. Se utiliza en KnapsackVABaseCase 
+  para demostrar que el TotalValue de ps es igual al TotalValue de bs.
   */
   lemma copyModel (s : Solution, input : Input) 
     requires s.Valid(input)
