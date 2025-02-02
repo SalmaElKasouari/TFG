@@ -1,7 +1,6 @@
 /*---------------------------------------------------------------------------------------------------------------------
 La clase Solution implementa una representación formal de las soluciones del problema de la mochila, y proporciona
-las herramientas necesarias para explorar y verificar diferentes configuraciones de 
-solución.
+las herramientas necesarias para verificar diferentes configuraciones de una solución.
 
 Estructura del fichero:
 

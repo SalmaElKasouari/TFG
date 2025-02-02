@@ -1,5 +1,6 @@
 /*-----------------------------------------------------------------------------------------------------------------
-La clase `SolutionData` representa el modelo de una solución parcial en el contexto del problema de la mochila.
+La clase SolutionData es el modelo de la representación formal de una solución parcial en el contexto del problema
+de la mochila. Proporciona las herramientas necesarias para verificar diferentes configuraciones de una solución.
 
 Estructura del fichero:
 
