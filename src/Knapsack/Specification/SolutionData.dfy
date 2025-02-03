@@ -242,25 +242,16 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     requires s1.k <= s2.k
     requires s2.Extends(s1)
     ensures s2.TotalWeight(input.items) >= s1.TotalWeight(input.items)
-    //ensures s2.TotalValue(input.items) >= s1.TotalValue(input.items)
+    ensures s2.TotalValue(input.items) >= s1.TotalValue(input.items)
   {
     if s1.k == s2.k {
       s1.EqualValueWeightFromEquals(s2, input);
     }
     else {
       ghost var s :=  SolutionData(s2.itemsAssign, s2.k-1);
-      assert s.TotalWeight(input.items) <= s2.TotalWeight(input.items) by {
-        if s2.itemsAssign[s2.k-1] {
-          AddTrueMaintainsSumConsistency(s, s2, input);
-          assert s2.TotalWeight(input.items) == s.TotalWeight(input.items) + input.items[s.k].weight;
-        }
-        else {
-          assume false;
-        }
-      }
+      assert s.TotalWeight(input.items) <= s2.TotalWeight(input.items);
       assert s.Extends(s1);
       GreaterOrEqualWeightFromExtends(s1, s, input);
-      assume false;
     }
   }
 
