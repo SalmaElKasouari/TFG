@@ -108,7 +108,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   {
     forall otherSolution: SolutionData | otherSolution.Valid(input) :: otherSolution.TotalValue(input.items) <= TotalValue(input.items)
   }
-  
+
   /*
     Este predicado verifica una solución es una extensión de la solución parcial (ps), manteniendo la igualdad 
     hasta el índice k.
@@ -228,19 +228,41 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     }
   }
 
+
+
   /*
     Es el lema que esta en VA
   */ //DEMO????????????
-  static lemma {:induction s1, s2} GreaterOrEqualValueWeightFromExtends(s1: SolutionData, s2: SolutionData, input: InputData)
-    decreases s1.k
+  static lemma {:induction s2} GreaterOrEqualWeightFromExtends(s1: SolutionData, s2: SolutionData, input: InputData)
+    decreases s2.k
+    requires input.Valid()
     requires |s1.itemsAssign| == |s2.itemsAssign| == |input.items|
     requires s1.k <= |s1.itemsAssign|
     requires s2.k <= |s2.itemsAssign|
     requires s1.k <= s2.k
     requires s2.Extends(s1)
     ensures s2.TotalWeight(input.items) >= s1.TotalWeight(input.items)
-    ensures s2.TotalValue(input.items) >= s1.TotalValue(input.items)
-  
+    //ensures s2.TotalValue(input.items) >= s1.TotalValue(input.items)
+  {
+    if s1.k == s2.k {
+      s1.EqualValueWeightFromEquals(s2, input);
+    }
+    else {
+      ghost var s :=  SolutionData(s2.itemsAssign, s2.k-1);
+      assert s.TotalWeight(input.items) <= s2.TotalWeight(input.items) by {
+        if s2.itemsAssign[s2.k-1] {
+          AddTrueMaintainsSumConsistency(s, s2, input);
+          assert s2.TotalWeight(input.items) == s.TotalWeight(input.items) + input.items[s.k].weight;
+        }
+        else {
+          assume false;
+        }
+      }
+      assert s.Extends(s1);
+      GreaterOrEqualWeightFromExtends(s1, s, input);
+      assume false;
+    }
+  }
 
 
   /*
