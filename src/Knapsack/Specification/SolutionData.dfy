@@ -232,7 +232,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
   /*
     Es el lema que esta en VA
-  */ //DEMO????????????
+  */
   static lemma {:induction s2} GreaterOrEqualWeightFromExtends(s1: SolutionData, s2: SolutionData, input: InputData)
     decreases s2.k
     requires input.Valid()

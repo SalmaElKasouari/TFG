@@ -433,6 +433,7 @@ lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input) //lema generico
   requires 0 <= ps.k < ps.itemsAssign.Length
   requires ps.itemsAssign.Length == input.items.Length
   requires ps.totalWeight + input.items[ps.k].weight > input.maxWeight
+  requires input.Valid()
   requires ps.Partial(input)
   ensures forall s : SolutionData | |s.itemsAssign| == |(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)).itemsAssign| && s.k <= |s.itemsAssign| && ps.k + 1 <= s.k && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)) :: !s.Valid(input.Model())
 {
@@ -450,22 +451,3 @@ lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input) //lema generico
     }
   }
 }
-
-/*
-Este lema asegura que una solución extendida (s) tiene un peso igual o mayor que el peso de la olución original (ps).
-*/
-// lemma GreaterOrEqualWeightFromExtends(ps: Solution, s: SolutionData, input: Input)
-//   decreases ps.k
-//   requires 0 <= ps.k < ps.itemsAssign.Length
-//   requires ps.itemsAssign.Length == input.items.Length
-//   requires ps.totalWeight + input.items[ps.k].weight > input.maxWeight
-//   requires |s.itemsAssign| == |(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)).itemsAssign|
-//   requires s.k <= |s.itemsAssign|
-//   requires ps.k + 1 <= s.k
-//   requires s.Extends(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1))
-//   ensures s.TotalWeight(input.Model().items) >= ps.totalWeight + input.items[ps.k].weight
-// // {
-// //   assert s.TotalWeight(input.Model().items) >= ps.totalWeight + input.items[ps.k].weight by {
-// //     SolutionData.GreaterOrEqualValueWeightFromExtends((SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)), s, input.Model());
-// //   }
-// // }
