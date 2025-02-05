@@ -13,7 +13,6 @@ Estructura del fichero:
   Lemas
     - PartialConsistency
     - InvalidExtensionsFromInvalidPs
-    - GreaterOrEqualWeightFromExtends
 
   Métodos
     - Caso base de VA: Define la condición de terminación.
@@ -435,18 +434,22 @@ lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input) //lema generico
   requires ps.totalWeight + input.items[ps.k].weight > input.maxWeight
   requires input.Valid()
   requires ps.Partial(input)
-  ensures forall s : SolutionData | |s.itemsAssign| == |(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)).itemsAssign| && s.k <= |s.itemsAssign| && ps.k + 1 <= s.k && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)) :: !s.Valid(input.Model())
+  ensures forall s : SolutionData | && |s.itemsAssign| == |(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)).itemsAssign|
+                                    && s.k <= |s.itemsAssign| 
+                                    && ps.k + 1 <= s.k 
+                                    && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)) 
+                                    :: !s.Valid(input.Model())
 {
 
   forall s : SolutionData |
-    |s.itemsAssign| == |(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)).itemsAssign| &&
-    s.k <= |s.itemsAssign| &&
-    ps.k + 1 <= s.k &&
-    s.Extends(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1))
+    && |s.itemsAssign| == |(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)).itemsAssign|
+    && s.k <= |s.itemsAssign|
+    && ps.k + 1 <= s.k
+    && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1))
     ensures !s.Valid(input.Model())
   {
     assert s.TotalWeight(input.Model().items) > input.maxWeight by {
-      SolutionData.GreaterOrEqualWeightFromExtends(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1), s, input.Model());
+      SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1).GreaterOrEqualWeightFromExtends(s, input.Model());
       SolutionData.AddTrueMaintainsSumConsistency(ps.Model(), SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1), input.Model());
     }
   }

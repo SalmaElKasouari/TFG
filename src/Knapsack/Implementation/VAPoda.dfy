@@ -15,7 +15,6 @@ Estructura del fichero:
   Lemas
     - PartialConsistency
     - InvalidExtensionsFromInvalidPs
-    - GreaterOrEqualWeightFromExtends
 
   Métodos
     - Caso base de VA: Define la condición de terminación.
@@ -41,7 +40,10 @@ method Cota (ps : Solution, input : Input) returns (cota : real)
   requires ps.Partial(input)
   requires ps.k <= ps.itemsAssign.Length
   ensures forall s : SolutionData | |s.itemsAssign| == |ps.Model().itemsAssign|
-                                    && s.k <= |s.itemsAssign| && ps.k <= s.k && s.Extends(ps.Model()) :: s.TotalValue(input.Model().items) <= cota
+                                    && s.k <= |s.itemsAssign| 
+                                    && ps.k <= s.k 
+                                    && s.Extends(ps.Model()) :: 
+                                    s.TotalValue(input.Model().items) <= cota
 
 
 /* 
@@ -449,7 +451,7 @@ salió de la rama true).
 Sirve para asegurar que en el caso de que no se ejecute la rama true es porque no se han conseguido soluciones 
 válidas, y por lo tanto, no hay ninguna solución óptima que salga de dicha rama que sea mejor que bs.
 */
-lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input) //lema generico con forall
+lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input)
   requires 0 <= ps.k < ps.itemsAssign.Length
   requires ps.itemsAssign.Length == input.items.Length
   requires ps.totalWeight + input.items[ps.k].weight > input.maxWeight
@@ -459,14 +461,14 @@ lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input) //lema generico
 {
 
   forall s : SolutionData |
-    |s.itemsAssign| == |(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)).itemsAssign| &&
-    s.k <= |s.itemsAssign| &&
-    ps.k + 1 <= s.k &&
-    s.Extends(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1))
+    && |s.itemsAssign| == |(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)).itemsAssign|
+    && s.k <= |s.itemsAssign|
+    && ps.k + 1 <= s.k
+    && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1))
     ensures !s.Valid(input.Model())
   {
     assert s.TotalWeight(input.Model().items) > input.maxWeight by {
-      SolutionData.GreaterOrEqualWeightFromExtends(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1), s, input.Model());
+      SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1).GreaterOrEqualWeightFromExtends(s, input.Model());
       SolutionData.AddTrueMaintainsSumConsistency(ps.Model(), SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1), input.Model());
     }
   }

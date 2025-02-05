@@ -1,28 +1,37 @@
 /*-----------------------------------------------------------------------------------------------------------------
+
 La clase SolutionData es el modelo de la representación formal de una solución parcial en el contexto del problema
 de la mochila. Proporciona las herramientas necesarias para verificar diferentes configuraciones de una solución.
 
 Estructura del fichero:
 
+  Datatype
+  - itemsAssign: array de asignaciones de los objetos, donde true indica que el objeto ha sido seleccionado, 
+    y false que no ha sido seleccionado.
+  - k: etapa del árbol de exploración de la solución. Denota el número de objetos tratados del array anterior. 
+
   Funciones
-    - TotalWeight
-    - TotalValue
+    - TotalWeight: suma total de los pesos de los objetos seleccionados.
+    - TotalValue: suma total de los valores de los objetos seleccionados.
   
   Predicados
-    - Partial
-    - Valid
-    - Optimal
-    - Extends
-    - OptimalExtension
-    - Equals  
+    - Partial: una solución parcial es válida.
+    - Valid: una solución completa es válida.
+    - Optimal: una solución es óptima.
+    - Extends: una solución extiende de otra.
+    - OptimalExtension: una solución es extensión óptima de otra.
+    - Equals: una solución es igual a otra (igualdad de campos).
 
   Lemas
-    - SumOfFalsesEqualsZero 
-    - AddTrueMaintainsSumConsistency
-    - AddFalsePreservesWeightValue
-    - EqualValueWeightFromEquals
-    - GreaterOrEqualValueWeightFromExtends
-    - EqualsOptimalExtensionFromEquals
+    - SumOfFalsesEqualsZero: si todas las posiciones de itemsAssign están a false, entonces la suma de los 
+      pesos/valores es 0.
+    - AddTrueMaintainsSumConsistency: 
+    - AddFalsePreservesWeightValue:
+    - EqualValueWeightFromEquals: dos solciones iguales tienen el mismo peso total y valor total.
+    - GreaterOrEqualValueWeightFromExtends: si una solución que extiende a otra, entonces tiene como mínimo el peso 
+      y valor totales de la solución original.
+    - EqualsOptimalExtensionFromEquals: si dos soluciones son iguales, entonces tienen las mismas extensiones 
+      óptimas.
 
 -----------------------------------------------------------------------------------------------------------------------*/
 
@@ -40,9 +49,9 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   /* Funciones */
 
   /*
-    Calcula el peso total de los objetos seleccionados hasta el índice k. Si el objeto está seleccionado se añade
-    su peso al peso total acumulado de la solución. Si no está seleccionado, se mantiene el peso acumulado sin 
-    incluirlo. La función es recursiva y depende de las decisiones tomadas hasta el índice k-1.
+    Función: calcula el peso total de los objetos seleccionados hasta el índice k. Si el objeto está seleccionado
+    se añade su peso al peso total acumulado de la solución. Si no está seleccionado, se mantiene el peso acumulado 
+    sin incluirlo. La función es recursiva y depende de las decisiones tomadas hasta el índice k-1.
   */
   ghost function TotalWeight(items: seq<ItemData>): real
     decreases k
@@ -58,9 +67,9 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   }
 
   /*
-    Calcula el valor total de los objetos seleccionados hasta el índice k. Si el objeto está seleccionado se añade
-    su valor al valor total acumulado de la solución. Si no está seleccionado, se mantiene el valor acumulado sin 
-    incluirlo. La función es recursiva y depende de las decisiones tomadas hasta el índice k-1.
+    Función: calcula el valor total de los objetos seleccionados hasta el índice k. Si el objeto está seleccionado
+    se añade su valor al valor total acumulado de la solución. Si no está seleccionado, se mantiene el valor 
+    acumulado sin incluirlo. La función es recursiva y depende de las decisiones tomadas hasta el índice k-1.
   */
   ghost function TotalValue(items: seq<ItemData>): real
     decreases k
@@ -80,7 +89,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   /* Predicados */
 
   /*
-    Este predicado verifica que una solución parcial sea válida hasta el índice k, observando que el peso total no 
+    Predicado: verifica que una solución parcial sea válida hasta el índice k, observando que el peso total no 
     supere el máximo peso permitido.
   */
   ghost predicate Partial (input: InputData){
@@ -90,7 +99,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   }
 
   /*
-    Este predicado verifica que la solución esté completa (hemos tratado todos los objetos) y sea válida, cumpliendo 
+    Predicado: verifica que la solución esté completa (hemos tratado todos los objetos) y sea válida, cumpliendo 
     con las restricciones de peso.
   */
   ghost predicate Valid(input: InputData){
@@ -99,7 +108,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   }
 
   /*
-    Este predicado asegura que una solución válida (this) sea óptima, es decir, que no exista ninguna otra solución 
+    Predicado: asegura que una solución válida (this) sea óptima, es decir, que no exista ninguna otra solución 
     válida con un mayor valor total.
   */
   ghost predicate Optimal(input: InputData)
@@ -110,7 +119,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   }
 
   /*
-    Este predicado verifica una solución es una extensión de la solución parcial (ps), manteniendo la igualdad 
+    Predicado: verifica una solución es una extensión de la solución parcial (ps), manteniendo la igualdad 
     hasta el índice k.
   */
   ghost predicate Extends(ps : SolutionData) // ps es prefijo de ps' (el que llama a la función), (ps y ps' iguales hasta k)
@@ -122,7 +131,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   }
 
   /*
-    Este predicado verifica que una solución (this) es una extensión óptima de ps, garantizando que no haya 
+    Predicado: verifica que una solución (this) es una extensión óptima de ps, garantizando que no haya 
     soluciones válidas con un mayor valor total que this.
   */
   ghost predicate OptimalExtension(ps : SolutionData, input : InputData)
@@ -135,7 +144,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   }
 
   /*
-    Este predicado verifica que dos soluciones this y s sean iguales hasta el índice k, es decir, que cuentan con la 
+    Predicado: verifica que dos soluciones this y s sean iguales hasta el índice k, es decir, que cuentan con la 
     misma asignación de objetos seleccionados.
   */
   ghost predicate Equals(s : SolutionData)
@@ -150,10 +159,13 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
   /* Lemas */
 
-  /*
-  Este lema establece que dado un itemsAssign cuyas posiciones son todas a false, es decir, que ningun objeto ha 
-  sido seleccionado, garantiza que la suma de los pesos y de los valores son es nula. Se utiliza en ComputeSolution 
-  para demostrar que ps es inicialmente Partial.
+  /* 
+  Lema: dado un itemsAssign cuyas posiciones son todas a false, es decir, que ningun objeto ha 
+  sido seleccionado, garantiza que la suma de los pesos y la suma de los valores son nulas.
+  //
+  Propósito: demostrar que ps es inicialmente Partial en el método ComputeSolution de Knapsack.dfy
+  //
+  Demostración: por inducción ya que las definiciones de TotalWeight() y Totalvalue son recursivas.
   */
   lemma SumOfFalsesEqualsZero(input : InputData)
     decreases k
@@ -164,11 +176,15 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
             && TotalValue(input.items) == 0.0
   {}
 
-  /*
-    Este lema establece que dada una solución s1 que se extiende añadiendo un elemento a true generando una nueva 
-    solución s2, la suma de los pesos y los valores de s2 se actualiza de manera consistente al incluir el peso y
-    el valor del nuevo elemento. Se utiliza en el lema PartialConsistency para garantizar la consistencia de los
-    datos entre las versiones antigua y actual del modelo.
+  /* 
+  Lema: dada una solución s1 que se extiende añadiendo un elemento a true generando una nueva 
+  solución s2, la suma de los pesos y los valores de s2 se actualiza de manera consistente al incluir el peso y
+  el valor del nuevo elemento.
+  //
+  Propósito: garantizar la consistencia de los datos entre las versiones antigua y actual del modelo de la solución 
+  en el lema PartialConsistency de VA.dfy.
+  //
+  Demostración: mediante el lema EqualValueWeightFromEquals.
   */
   static lemma AddTrueMaintainsSumConsistency(s1 : SolutionData, s2 : SolutionData, input : InputData) //s1 viejo, s2 nuevo
     decreases s1.k
@@ -185,11 +201,14 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     s1.EqualValueWeightFromEquals(SolutionData(s2.itemsAssign, s2.k-1), input);
   }
 
-  /*
-    Este lema establece que dada una solución s1 que se extiende añadiendo un elemento a false generando una nueva 
-    solución s2, la sumas de los pesos y los valores siguen siendo las mismas y no se ven alteradas (ya que no sumaría 
-    el peso/valor del objeto como se ve en la definición de Totalweight y TotalValue). Se utiliza en 
-    KnapsackVAFalseBranch para demostrar que ps sigue siendo Partial después de asignar el objeto k a false.
+  /* 
+  Lema: dada una solución s1 que se extiende añadiendo un elemento a false generando una nueva 
+  solución s2, la sumas de los pesos y los valores siguen siendo las mismas y no se ven alteradas (ya que no sumaría 
+  el peso/valor del objeto como se ve en la definición de Totalweight y TotalValue).
+  //
+  Propósito: demostrar que ps sigue siendo Partial después de asignar el objeto k a false en KnapsackVAFalseBranch de VA.dfy.
+  //
+  Demostración: mediante el lema EqualValueWeightFromEquals.
   */
   static lemma AddFalsePreservesWeightValue(s1 : SolutionData, s2 : SolutionData, input : InputData) //s1 viejo, s2 nuevo
     decreases s1.k
@@ -205,11 +224,14 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     s1.EqualValueWeightFromEquals(SolutionData(s2.itemsAssign, s2.k-1), input);
   }
 
-  /*
-  Este lema establece que dadas dos soluciones s1 y s2 que son idénticas (igualdad de campos), tienen las mismas 
+  /* 
+  Lema: si dos soluciones (this y s) son idénticas (igualdad de campos), entonces tienen las mismas 
   sumas de pesos y valores. Esto es por que el contenido de itemsAssign de cada solución es igual y los cálculos 
-  acumulativos de pesos y valores serán idénticos. Se utiliza para demostrar el lema AddTrueMaintainsSumConsistency 
-  y el lema EqualsOptimalExtensionFromEquals.
+  acumulativos de pesos y valores serán idénticos.
+  //
+  Propósito: demostrar el lema AddTrueMaintainsSumConsistency y el lema EqualsOptimalExtensionFromEquals.
+  //
+  Demostración: mediante inducción en this y s.
   */
   lemma {:induction this, s} EqualValueWeightFromEquals(s : SolutionData, input : InputData)
     decreases k
@@ -228,38 +250,42 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     }
   }
 
-
-
-  /*
-    Es el lema que esta en VA
+  /* 
+  Lema: si dos soluciones (this y s) son idénticas (igualdad de campos), entonces tienen las mismas 
+  sumas de pesos y valores. Esto es por que el contenido de itemsAssign de cada solución es igual y los cálculos 
+  acumulativos de pesos y valores serán idénticos.
+  //
+  Propósito: demostrar el lema InvalidExtensionsFromInvalidPs de VA.dfy.
+  //
+  Demostración: mediante inducción en s, esta se va reduciendo hasta this.k.
   */
-  static lemma {:induction s2} GreaterOrEqualWeightFromExtends(s1: SolutionData, s2: SolutionData, input: InputData)
-    decreases s2.k
+  lemma {:induction s} GreaterOrEqualWeightFromExtends(s: SolutionData, input: InputData)
+    decreases s.k
     requires input.Valid()
-    requires |s1.itemsAssign| == |s2.itemsAssign| == |input.items|
-    requires s1.k <= |s1.itemsAssign|
-    requires s2.k <= |s2.itemsAssign|
-    requires s1.k <= s2.k
-    requires s2.Extends(s1)
-    ensures s2.TotalWeight(input.items) >= s1.TotalWeight(input.items)
-    ensures s2.TotalValue(input.items) >= s1.TotalValue(input.items)
+    requires |this.itemsAssign| == |s.itemsAssign| == |input.items|
+    requires this.k <= |this.itemsAssign|
+    requires s.k <= |s.itemsAssign|
+    requires this.k <= s.k
+    requires s.Extends(this)
+    ensures s.TotalWeight(input.items) >= this.TotalWeight(input.items)
+    ensures s.TotalValue(input.items) >= this.TotalValue(input.items)
   {
-    if s1.k == s2.k {
-      s1.EqualValueWeightFromEquals(s2, input);
+    if this.k == s.k {
+      this.EqualValueWeightFromEquals(s, input);
     }
     else {
-      ghost var s :=  SolutionData(s2.itemsAssign, s2.k-1);
-      assert s.TotalWeight(input.items) <= s2.TotalWeight(input.items);
-      assert s.Extends(s1);
-      GreaterOrEqualWeightFromExtends(s1, s, input);
+      ghost var s :=  SolutionData(s.itemsAssign, s.k-1);
+      this.GreaterOrEqualWeightFromExtends(s, input);
     }
   }
 
-
-  /*
-  Este lema establece que dadas dos soluciones parciales ps1 y ps2 que son idénticas (igualdad de campos) y 
-  sabiendo que bs es una extension óptima de ps1, entonces bs también es extensión optima de ps2. Se utiliza en 
-  KnapsackVA para verificar que bs es la extensión óptima de ps al salir de la rama true.
+  /* 
+  Lema: dadas dos soluciones parciales ps1 y ps2 que son idénticas (igualdad de campos) y 
+  sabiendo que bs es una extension óptima de ps1, entonces bs también es extensión optima de ps2.
+  //
+  Propósito: verificar que bs es la extensión óptima de ps al salir de la rama true en KnapsackVA de VA.dfy.
+  //
+  Demostración: mediante el lema EqualValueWeightFromEquals.
   */
   lemma EqualsOptimalExtensionFromEquals(ps1 : SolutionData, ps2: SolutionData, input : InputData)
     requires this.Valid(input)
@@ -276,8 +302,6 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
     assert this.OptimalExtension(ps2, input) by {
       assert ps2.Partial(input) by {
-        assert 0 <= ps2.k <= |ps2.itemsAssign|;
-        assert |ps2.itemsAssign| == |input.items|;
         assert ps2.TotalWeight(input.items) <= input.maxWeight by {
           ps1.EqualValueWeightFromEquals(ps2, input);
         }
