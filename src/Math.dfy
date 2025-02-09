@@ -1,3 +1,5 @@
+include "Knapsack/Implementation/Item.dfy"
+
 ghost function sumOfZipMultiply(a: seq<int>, b: seq<int>, startIdx: nat, endIdx: nat): int
 	requires endIdx <= |a|
 	requires endIdx <= |b|
@@ -278,7 +280,13 @@ lemma sumNatMonotonic(a: seq<nat>, startIdx: nat, endIdx: nat, idx: nat)
 	}
 }
 
-
+ghost function sumValue(a: seq<ItemData>, startIdx: int, endIdx: int) : real
+  requires 0 <= startIdx <= endIdx <= |a|
+  decreases endIdx - startIdx
+{
+  if(startIdx == endIdx) then 0.0
+	else a[startIdx].value + sumValue(a, startIdx + 1, endIdx)
+}
 
 ghost function sum_real(a: seq<real>, startIdx: nat, endIdx: nat): real
 	requires 0 <= startIdx <= endIdx <= |a|

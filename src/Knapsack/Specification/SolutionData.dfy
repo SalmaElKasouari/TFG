@@ -259,7 +259,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   //
   Demostración: mediante inducción en s, esta se va reduciendo hasta this.k.
   */
-  lemma {:induction s} GreaterOrEqualWeightFromExtends(s: SolutionData, input: InputData)
+  lemma {:induction s} GreaterOrEqualValueWeightFromExtends(s: SolutionData, input: InputData)
     decreases s.k
     requires input.Valid()
     requires |this.itemsAssign| == |s.itemsAssign| == |input.items|
@@ -275,7 +275,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     }
     else {
       ghost var s :=  SolutionData(s.itemsAssign, s.k-1);
-      this.GreaterOrEqualWeightFromExtends(s, input);
+      this.GreaterOrEqualValueWeightFromExtends(s, input);
     }
   }
 

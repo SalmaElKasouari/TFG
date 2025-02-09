@@ -11,10 +11,8 @@ Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
 
 Estructura del fichero:
   Lemas
-    - PartialConsistency: si el peso de una solución oldps mas el peso de un objeto no excede el peso maximo (es 
-      Partial), entonces una solución ps que extiende a oldps con ese objeto asignado a true también será Partial.
-    - InvalidExtensionsFromInvalidPs: si una solución parcial ps extendida con true no es válida, entonces ninguna de sus extensiones tampoco 
-      será válida. 
+    - PartialConsistency: REVISAR
+    - InvalidExtensionsFromInvalidPs: REVISAR
 
   Métodos
     - Caso base de VA: Define la condición de terminación.
@@ -23,6 +21,7 @@ Estructura del fichero:
     - Método general VA: Punto de partida para ejecutar el algoritmo VA.
 
 Todas las definiciones cuentan con una sección de comentarios explicando su propósito.
+
 ---------------------------------------------------------------------------------------------------------------------*/
 
 
@@ -31,21 +30,54 @@ include "../Specification/SolutionData.dfy"
 include "Input.dfy"
 include "../../Ord.dfy"
 
+
+
 /* Métodos */
 
-/* 
-Método: Caso base del algoritmo VA (cuando ya se han tratado todos los objetos). Comparte todas las precondiciones 
-y postcondiciones que KnapsackVA pero incluye la precondicion de que la etapa del arbol de exploración (k) es igual
-que número de objetos de la entrada.
+/*
+Método: cálculo de la cota. Al tratar un problema de maximización (maximizar el valor de los objetos), necesitamos 
+una cota superior del valor de la mejor solución alcanzable. 
+Cota: cálculo voraz. Se ordenan los objetos en orden decreciente de valor por unidad de peso, y se seleccionan sin
+ superar el peso maximo de la mochila.
 //
-Verificación:
- - Caso ps.totalValue > bs.totalValue: se usa el lema EqualValueWeightFromEquals para asegurar que 
-  el valor de cualquier solución que sea extensión de ps es igual al valor de ps. Esto asegura que por tanto no hay
-  otra solución con un valor mejor, y con el lema CopyModel se confirma que bs se actualizó correctamente y por
-  tanto guarda la solución optima.
- - Caso ps.totalValue <= bs.totalValue: se usa el lema EqualValueWeightFromEquals para asegurar que 
-  el valor de cualquier solución que sea extensión de ps es igual al valor de ps y como esta es menor o igual que 
-  el valor de bs, se asegura que bs sigue almacenando la solución óptima.
+Verificación: 
+*/
+method Cota (ps : Solution, input : Input) returns (cota : real)
+  requires input.Valid()
+  requires ps.Partial(input)
+  requires ps.k <= ps.itemsAssign.Length
+  ensures forall s : SolutionData | |s.itemsAssign| == |ps.Model().itemsAssign|
+                                    && s.k <= |s.itemsAssign| 
+                                    && ps.k <= s.k 
+                                    && s.Extends(ps.Model()) :: 
+                                    s.TotalValue(input.Model().items) <= cota
+{
+    var i := ps.k;
+    var pesoAct := ps.totalWeight;
+    cota := ps.totalValue;    
+    while i < input.items.Length && pesoAct + input.items[i].weight < input.maxWeight
+        decreases input.items.Length - i
+        //invariant
+    {   
+        cota := cota + input.items[i].value;
+        pesoAct := pesoAct + input.items[i].weight;
+        i := i+1;
+    }
+    
+    if i < input.items.Length { // hueco que queda, se parte el objeto
+        cota := cota + ((input.maxWeight - pesoAct) / input.items[i].weight) * input.items[i].value;
+    }
+
+}
+
+
+
+/*
+Método: caso base del algoritmo VA. Trata el caso base del arbol de exploración, es decir, cuando ya se 
+  han tratado todos los objetos.
+//
+Verificación: 
+
 */
 method KnapsackVABaseCase(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound() // Función de cota
@@ -79,12 +111,10 @@ method KnapsackVABaseCase(input: Input, ps: Solution, bs: Solution)
   // Si bs cambia, su nuevo valor total debe ser mayor o igual al valor anterior
   ensures bs.Model().TotalValue(input.Model().items) >= old(bs.Model().TotalValue(input.Model().items))
 {
-  /* Hemos encontrado una solución mejor */
   if (ps.totalValue > bs.totalValue) {
     bs.Copy(ps);
     forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model())
-      ensures s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items) 
-    {
+      ensures s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items) {
       assert s.Equals(ps.Model());
       calc {
         s.TotalValue(input.Model().items);
@@ -95,11 +125,9 @@ method KnapsackVABaseCase(input: Input, ps: Solution, bs: Solution)
       }
     }
   }
-  /* No hemos encontrado una solución mejor */
   else { // ps.totalValue <= bs.totalValue
     forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model())
-      ensures s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items) 
-    {
+      ensures s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items) {
       assert s.Equals(ps.Model());
       s.EqualValueWeightFromEquals(ps.Model(), input.Model());
       assert s.TotalValue(input.Model().items) == ps.Model().TotalValue(input.Model().items);
@@ -109,20 +137,16 @@ method KnapsackVABaseCase(input: Input, ps: Solution, bs: Solution)
 
 
 /* 
-Método: rama false del algoritmo VA: método que trata la rama de NO coger el objeto. Comparte todas las 
-precondiciones y postcondiciones que KnapsackVA pero incluye la precondicion de que la etapa del arbol de 
-exploración (k) es menor que número de objetos de la entrada.
-  - Se asigna la posición actual (ps.k) a false en ps.itemsAssign, lo que significa que el objeto no se selecciona.  
-  - Se avanza a la siguiente posición (ps.k := ps.k + 1) y se invoca recursivamente al método KnapsackVA para 
+  Rama false del algoritmo VA: método que trata la rama de NO coger el objeto.  
+   - Se asigna la posición actual (ps.k) a false en ps.itemsAssign, lo que significa que el objeto no se selecciona.  
+   - Se avanza a la siguiente posición (ps.k := ps.k + 1) y se invoca recursivamente al método KnapsackVA para 
     continuar con la exploración. 
-  - Una vez finalizada la recursión, se restaura ps.k a su valor original (ps.k := ps.k - 1) para volver al estado
+   - Una vez finalizada la recursión, se restaura ps.k a su valor original (ps.k := ps.k - 1) para volver al estado
     previo.
-//
-Verificación:
-  - Se emplea la etiqueta L para capturar el estado de ps justo antes de la llamada recursiva (marcado como 
-  old@L), y luego se compara con el estado de la solución al finalizar la recursión, una vez que sus valores han 
-  sido restaurados. Esto permite validar que el estado de la solución parcial se restaura correctamente después 
-  del retroceso.
+   - Se emplea la etiqueta L para capturar el estado de ps justo antes de la llamada recursiva (marcado como 
+   old@L), y luego se compara con el estado de la solución al finalizar la recursión, una vez que sus valores han 
+   sido restaurados. Esto permite validar que el estado de la solución parcial se restaura correctamente después 
+   del retroceso.
 */
 method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),0 // Función de cota
@@ -167,7 +191,13 @@ method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
     input.InputDataItems(ps.k-1);
   }
 
-  KnapsackVA(input, ps, bs);
+  var cota := Cota(ps, input);
+  if (cota > bs.totalValue) {
+    KnapsackVA(input, ps, bs);
+  }
+  else { // cota <= bs.totalValue
+    // No hay ninguna solución mejor
+  }
 
   label L:
 
@@ -186,22 +216,18 @@ method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
 }
 
 /* 
-Método: Rama true del algoritmo VA: método que trata la rama de SI coger el objeto. Comparte todas las 
-precondiciones y postcondiciones que KnapsackVA pero incluye la precondicion de que la etapa del arbol de 
-exploración (k) es menor que número de objetos de la entrada.
-  - Se asigna la posición actual (ps.k) a false en ps.itemsAssign, lo que significa que el objeto se selecciona.  
-  - Se actualizan el peso y el valor total de la solución parcial (ps).
-  - Se avanza a la siguiente posición (ps.k := ps.k + 1) y se invoca recursivamente al método KnapsackVA para 
+  Rama true del algoritmo VA: método que trata la rama de SI coger el objeto. 
+   - Se asigna la posición actual (ps.k) a false en ps.itemsAssign, lo que significa que el objeto se selecciona.  
+   - Se actualizan el peso y el valor total de la solución parcial (ps).
+   - Se avanza a la siguiente posición (ps.k := ps.k + 1) y se invoca recursivamente al método KnapsackVA para 
     continuar con la exploración. 
-// 
-Verificación:
-  - Se usa el lema PartialConsistency para probar que ps sigue siendo una solución parcial válida según las
-    restricciones del problema.
-  - Una vez finalizada la exploración, se restauran los valores originales.
-  - Se emplea la etiqueta L para capturar el estado de ps justo antes de la llamada recursiva (marcado como 
-    old@L), y luego se compara con el estado de la solución al finalizar la recursión, una vez que sus valores han 
-    sido restaurados. Esto permite validar que el estado de la solución parcial se restaura correctamente después 
-    del retroceso.
+   - Después de estas modificaciones, se necesita probar que ps sigue siendo una solución parcial válida según las
+   restricciones del problema. Esto es precisamente lo que asegura el lema PartialConsistency.
+   - Una vez finalizada la exploración, se restauran los valores originales.
+   - Se emplea la etiqueta L para capturar el estado de ps justo antes de la llamada recursiva (marcado como 
+   old@L), y luego se compara con el estado de la solución al finalizar la recursión, una vez que sus valores han 
+   sido restaurados. Esto permite validar que el estado de la solución parcial se restaura correctamente después 
+   del retroceso.
 */
 method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),0 // Función de cota
@@ -248,8 +274,10 @@ method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
   ps.k := ps.k + 1;
 
   PartialConsistency(ps, oldps, input, oldtotalWeight, oldtotalValue);
-
-  KnapsackVA(input, ps, bs);
+  var cota := Cota(ps, input);
+  if (cota > bs.totalValue) {
+    KnapsackVA(input, ps, bs);
+  }
 
   label L:
 
@@ -270,14 +298,16 @@ method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
 
 
 /* 
-Método: punto de partida del algoritmo VA. El método busca explorar todas las posibles combinaciones de objetos, 
-respetando las restricciones de peso maxWeight) y seleccionando las combinaciones que maximicen el valor total.
+Método general que llama a la vuelta atrás:  el método busca explorar todas las posibles combinaciones de objetos, respetando las restricciones de peso 
+(maxWeight) y seleccionando las combinaciones que maximicen el valor total.
 En este contexto, se inicializa bs con todo a false, ya que es un problema de maximización (se busca el valor
-más alto). El árbol de búsqueda es un árbol binario que cuenta con dos ramas:
-  - Rama True: el objeto es seleccionado pero solo si el peso total no excede el peso máximo permitido.
-  - Rama False: el objeto no es seleccionado.
-//
-Verfificación:
+más alto).
+
+Árbol de decisiones
+  - Rama True: Si el peso total de los objetos seleccionados no excede el peso máximo permitido, se toma el objeto en la solución.
+  - Rama False: Si el peso excede el límite, se descarta el objeto y se explora la siguiente etapa.
+
+Ejecución de las ramas
   - Antes de las llamadas recursivas a las ramas (KnapsackVATrueBranch y KnapsackVAFalseBranch), se capturan ciertos
     estados y se asegura que las soluciones parciales y óptimas sigan siendo consistentes.
   - Si la solución encontrada en la rama false no mejora la mejor solución (bs), se asegura que no haya cambios 
@@ -286,6 +316,8 @@ Verfificación:
   - Se utiliza la etiqueta L para capturar el estado de la solución antes de las decisiones recursivas. Se verifica 
     que las extensiones óptimas se mantengan consistentes en cada una de las ramas y que, en el caso de no mejorar 
     la solución, la mejor solución (bs) permanezca igual.
+
+Restauración del estado
   - Después de la llamada a la rama false, se valida que la solución parcial se restaure correctamente, asegurando
     que los valores de peso y valor se mantengan consistentes con el estado anterior.
 
@@ -382,22 +414,10 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
 /* Lemas */
 
 /*
-Lema: si extendemos una solución parcial (oldps) añadiendo un elemento asignado como (true) 
+Este lema establece que si extendemos una solución parcial (oldps) añadiendo un elemento asignado como (true) 
 dando lugar a una nueva solución parcial (ps), entonces ps también cumple con las propiedades de consistencia 
-parcial definidas por el método Partial. 
-//
-Propósito: garantizar que ps sigue siendo Partial en KnapsackVATrueBranch después de añadirle un objeto cuyo peso 
-no hacía exceder el peso maximo.
-//
-Verificación: se realizan cálculos formales para demostrar que el valor y peso de ps son consistentes con oldps:
-  - Primer calc: Se usa el lema AddTrueMaintainsSumConsistency para garantizar que el peso total de ps es la suma 
-    del peso de oldps mas el nuevo Item. Se usa el lema InputDataItems para garantizar que el peso total de ps es la suma 
-    del peso de oldps mas el nuevo ItemData. Finalmente se garantiza que el peso total es menor que el peso máximo.
-  - Segundo calc: se parte de ps.totalWeight y se reescribe como la suma de oldtotalWeight y el nuevo Item. Se 
-    asegura que oldtotalWeight es igual a oldps.TotalWeight(input.Model().items). Y se usan los lemas InputDataItems 
-    y AddTrueMaintainsSumConsistency para demostrar que la transición de oldps a ps es válida. Se asegura que la 
-    suma se puede reescribir como ps.Model().TotalWeight(input.Model().items).
-  - Tercer calc: análogo al anterior pero aplicado al valor total en lugar del peso.
+parcial definidas por el método Partial. Se utiliza en KnapsackVATrueBranch para garantizar que ps sigue siendo 
+Partial depues de añadirle un objeto cuyo peso no hacía sobrepsar el peso maximo.
 */
 lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtotalWeight: real, oldtotalValue: real)
   requires input.Valid()
@@ -418,14 +438,14 @@ lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtot
   assert oldtotalWeight == oldps.TotalWeight(input.Model().items);
   assert oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight;
 
-  // calc {
-  //    ps.Model().TotalWeight(input.Model().items);
-  //   { SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model()); }
-  //    oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
-  //   { input.InputDataItems(ps.k - 1); }
-  //    oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
-  //   <= input.maxWeight;
-  // }
+  calc {
+     ps.Model().TotalWeight(input.Model().items);
+    { SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model()); }
+     oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
+    { input.InputDataItems(ps.k - 1); }
+     oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
+  <= input.maxWeight;
+  }
 
   calc {
     ps.totalWeight;
@@ -451,32 +471,22 @@ lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtot
 }
 
 /*
-Lema: si una solución parcial ps extendida con true no es válida, entonces ninguna de sus extensiones tampoco 
-será válida. 
-//
-Propósito: garantizar en KnapsackVA que en el caso de que no se ejecute la rama true es porque no se han encontrado
-  soluciones válidas. Por lo tanto, ninguna solución óptima que salga de dicha rama puede ser mejor que bs.
-  Se aplica después de haber ejecutado KnapsackVAFalseBranch (rama false) en los siguientes 
-  casos:
-  - La bs (extensión óptima de ps) se ha encontrado en dicha rama.
-  - La bs (extensión óptima de ps) no se ha encontrado en dicha rama, y por lo tanto es igual a la antigua, (la que 
-  salió de la rama true).
-//
-Verificación: se aplican los lemas GreaterOrEqualValueWeightFromExtends y AddTrueMaintainsSumConsistency para demostrar 
-  que cualquier solución s extendida tiene como mínimo el peso de la solución original (ps), que ya excedía del peso 
-  máximo. Como consecuencia, s también incumple esa restricción, y por tanto no será válida.
+Este lema garantiza que si una solución parcial ps extendida con true no es válida, entonces cualquier extensión suya tampoco será 
+válida. Se utiliza en KnapsackVA después de haber ejecutado KnapsackVAFalseBranch (rama false) en los siguientes 
+casos:
+- La bs (extensión óptima de ps) se ha encontrado en dicha rama.
+- La bs (extensión óptima de ps) no se ha encontrado en dicha rama, y por lo tanto es igual a la antigua, (la que 
+salió de la rama true).
+Sirve para asegurar que en el caso de que no se ejecute la rama true es porque no se han conseguido soluciones 
+válidas, y por lo tanto, no hay ninguna solución óptima que salga de dicha rama que sea mejor que bs.
 */
-lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input) //lema generico con forall
+lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input)
   requires 0 <= ps.k < ps.itemsAssign.Length
   requires ps.itemsAssign.Length == input.items.Length
   requires ps.totalWeight + input.items[ps.k].weight > input.maxWeight
   requires input.Valid()
   requires ps.Partial(input)
-  ensures forall s : SolutionData | && |s.itemsAssign| == |(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)).itemsAssign|
-                                    && s.k <= |s.itemsAssign| 
-                                    && ps.k + 1 <= s.k 
-                                    && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)) 
-                                    :: !s.Valid(input.Model())
+  ensures forall s : SolutionData | |s.itemsAssign| == |(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)).itemsAssign| && s.k <= |s.itemsAssign| && ps.k + 1 <= s.k && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)) :: !s.Valid(input.Model())
 {
 
   forall s : SolutionData |

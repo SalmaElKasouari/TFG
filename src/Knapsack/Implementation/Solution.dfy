@@ -1,4 +1,5 @@
 /*---------------------------------------------------------------------------------------------------------------------
+
 La clase Solution implementa una representación formal de las soluciones del problema de la mochila, y proporciona
 las herramientas necesarias para verificar diferentes configuraciones de una solución.
 
@@ -54,7 +55,7 @@ class Solution {
   /* Predicados */
 
   /* 
-  Este predicado garantiza que una solución parcial sea válida, es decir, que el peso y el valor de los 
+  Predicado: verifica que una solución parcial sea válida, es decir, que su modelo sea válido y que el peso y el valor de los 
   objetos seleccionados coincidan con los valores del modelo.
   */
   ghost predicate Partial (input : Input)
@@ -67,8 +68,8 @@ class Solution {
   }
 
   /* 
-  Este predicado valida si la solución está completa, lo que significa que todos los objetos han sido 
-  considerados (k == itemsAssign.Length).
+  Predicado: valida si la solución está completa, lo que significa que todos los objetos han sido 
+  tratados (k == itemsAssign.Length).
   */
   ghost predicate Valid (input : Input) // solución completa (final)
     reads this, this.itemsAssign, input, input.items, set i | 0 <= i < input.items.Length :: input.items[i]
@@ -78,7 +79,7 @@ class Solution {
   }
 
   /* 
-  Este predicado garantiza que una solución válida sea óptima en relación con el modelo del problema.
+  Predicado: garantiza que una solución válida sea óptima en relación con el modelo del problema.
   */
   ghost predicate Optimal(input: Input)
     reads this, this.itemsAssign, input, input.items, set i | 0 <= i < input.items.Length :: input.items[i]
@@ -94,7 +95,7 @@ class Solution {
   /* Funciones */
 
   /*
-  Está función genera un objeto de tipo SolutionData, que representa el modelo de datos correspondiente 
+  Función: genera un objeto de tipo SolutionData, que representa el modelo de datos correspondiente 
   a una solución dada.
   */
   ghost function Model() : SolutionData
@@ -104,7 +105,7 @@ class Solution {
   }
 
   /*
-  Esta función calcula el número de etapas restantes en la solución parcial. Es la función de cota del algoritmo
+  Función: calcula el número de etapas restantes en la solución parcial. Es la función de cota del algoritmo
   de vuelta atrás.
   */
   ghost function Bound() : int
@@ -118,9 +119,13 @@ class Solution {
   /* Métodos */
 
   /*
-  Este método copia los valores de una solución a otra, garantizando que todos los atributos de 
+  Método: copia los valores de una solución s a otra solución this, garantizando que todos los atributos de 
   la solución copiada (incluyendo los objetos seleccionados y los valores acumulados) se copien correctamente, 
   manteniendo la consistencia del modelo.
+  //
+  Verificación: se usa un invariante ya que el cuerpo del método incluye un bucle. El invariante establece que en
+  cada iteración i del bucle, todos los elementos anteriores a i (de this.itemsAssign son iguales a los elementos de 
+  s.itemsAssign. REVISAR
   */
   method Copy(s : Solution)
     modifies this`totalValue, this`totalWeight, this`k, this.itemsAssign
@@ -149,10 +154,13 @@ class Solution {
 
   /* Lemas */
 
-  /*
-  Este lema establece que si s es una solución válida por un input y this tiene el mismo modelo, peso acumulado 
-  y valor acumulado que s, entonces this también será válida para el mismo input. Se utiliza en KnapsackVABaseCase 
-  para demostrar que el TotalValue de ps es igual al TotalValue de bs.
+  /* 
+  Lema: dada una solución s que es válida por un input dado, y this tiene el mismo modelo, peso acumulado 
+    y valor acumulado que s, entonces this también será válida para el mismo input. 
+  //
+  Propósito: demostrar que el TotalValue de ps es igual al TotalValue de bs en KnapsackVABaseCase de VA.dfy.
+  //
+  Demostración: REVISAR
   */
   lemma CopyModel (s : Solution, input : Input)
     requires s.Valid(input)

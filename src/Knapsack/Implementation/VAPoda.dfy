@@ -1,5 +1,3 @@
-
-
 /* ---------------------------------------------------------------------------------------------------------------------
 Este fichero cuenta con la implementación del problema de la mochila (knapsack problem) utilizando el algoritmo 
 de vuelta atrás. Se implementa de manera que el árbol de exploración es un árbol binario, donde las etapas son 
@@ -13,8 +11,8 @@ Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
 
 Estructura del fichero:
   Lemas
-    - PartialConsistency
-    - InvalidExtensionsFromInvalidPs
+    - PartialConsistency: REVISAR
+    - InvalidExtensionsFromInvalidPs: REVISAR
 
   Métodos
     - Caso base de VA: Define la condición de terminación.
@@ -23,6 +21,7 @@ Estructura del fichero:
     - Método general VA: Punto de partida para ejecutar el algoritmo VA.
 
 Todas las definiciones cuentan con una sección de comentarios explicando su propósito.
+
 ---------------------------------------------------------------------------------------------------------------------*/
 
 
@@ -35,6 +34,13 @@ include "../../Ord.dfy"
 
 /* Métodos */
 
+/*
+Método: cálculo de la cota. Al tratar un problema de maximización (maximizar el valor de los objetos), necesitamos 
+una cota superior del valor de la mejor solución alcanzable. 
+Cota: seleccionar todos los objetos restantes.
+//
+Verificación: 
+*/
 method Cota (ps : Solution, input : Input) returns (cota : real)
   requires input.Valid()
   requires ps.Partial(input)
@@ -44,11 +50,23 @@ method Cota (ps : Solution, input : Input) returns (cota : real)
                                     && ps.k <= s.k 
                                     && s.Extends(ps.Model()) :: 
                                     s.TotalValue(input.Model().items) <= cota
+{
+  var ini := ps.totalValue;
+  cota:= ps.totalValue;
+  for i := ps.k to ps.itemsAssign.Length
+   //invariant ps.totalValue + sumValue(input.Model().items, i, input.items.Length) <= cota 
+  {
+    cota := cota + input.items[i].value;
+  }
+}
 
 
-/* 
-Caso base del algoritmo VA: Método que trata el caso base del arbol de exploración, es decir, es cuando ya se 
-han tratado todos los objetos.
+/*
+Método: caso base del algoritmo VA. Trata el caso base del arbol de exploración, es decir, cuando ya se 
+  han tratado todos los objetos.
+//
+Verificación: REVISAR
+
 */
 method KnapsackVABaseCase(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound() // Función de cota
@@ -468,7 +486,7 @@ lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input)
     ensures !s.Valid(input.Model())
   {
     assert s.TotalWeight(input.Model().items) > input.maxWeight by {
-      SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1).GreaterOrEqualWeightFromExtends(s, input.Model());
+      SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1).GreaterOrEqualValueWeightFromExtends(s, input.Model());
       SolutionData.AddTrueMaintainsSumConsistency(ps.Model(), SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1), input.Model());
     }
   }
