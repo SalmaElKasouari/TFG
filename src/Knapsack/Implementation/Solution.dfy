@@ -5,22 +5,24 @@ las herramientas necesarias para verificar diferentes configuraciones de una sol
 
 Estructura del fichero:
 
-  Campos y constructor
+  Atributos y constructor
 
   Predicados
-    - Partial
-    - Valid
-    - Optimal
+    - Partial: el modelo de una solución es válido y el peso y el valor de los objetos seleccionados coinciden con
+      los valores del modelo
+    - Valid: la solución es completa y es válida.
+    - Optimal: una solución válida es óptima en relación con el modelo del problema.
 
   Funciones
-    - Model
-    - Bound
+    - Model: devuelve un SolutionData, el modelo de una solución.
+    - Bound: número de etapas restantes en la solución parcial.
 
   Métodos
-    - Copy
+    - Copy: copia los valores de una solución a otra.
   
   Lemas
-    - CopyModel
+    - CopyModel: dadas dos soluciones que tiene  el mismo modelo, valor y peso, si una es válida con respecto a un
+      input, la otra también lo será.
 
 ---------------------------------------------------------------------------------------------------------------------*/
 
@@ -31,7 +33,7 @@ include "Input.dfy"
 
 class Solution {
 
-  /* Campos y constructor */
+  /* Atributos y constructor */
 
   var itemsAssign: array<bool> //objetos seleccionados (si o no)
   var totalValue: real
@@ -95,8 +97,7 @@ class Solution {
   /* Funciones */
 
   /*
-  Función: genera un objeto de tipo SolutionData, que representa el modelo de datos correspondiente 
-  a una solución dada.
+  Función: devuelve un SolutionData, el modelo de una solución.
   */
   ghost function Model() : SolutionData
     reads this, itemsAssign
@@ -124,8 +125,8 @@ class Solution {
   manteniendo la consistencia del modelo.
   //
   Verificación: se usa un invariante ya que el cuerpo del método incluye un bucle. El invariante establece que en
-  cada iteración i del bucle, todos los elementos anteriores a i (de this.itemsAssign son iguales a los elementos de 
-  s.itemsAssign. REVISAR
+  cada iteración i del bucle, todos los elementos anteriores a i en el array this.itemsAssign son iguales a los 
+  correspondientes elementos de s.itemsAssign.
   */
   method Copy(s : Solution)
     modifies this`totalValue, this`totalWeight, this`k, this.itemsAssign
@@ -160,7 +161,7 @@ class Solution {
   //
   Propósito: demostrar que el TotalValue de ps es igual al TotalValue de bs en KnapsackVABaseCase de VA.dfy.
   //
-  Demostración: REVISAR
+  Demostración: trivial ya que la precondición asegura que this es idéntica a s en los aspectos relevantes para la validez.
   */
   lemma CopyModel (s : Solution, input : Input)
     requires s.Valid(input)

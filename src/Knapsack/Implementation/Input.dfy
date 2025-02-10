@@ -1,7 +1,33 @@
+/*---------------------------------------------------------------------------------------------------------------------
+
+La clase Solution implementa una representación formal la entrada del problema de la mochila.
+
+Estructura del fichero:
+
+  Atributos y constructor
+
+  Predicados
+    - Valid: un input es válido.
+
+  Funciones
+    - ModelAt: devuelve el modelo del objeto en la posición i del array items.
+    - ItemsUntil: devuelve en una secuencia los k primeros elementos (Item) del array items convertidos a ItemData.
+    - Model: devuelve el modelo de un Input.
+  
+  Lemas
+    - InputDataItems: el peso y valor de un cierto k en items coinciden con el peso y el valor correspondientes
+      en el modelo de items.
+    - InputDataItemsForAll: generalización del lema anterior.
+
+---------------------------------------------------------------------------------------------------------------------*/
+
+
 include "Item.dfy"
 include "../Specification/InputData.dfy"
 
 class Input {
+
+  /* Atributos y constructor */
   var items: array<Item>
   var maxWeight: real
 
@@ -13,6 +39,25 @@ class Input {
     this.maxWeight := maxWeight;
   }
 
+
+
+  /* Predicados */
+  /* 
+  Predicado: verifica que una entrada sea válida, es decir, que su modelo sea válido.
+  */
+  ghost predicate Valid()
+    reads this, items, set i | 0 <= i < items.Length :: items[i]
+  {
+    this.Model().Valid()
+  }
+
+
+
+  /* Funciones */
+
+  /* 
+  Función: devuelve el modelo del objeto en la posición i del array items.
+  */
   ghost function ModelAt (i : nat) : ItemData
     reads this, items, items[i]
     requires i < items.Length
@@ -21,20 +66,15 @@ class Input {
   }
 
 
-
-  /*ghost function Model() : InputData
-    reads this, items, set i | 0 <= i < items.Length :: items[i]
-  {
-    InputData(seq(items.Length, ModelAt), maxWeight)
-  }*/
-
-
+  /* 
+  Función: devuelve en una secuencia los k primeros elementos del array items convertidos a ItemData.
+  */
   ghost function ItemsUntil(k: nat): seq<ItemData>
     reads this, items, set i | 0 <= i < k :: items[i]
     requires k <= items.Length
     ensures |ItemsUntil(k)| == k
-    ensures forall i | 0 <= i < k :: ItemsUntil(k)[i].weight == items[i].weight
-    ensures forall i | 0 <= i < k :: ItemsUntil(k)[i].value == items[i].value
+    ensures forall i | 0 <= i < k :: ItemsUntil(k)[i].weight == this.items[i].weight
+    ensures forall i | 0 <= i < k :: ItemsUntil(k)[i].value == this.items[i].value
   {
     if k == 0 then
       []
@@ -42,6 +82,10 @@ class Input {
       ItemsUntil(k-1) + [items[k-1].Model()]
   }
 
+
+  /* 
+  Función: devuelve el modelo de un Input (entrada del problema).
+  */
   ghost function Model() : InputData
     reads this, items, set i | 0 <= i < items.Length :: items[i]
     ensures |Model().items| == items.Length
@@ -52,15 +96,16 @@ class Input {
   }
 
 
-  ghost predicate Valid()
-    reads this, items, set i | 0 <= i < items.Length :: items[i] //añadido esto ultimo, era necesario también
-  {
-    this.Model().Valid()
-  }
+
+  /* Lemas */
 
   /*
-  Este lema establece que el peso y valor de un cierto k en items coinciden con el peso y el valor correspondientes
-  en el modelo de items. Se utiliza para demostrar el lema InputDataItemsForAll.
+  Lema: dada una posición k, el peso y el valor del objeto Item en dicha posición del array items, son iguales al
+  peso y el valor correspondientes en el modelo de items. 
+  //
+  Propósito: demostrar el lema InputDataItemsForAll.
+  //
+  Verificación: trivial.
   */
   lemma InputDataItems(k : int)
     requires 0 <= k < items.Length
@@ -72,8 +117,12 @@ class Input {
   }
 
   /*
-  Este lema es una genrealización del lema anterior. Establece que para cada item en items, el peso y el valor de ese 
+  Lema: generalización del lema anterior. Establece que para cada item en items, el peso y el valor de ese 
   item coinciden con el peso y el valor correspondientes en el modelo.
+  //
+  Propósito:
+  //
+  Verificación:
   */
   lemma InputDataItemsForAll()
     ensures forall k | 0 <= k < items.Length ::

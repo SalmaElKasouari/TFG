@@ -1,6 +1,26 @@
+/*---------------------------------------------------------------------------------------------------------------------
+
+La clase Item implementa una representación formal de los objetos del problema de la mochila. Cada Item cuenta con 
+dos atributos: peso y valor.
+
+Estructura del fichero:
+
+  Atributos y constructor
+
+  Predicados
+    - Valid: un item es válido.
+
+  Funciones
+    - Model: devuelve el modelo de un Item.
+
+---------------------------------------------------------------------------------------------------------------------*/
+
+
 include "../Specification/ItemData.dfy"
 
 class Item {
+
+  /* Atributos y constructor */
   const weight: real
   const value:  real
 
@@ -11,13 +31,12 @@ class Item {
     this.weight := w;
     this.value := v;
   }
-  
-  ghost function Model() : ItemData
-    reads this
-  {
-    ItemData(this.weight, this.value)
-  }
 
+
+  /* Predicados */
+  /*
+  Predicado: verifica si un Item es válido.
+  */
   ghost predicate Valid()
     reads this
   {
@@ -25,5 +44,13 @@ class Item {
   }
 
 
-
+  /* Funciones */
+  /*
+  Función: devuelve un ItemData, el modelo de un Item.
+  */
+  ghost function Model() : ItemData
+    reads this
+  {
+    ItemData(this.weight, this.value)
+  }
 }

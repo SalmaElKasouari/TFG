@@ -1,6 +1,6 @@
 /*-----------------------------------------------------------------------------------------------------------------
 
-La clase SolutionData es el modelo de la representación formal de una solución parcial en el contexto del problema
+El tipo SolutionData es el modelo de la representación formal de una solución parcial en el contexto del problema
 de la mochila. Proporciona las herramientas necesarias para verificar diferentes configuraciones de una solución.
 
 Estructura del fichero:
@@ -165,7 +165,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   //
   Propósito: demostrar que ps es inicialmente Partial en el método ComputeSolution de Knapsack.dfy
   //
-  Demostración: por inducción ya que las definiciones de TotalWeight() y Totalvalue son recursivas.
+  Demostración: por inducción ya que las definiciones de TotalWeight y Totalvalue son recursivas.
   */
   lemma SumOfFalsesEqualsZero(input : InputData)
     decreases k
@@ -206,7 +206,8 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   solución s2, la sumas de los pesos y los valores siguen siendo las mismas y no se ven alteradas (ya que no sumaría 
   el peso/valor del objeto como se ve en la definición de Totalweight y TotalValue).
   //
-  Propósito: demostrar que ps sigue siendo Partial después de asignar el objeto k a false en KnapsackVAFalseBranch de VA.dfy.
+  Propósito: demostrar que ps sigue siendo Partial después de asignar el objeto k a false en KnapsackVAFalseBranch 
+  de VA.dfy.
   //
   Demostración: mediante el lema EqualValueWeightFromEquals.
   */

@@ -1,4 +1,5 @@
 /* ---------------------------------------------------------------------------------------------------------------------
+
 Este fichero cuenta con la implementación del problema de la mochila (knapsack problem) utilizando el algoritmo 
 de vuelta atrás. Se implementa de manera que el árbol de exploración es un árbol binario, donde las etapas son 
 los objetos que se deben tratar, mientras que las ramas del árbol representan las decisiones sobre si incluir o 
@@ -13,8 +14,8 @@ Estructura del fichero:
   Lemas
     - PartialConsistency: si el peso de una solución oldps mas el peso de un objeto no excede el peso maximo (es 
       Partial), entonces una solución ps que extiende a oldps con ese objeto asignado a true también será Partial.
-    - InvalidExtensionsFromInvalidPs: si una solución parcial ps extendida con true no es válida, entonces ninguna de sus extensiones tampoco 
-      será válida. 
+    - InvalidExtensionsFromInvalidPs: si una solución parcial ps extendida con true no es válida, entonces ninguna 
+      de sus extensiones tampoco será válida. 
 
   Métodos
     - Caso base de VA: Define la condición de terminación.
@@ -23,6 +24,7 @@ Estructura del fichero:
     - Método general VA: Punto de partida para ejecutar el algoritmo VA.
 
 Todas las definiciones cuentan con una sección de comentarios explicando su propósito.
+
 ---------------------------------------------------------------------------------------------------------------------*/
 
 

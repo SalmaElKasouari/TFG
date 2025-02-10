@@ -1,22 +1,41 @@
+/*---------------------------------------------------------------------------------------------------------------------
+
+Este fichero incluye la resolución del problema de la mochila.
+
+Estructura del fichero:
+
+  Métodos:
+	- ComputeSolution: encuentra una solución óptima que resuelve el problema mediante al algoritmo de vuelta atrás.
+  	- Main: ejecuta el programa principal y muestra la solución.
+
+---------------------------------------------------------------------------------------------------------------------*/
+
 include "../../Math.dfy"
 include "../../ContainersOps.dfy"
 include "VA.dfy"
 include "Input.dfy"
 
+/* Métodos */
+
 /*
-	El método ComputeSolution toma un input y calcula la solución óptima mediante la llamada a un método de 
-	vuelta atrás (KnapsackVA).
- */
+Método: dado un input, encuentra la solución óptima mediante la llamada a un método de vuelta atrás (KnapsackVA)
+implementado en VA.dfy. Se construyen dos soluciones:
+	- Una solución parcial (ps): va construyendo la solución actual (decide las asignaciones de los objetos).
+	- Una mejor soluión (bs): almacena la mejor solución encontrada hasta el momento. 
+Ambas soluciones se inicializan con el array de asignaciones a falsos.
+//
+Verificación: se asegura que bs (la solución que se encuentra) es tanto válida como óptima:
+	- bs.Valid(input): mediante la poscondición en VA que asegura que bs es válida..
+	- bs.Optimal (input): mediante varias poscondiciones en VA que aseguran que bs es óptima.
+*/
 method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
 	requires input.Valid()
-
 	ensures bs.Valid(input)
-	ensures bs.Optimal(input)
-	
+	ensures bs.Optimal(input)	
 {
 	var size := input.items.Length;
 
-	// Construir partial solution (ps)
+	/* Construimos una solución parcial (ps) */
 	var ps_itemsAssign: array<bool> := new bool[size](i => false);
   	var ps_totalValue: real := 0.0;
   	var ps_totalWeight: real := 0.0;
@@ -27,7 +46,7 @@ method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
 		assert ps.Model().Partial(input.Model());
 	}
 
-	// Construir best solution (bs)
+	/* Construimos una solución mejor (bs) */
 	var bs_itemsAssign: array<bool> := new bool[size](i => false);
   	var bs_totalValue: real := 0.0;
   	var bs_totalWeight: real := 0.0;
@@ -40,11 +59,13 @@ method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
 	}
 	KnapsackVA(input, ps, bs);
 
-		
-	// 1) La primera postcondición es trivial, ya que hay una poscondición en VA que asegura que bs es valid
+	
+	/* Primera postcondición: bs.Valid(input) 
+		Se verifica gracias a la poscondición en VA que asegura que bs es válida.
+	*/
 
-	/*
-	* Demostración de bs.Optimal() a partir de las otras poscondiciones sobre bs que encontramos en VA
+	/* Segunda postcondición: bs.Optimal(input) 
+		Se verifica gracias a varias poscondiciones en VA que aseguran que bs es óptima.
 	*/
 	assert bs.Optimal(input) by {
 		forall otherSolution: SolutionData | otherSolution.Valid(input.Model()) 
@@ -54,23 +75,28 @@ method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
 	}
 }
 
-
+/*
+Método: main que ejecuta el programa principal resolviendo el problema de la mochila con un conjunto de objetos 
+y un peso máximo definidos.
+*/
 method Main() {
 
-	// Entrada del problema
+	/* Objetos que tenemos a nuestra disposición */
 	var item1 := new Item(8.0, 1.0);
 	var item2 := new Item(2.0, 2.0);
 	var item3 := new Item(4.0, 3.0);
-	assert item1.Valid() && item2.Valid() && item3.Valid();
-
-	var items: array<Item> := new Item[3][item1, item2, item3]; // objetos que hay
+	var items: array<Item> := new Item[3][item1, item2, item3];
+	
+	/* Peso máximo de la mochila */
 	var maxWeight: real := 8.0; // peso máximo de la mochila
 
+	/* Generar la entrada del problema */
 	var input := new Input(items, maxWeight);
-	assert input.Valid();
 
-	// Resolución del problema
+	/* Resolver el problema */
 	var bs := ComputeSolution(input);
+
+	/* Imprimir la solución */
 	print "The bag admits a weight of: ", input.maxWeight, "\n";
 	print "The maximum value achievable is: ", bs.totalValue, "\n";
 	print "By putting inside:\n";
