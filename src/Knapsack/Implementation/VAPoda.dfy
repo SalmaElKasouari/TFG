@@ -43,7 +43,7 @@ Método: cálculo de la cota. Al tratar un problema de maximización (maximizar 
 una cota superior del valor de la mejor solución alcanzable. 
 Cota: seleccionar todos los objetos restantes.
 //
-Verificación: 
+Verificación:
 */
 method Cota (ps : Solution, input : Input) returns (cota : real)
   requires input.Valid()
@@ -55,12 +55,23 @@ method Cota (ps : Solution, input : Input) returns (cota : real)
                                     && s.Extends(ps.Model()) :: 
                                     s.TotalValue(input.Model().items) <= cota
 {
-  var ini := ps.totalValue;
-  cota:= ps.totalValue;
+  ghost var ps' := SolutionData(ps.Model().itemsAssign, ps.k);
+  assert |ps'.itemsAssign| == |ps.Model().itemsAssign|;
+  cota := ps.totalValue;
+
+  assert cota == ps'.TotalValue(input.Model().items);
+ 
   for i := ps.k to ps.itemsAssign.Length
-   //invariant ps.totalValue + sumValue(input.Model().items, i, input.items.Length) <= cota 
+    invariant |ps'.itemsAssign| == |ps.Model().itemsAssign|
+    invariant |ps'.itemsAssign| >= ps'.k >= ps.k 
+    invariant ps'.Extends(ps.Model())
+    invariant i == ps'.k
+    invariant cota == ps'.TotalValue(input.Model().items)
   {
+    var oldps' := ps';
+    ps' := SolutionData(ps'.itemsAssign[ps'.k := true], ps'.k+1);
     cota := cota + input.items[i].value;
+    SolutionData.AddTrueMaintainsSumConsistency(oldps', ps', input.Model());
   }
 }
 
