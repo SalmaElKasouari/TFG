@@ -50,7 +50,7 @@ method Cota (ps : Solution, input : Input) returns (cota : real)
   requires ps.Partial(input)
   requires ps.k <= ps.itemsAssign.Length
   ensures forall s : SolutionData | |s.itemsAssign| == |ps.Model().itemsAssign|
-                                    && s.k <= |s.itemsAssign| 
+                                    && s.k == |s.itemsAssign| 
                                     && ps.k <= s.k 
                                     && s.Extends(ps.Model()) :: 
                                     s.TotalValue(input.Model().items) <= cota
@@ -74,7 +74,7 @@ method Cota (ps : Solution, input : Input) returns (cota : real)
     cota := cota + input.items[i].value;
     SolutionData.AddTrueMaintainsSumConsistency(oldps', ps', input.Model());
   }
-  SolutionData.AllTruesIsUpperBound(ps.Model(), ps', input.Model());
+  SolutionData.AllTruesIsUpperBoundForAll(ps.Model(), ps', input.Model());
 }
 
 

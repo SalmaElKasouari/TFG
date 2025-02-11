@@ -158,17 +158,59 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
 
   /* Lemas */
-  static lemma AllTruesIsUpperBound(ps : SolutionData, ps' : SolutionData, input : InputData)
-  requires |ps'.itemsAssign| == |ps.itemsAssign|
-    requires |input.items| == |ps'.itemsAssign| >= ps'.k >= ps.k 
+  static lemma AllTruesIsUpperBoundForAll(ps : SolutionData, ps' : SolutionData, input : InputData)
+    requires |ps'.itemsAssign| == |ps.itemsAssign|
+    requires input.Valid()
+    requires |input.items| == |ps'.itemsAssign| == ps'.k >= ps.k
     requires ps'.Extends(ps)
     requires forall j | ps.k <= j < |ps'.itemsAssign| :: ps'.itemsAssign[j]
     ensures forall s : SolutionData | |s.itemsAssign| == |ps.itemsAssign|
-                                    && s.k <= |s.itemsAssign| 
-                                    && ps.k <= s.k 
-                                    && s.Extends(ps) :: 
-                                    s.TotalValue(input.items) <= ps'.TotalValue(input.items)
-  
+                                      && s.k == |s.itemsAssign|
+                                      && ps.k <= s.k
+                                      && s.Extends(ps) ::
+              s.TotalValue(input.items) <= ps'.TotalValue(input.items)
+  {
+    forall s : SolutionData | |s.itemsAssign| == |ps.itemsAssign|
+                              && s.k == |s.itemsAssign|
+                              && ps.k <= s.k
+                              && s.Extends(ps)
+      ensures s.TotalValue(input.items) <= ps'.TotalValue(input.items)
+    {
+      assume SolutionData(s.itemsAssign, ps.k).TotalValue(input.items) <= SolutionData(ps'.itemsAssign, ps.k).TotalValue(input.items); //lema
+      SolutionData.AllTruesIsUpperBound(ps.k, s, ps, ps', input);
+    }
+  }
+
+  static lemma {:induction i} AllTruesIsUpperBound(i : int, s : SolutionData, ps : SolutionData, ps' : SolutionData, input :InputData)
+    decreases |ps.itemsAssign| - i
+    requires input.Valid()
+    requires |input.items| == |ps'.itemsAssign| == ps'.k >= ps.k
+    requires ps.k <= i <= |ps.itemsAssign|
+    requires |ps'.itemsAssign| == |ps.itemsAssign|
+    requires ps'.Extends(ps)
+    requires forall j | ps.k <= j < |ps'.itemsAssign| :: ps'.itemsAssign[j]
+    requires |s.itemsAssign| == |ps.itemsAssign|
+             && s.k == |s.itemsAssign|
+             && ps.k <= s.k
+             && s.Extends(ps)
+    requires SolutionData(s.itemsAssign, i).TotalValue(input.items) <= SolutionData(ps'.itemsAssign, i).TotalValue(input.items)
+    ensures s.TotalValue(input.items) <= ps'.TotalValue(input.items)
+  {
+    if i == |ps'.itemsAssign| {
+      assert SolutionData(s.itemsAssign, i) == s;
+      assert SolutionData(ps'.itemsAssign, i) == ps';
+    }
+    else {
+      if (s.itemsAssign[i] && ps'.itemsAssign[i]) {
+        AllTruesIsUpperBound(i + 1, s, ps, ps', input);
+      }
+      else {
+        AddFalsePreservesWeightValue(SolutionData(s.itemsAssign, i), SolutionData(s.itemsAssign, i+1), input);
+        AllTruesIsUpperBound(i + 1, s, ps, ps', input);        
+      }      
+    }
+  }
+
 
 
 
