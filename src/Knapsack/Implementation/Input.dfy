@@ -97,46 +97,46 @@ class Input {
 
 
 
-  /* Métodos */
+  // /* Métodos */
 
-  /* 
-  Método: ordena un array de elementos de tipo Item de manera decreciente segun valor por unidad de peso.
-  */
-  method orderItemsByValuePerWeight(items: seq<Item>) returns (orderedItems: seq<Item>)
-    ensures forall i, j :: 0 <= i < j < |orderedItems| ==>
-                             orderedItems[i].ValuePerWeight() >= orderedItems[j].ValuePerWeight()
-  {
-    orderedItems := MergeSort(items[0..]);
-  }
+  // /* 
+  // Método: ordena un array de elementos de tipo Item de manera decreciente segun valor por unidad de peso.
+  // */
+  // method orderItemsByValuePerWeight(items: seq<Item>) returns (orderedItems: seq<Item>)
+  //   ensures forall i, j :: 0 <= i < j < |orderedItems| ==>
+  //                            orderedItems[i].ValuePerWeight() >= orderedItems[j].ValuePerWeight()
+  // {
+  //   orderedItems := MergeSort(items[0..]);
+  // }
 
-  method MergeSort(items: seq<Item>) returns (orderedItems : seq<Item>)
-  {
-    if (|items| > 1) {
-      var m := |items| / 2;
-      var izq := MergeSort(items[..m]);
-      var der := MergeSort(items[m..]);
-      orderedItems := Merge(izq, der);
-    }
-  }
+  // method MergeSort(items: seq<Item>) returns (orderedItems : seq<Item>)
+  // {
+  //   if (|items| > 1) {
+  //     var m := |items| / 2;
+  //     var izq := MergeSort(items[..m]);
+  //     var der := MergeSort(items[m..]);
+  //     orderedItems := Merge(izq, der);
+  //   }
+  // }
 
-  method Merge(izq: seq<Item>, der: seq<Item>) returns (ordenado : seq<Item>)
-  {    
-    var i := 0;
-    var j := 0;
+  // method Merge(izq: seq<Item>, der: seq<Item>) returns (ordenado : seq<Item>)
+  // {    
+  //   var i := 0;
+  //   var j := 0;
 
-    while (i < |izq| && j < |der|)
-    {
-      if (izq[i].ValuePerWeight() >= der[j].ValuePerWeight()) {
-        ordenado := ordenado + [izq[i]];
-        i := i + 1;
-      } else {
-        ordenado := ordenado + [der[j]];
-        j := j + 1;
-      }
-    }
-    ordenado := ordenado + izq[i..] + der[j..];
-    //transformar a array
-  }
+  //   while (i < |izq| && j < |der|)
+  //   {
+  //     if (izq[i].ValuePerWeight() >= der[j].ValuePerWeight()) {
+  //       ordenado := ordenado + [izq[i]];
+  //       i := i + 1;
+  //     } else {
+  //       ordenado := ordenado + [der[j]];
+  //       j := j + 1;
+  //     }
+  //   }
+  //   ordenado := ordenado + izq[i..] + der[j..];
+  //   //transformar a array
+  // }
 
   // method seqToarray(s: seq<Item>) returns (array<Item>)
   //   ensures |result| == |s|
