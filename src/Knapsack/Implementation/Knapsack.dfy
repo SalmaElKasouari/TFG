@@ -87,6 +87,7 @@ method Main() {
 	var item3 := new Item(4.0, 3.0);
 	var items: array<Item> := new Item[3][item1, item2, item3];
 	
+	
 	/* Peso máximo de la mochila */
 	var maxWeight: real := 8.0; // peso máximo de la mochila
 

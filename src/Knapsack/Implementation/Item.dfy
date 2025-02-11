@@ -12,6 +12,7 @@ Estructura del fichero:
 
   Funciones
     - Model: devuelve el modelo de un Item.
+    - ValuePerWeight: devuelve el valor por unidad de peso.
 
 ---------------------------------------------------------------------------------------------------------------------*/
 
@@ -53,4 +54,16 @@ class Item {
   {
     ItemData(this.weight, this.value)
   }
+
+  /* Funciones */
+  /*
+  Función: devuelve el valor por unidad de peso.
+  */
+  ghost function ValuePerWeight() : real
+    reads this
+    requires this.Valid()
+  {
+    this.value/this.weight
+  }
+
 }
