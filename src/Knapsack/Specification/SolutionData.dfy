@@ -176,7 +176,9 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
                               && s.Extends(ps)
       ensures s.TotalValue(input.items) <= ps'.TotalValue(input.items)
     {
-      assume SolutionData(s.itemsAssign, ps.k).TotalValue(input.items) <= SolutionData(ps'.itemsAssign, ps.k).TotalValue(input.items); //lema
+      assert SolutionData(s.itemsAssign, ps.k).Equals(ps);
+      assert SolutionData(ps'.itemsAssign, ps.k).Equals(ps);
+      SolutionData(s.itemsAssign, ps.k).EqualValueWeightFromEquals(SolutionData(ps'.itemsAssign, ps.k), input);
       SolutionData.AllTruesIsUpperBound(ps.k, s, ps, ps', input);
     }
   }
