@@ -65,6 +65,7 @@ method Cota (ps : Solution, input : Input) returns (cota : real)
     invariant |ps'.itemsAssign| == |ps.Model().itemsAssign|
     invariant |ps'.itemsAssign| >= ps'.k >= ps.k 
     invariant ps'.Extends(ps.Model())
+    invariant forall j | ps.k <= j < i :: ps'.itemsAssign[j]
     invariant i == ps'.k
     invariant cota == ps'.TotalValue(input.Model().items)
   {
@@ -73,6 +74,7 @@ method Cota (ps : Solution, input : Input) returns (cota : real)
     cota := cota + input.items[i].value;
     SolutionData.AddTrueMaintainsSumConsistency(oldps', ps', input.Model());
   }
+  SolutionData.AllTruesIsUpperBound(ps.Model(), ps', input.Model());
 }
 
 

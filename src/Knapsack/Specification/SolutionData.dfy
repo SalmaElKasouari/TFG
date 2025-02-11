@@ -158,6 +158,21 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
 
   /* Lemas */
+  static lemma AllTruesIsUpperBound(ps : SolutionData, ps' : SolutionData, input : InputData)
+  requires |ps'.itemsAssign| == |ps.itemsAssign|
+    requires |input.items| == |ps'.itemsAssign| >= ps'.k >= ps.k 
+    requires ps'.Extends(ps)
+    requires forall j | ps.k <= j < |ps'.itemsAssign| :: ps'.itemsAssign[j]
+    ensures forall s : SolutionData | |s.itemsAssign| == |ps.itemsAssign|
+                                    && s.k <= |s.itemsAssign| 
+                                    && ps.k <= s.k 
+                                    && s.Extends(ps) :: 
+                                    s.TotalValue(input.items) <= ps'.TotalValue(input.items)
+  
+
+
+
+
 
   /* 
   Lema: dado un itemsAssign cuyas posiciones son todas a false, es decir, que ningun objeto ha 
