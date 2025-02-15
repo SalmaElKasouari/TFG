@@ -68,9 +68,9 @@ method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
 		Se verifica gracias a varias poscondiciones en VA que aseguran que bs es óptima.
 	*/
 	assert bs.Optimal(input) by {
-		forall otherSolution: SolutionData | otherSolution.Valid(input.Model()) 
-		ensures otherSolution.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items) {
-			assert otherSolution.Extends(ps.Model());			
+		forall s: SolutionData | s.Valid(input.Model()) 
+		ensures s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items) {
+			assert s.Extends(ps.Model());			
 		}
 	}
 }

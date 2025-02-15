@@ -3,7 +3,7 @@
 Este fichero cuenta con la implementación del problema de la mochila (knapsack problem) utilizando el algoritmo 
 de vuelta atrás. Se implementa de manera que el árbol de exploración es un árbol binario, donde las etapas son 
 los objetos que se deben tratar, mientras que las ramas del árbol representan las decisiones sobre si incluir o 
-no un objeto en la solución.
+no un objeto en la solución. Se incluye una poda.
 
 Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
   - ps es la solución parcial que se va llenando durante el proceso de vuelta atrás.
@@ -18,12 +18,13 @@ Estructura del fichero:
       de sus extensiones tampoco será válida. 
 
   Métodos
-    - Caso base de VA: Define la condición de terminación.
-    - Rama false de VA: Considera no incluir un elemento en la mochila.
-    - Rama true de VA: Considera incluir un elemento en la mochila.
-    - Método general VA: Punto de partida para ejecutar el algoritmo VA.
+    - Cota: calcula la cota que selecciona todos los items restantes para podar el árbol de exploración.
+    - KnapsackVABaseCase: Define la condición de terminación.
+    - KnapsackVAFalseBranch: Considera no incluir un elemento en la mochila.
+    - KnapsackVATrueBranch: Considera incluir un elemento en la mochila.
+    - KnapsackVA: Punto de partida para ejecutar el algoritmo VA.
 
-Todas las definiciones cuentan con una sección de comentarios explicando su propósito.
+Todas las definiciones incluyen una sección de comentarios explicando su propósito.
 
 ---------------------------------------------------------------------------------------------------------------------*/
 
@@ -420,14 +421,14 @@ lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtot
   assert oldtotalWeight == oldps.TotalWeight(input.Model().items);
   assert oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight;
 
-  // calc {
-  //    ps.Model().TotalWeight(input.Model().items);
-  //   { SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model()); }
-  //    oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
-  //   { input.InputDataItems(ps.k - 1); }
-  //    oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
-  //   <= input.maxWeight;
-  // }
+  calc {
+     ps.Model().TotalWeight(input.Model().items);
+    { SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model()); }
+     oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
+    { input.InputDataItems(ps.k - 1); }
+     oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
+    <= input.maxWeight;
+  }
 
   calc {
     ps.totalWeight;

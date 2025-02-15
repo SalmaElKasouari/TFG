@@ -18,13 +18,13 @@ Estructura del fichero:
       de sus extensiones tampoco será válida. 
 
   Métodos
-    - Cota: calcula la cota que aplica la estrategia voraz para podar el árbol de exploración.
-    - Caso base de VA: Define la condición de terminación.
-    - Rama false de VA: Considera no incluir un elemento en la mochila.
-    - Rama true de VA: Considera incluir un elemento en la mochila.
-    - Método general VA: Punto de partida para ejecutar el algoritmo VA.
+    - Cota: calcula la cota que selecciona todos los items restantes para podar el árbol de exploración.
+    - KnapsackVABaseCase: Define la condición de terminación.
+    - KnapsackVAFalseBranch: Considera no incluir un elemento en la mochila.
+    - KnapsackVATrueBranch: Considera incluir un elemento en la mochila.
+    - KnapsackVA: Punto de partida para ejecutar el algoritmo VA.
 
-Todas las definiciones cuentan con una sección de comentarios explicando su propósito.
+Todas las definiciones incluyen una sección de comentarios explicando su propósito.
 
 ---------------------------------------------------------------------------------------------------------------------*/
 
@@ -50,29 +50,29 @@ method Cota (ps : Solution, input : Input) returns (cota : real)
   requires input.Valid()
   requires ps.Partial(input)
   requires ps.k <= ps.itemsAssign.Length
-  //requires input.items ordenado decreciente !!!!!!!!!!!
+  //requires input.SortedItems()
   ensures forall s : SolutionData | |s.itemsAssign| == |ps.Model().itemsAssign|
                                     && s.k <= |s.itemsAssign| 
                                     && ps.k <= s.k 
                                     && s.Extends(ps.Model()) :: 
                                     s.TotalValue(input.Model().items) <= cota
-{
-    var i := ps.k;
-    var pesoAct := ps.totalWeight;
-    cota := ps.totalValue;    
-    while i < input.items.Length && pesoAct + input.items[i].weight < input.maxWeight
-        decreases input.items.Length - i
-        //invariant
-    {   
-        cota := cota + input.items[i].value;
-        pesoAct := pesoAct + input.items[i].weight;
-        i := i+1;
-    }
+// {
+//     var i := ps.k;
+//     var pesoAct := ps.totalWeight;
+//     cota := ps.totalValue;    
+//     while i < input.items.Length && pesoAct + input.items[i].weight < input.maxWeight
+//         decreases input.items.Length - i
+//         //invariant
+//     {   
+//         cota := cota + input.items[i].value;
+//         pesoAct := pesoAct + input.items[i].weight;
+//         i := i+1;
+//     }
     
-    if i < input.items.Length { // hueco que queda, se parte el objeto
-        cota := cota + ((input.maxWeight - pesoAct) / input.items[i].weight) * input.items[i].value;
-    }
-}
+//     if i < input.items.Length { // hueco que queda, se parte el objeto
+//         cota := cota + ((input.maxWeight - pesoAct) / input.items[i].weight) * input.items[i].value;
+//     }
+// }
 
 
 /* 

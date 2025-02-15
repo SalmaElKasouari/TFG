@@ -19,12 +19,12 @@ Estructura del fichero:
 
   Métodos
     - Cota: calcula la cota que selecciona todos los items restantes para podar el árbol de exploración.
-    - Caso base de VA: Define la condición de terminación.
-    - Rama false de VA: Considera no incluir un elemento en la mochila.
-    - Rama true de VA: Considera incluir un elemento en la mochila.
-    - Método general VA: Punto de partida para ejecutar el algoritmo VA.
+    - KnapsackVABaseCase: Define la condición de terminación.
+    - KnapsackVAFalseBranch: Considera no incluir un elemento en la mochila.
+    - KnapsackVATrueBranch: Considera incluir un elemento en la mochila.
+    - KnapsackVA: Punto de partida para ejecutar el algoritmo VA.
 
-Todas las definiciones cuentan con una sección de comentarios explicando su propósito.
+Todas las definiciones incluyen una sección de comentarios explicando su propósito.
 
 ---------------------------------------------------------------------------------------------------------------------*/
 
@@ -40,16 +40,16 @@ include "../../Ord.dfy"
 
 /*
 Método: cálculo de la cota. Al tratar un problema de maximización (maximizar el valor de los objetos), necesitamos 
-una cota superior del valor de la mejor solución alcanzable. 
-Cota: seleccionar todos los objetos restantes.
+una cota superior del valor de la mejor solución alcanzable. En este caso, la cota consiste en seleccionar todos 
+los objetos restantes.
 //
-Verificación:
+Verificación: usando el lema AllTruesIsUpperBoundForAll.
 */
 method Cota (ps : Solution, input : Input) returns (cota : real)
   requires input.Valid()
   requires ps.Partial(input)
   requires ps.k <= ps.itemsAssign.Length
-  ensures forall s : SolutionData | |s.itemsAssign| == |ps.Model().itemsAssign|
+  ensures forall s : SolutionData | && |s.itemsAssign| == |ps.Model().itemsAssign|
                                     && s.k == |s.itemsAssign| 
                                     && ps.k <= s.k 
                                     && s.Extends(ps.Model()) :: 
@@ -62,8 +62,7 @@ method Cota (ps : Solution, input : Input) returns (cota : real)
   assert cota == ps'.TotalValue(input.Model().items);
  
   for i := ps.k to ps.itemsAssign.Length
-    invariant |ps'.itemsAssign| == |ps.Model().itemsAssign|
-    invariant |ps'.itemsAssign| >= ps'.k >= ps.k 
+    invariant ps.k <= ps'.k <= |ps'.itemsAssign| == |ps.Model().itemsAssign|
     invariant ps'.Extends(ps.Model())
     invariant forall j | ps.k <= j < i :: ps'.itemsAssign[j]
     invariant i == ps'.k
@@ -211,11 +210,8 @@ method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
   }
 
   var cota := Cota(ps, input);
-  if (cota > bs.totalValue) {
+  if (cota >= bs.totalValue) {
     KnapsackVA(input, ps, bs);
-  }
-  else { // cota <= bs.totalValue
-    // No hay ninguna solución mejor
   }
 
   label L:
@@ -297,10 +293,11 @@ method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
   ps.k := ps.k + 1;
 
   PartialConsistency(ps, oldps, input, oldtotalWeight, oldtotalValue);
+  
   var cota := Cota(ps, input);
   if (cota > bs.totalValue) {
     KnapsackVA(input, ps, bs);
-  }
+  }  
 
   label L:
 

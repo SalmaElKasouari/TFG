@@ -6,6 +6,12 @@ las herramientas necesarias para verificar diferentes configuraciones de una sol
 Estructura del fichero:
 
   Atributos y constructor
+    - itemsAssign: array de bool de tamaño número de objetos donde cada posición corresponde a un objeto y cuyo 
+      valor almacenado indica si el objeto ha sido seleccionado (true) o no (false).
+    - totalValue: valor total acumulado de los objetos escogidos (asignados a true en itemsAssign).
+    -totalWeight: peso total acumulado de los objetos escogidos (asignados a true en itemsAssign).
+    - k: etapa del árbol de exploración de la solución. Denota el número de objetos tratados de itemsAssign.
+
 
   Predicados
     - Partial: el modelo de una solución es válido y el peso y el valor de los objetos seleccionados coinciden con
@@ -35,7 +41,7 @@ class Solution {
 
   /* Atributos y constructor */
 
-  var itemsAssign: array<bool> //objetos seleccionados (si o no)
+  var itemsAssign: array<bool>
   var totalValue: real
   var totalWeight: real
   var k: nat

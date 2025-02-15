@@ -7,7 +7,8 @@ Estructura del fichero:
   Atributos y constructor
 
   Predicados
-    - Valid: un input es válido.
+    - Valid: una entrada es válida.
+    - SortedItems: el array items esta ordenado de manera decreciente según valor por unidad de peso.
 
   Funciones
     - ModelAt: devuelve el modelo del objeto en la posición i del array items.
@@ -42,6 +43,7 @@ class Input {
 
 
   /* Predicados */
+
   /* 
   Predicado: verifica que una entrada sea válida, es decir, que su modelo sea válido.
   */
@@ -49,6 +51,16 @@ class Input {
     reads this, items, set i | 0 <= i < items.Length :: items[i]
   {
     this.Model().Valid()
+  }
+
+  /* 
+  Predicado: verifica que el array items esta ordenado de manera decreciente según valor por unidad de peso.
+  */
+  ghost predicate SortedItems()
+    reads this, items, set i | 0 <= i < items.Length :: items[i]
+    requires this.Valid()
+  {
+    forall i: nat, j: nat | 0 <= i < j < this.items.Length :: this.items[i].ValuePerWeight() > this.items[j].ValuePerWeight()
   }
 
 
@@ -97,69 +109,16 @@ class Input {
 
 
 
-  // /* Métodos */
-
-  // /* 
-  // Método: ordena un array de elementos de tipo Item de manera decreciente segun valor por unidad de peso.
-  // */
-  // method orderItemsByValuePerWeight(items: seq<Item>) returns (orderedItems: seq<Item>)
-  //   ensures forall i, j :: 0 <= i < j < |orderedItems| ==>
-  //                            orderedItems[i].ValuePerWeight() >= orderedItems[j].ValuePerWeight()
-  // {
-  //   orderedItems := MergeSort(items[0..]);
-  // }
-
-  // method MergeSort(items: seq<Item>) returns (orderedItems : seq<Item>)
-  // {
-  //   if (|items| > 1) {
-  //     var m := |items| / 2;
-  //     var izq := MergeSort(items[..m]);
-  //     var der := MergeSort(items[m..]);
-  //     orderedItems := Merge(izq, der);
-  //   }
-  // }
-
-  // method Merge(izq: seq<Item>, der: seq<Item>) returns (ordenado : seq<Item>)
-  // {    
-  //   var i := 0;
-  //   var j := 0;
-
-  //   while (i < |izq| && j < |der|)
-  //   {
-  //     if (izq[i].ValuePerWeight() >= der[j].ValuePerWeight()) {
-  //       ordenado := ordenado + [izq[i]];
-  //       i := i + 1;
-  //     } else {
-  //       ordenado := ordenado + [der[j]];
-  //       j := j + 1;
-  //     }
-  //   }
-  //   ordenado := ordenado + izq[i..] + der[j..];
-  //   //transformar a array
-  // }
-
-  // method seqToarray(s: seq<Item>) returns (array<Item>)
-  //   ensures |result| == |s|
-  // ensures forall i :: 0 <= i < |s| ==> result[i] == s[i]
-  // {
-  //   var a := new Item[|s|];
-  //   for i := 0 to |s| {
-  //     a[i] := s[i];
-  //   }
-  //   return a;
-  // }
-
-
-
   /* Lemas */
 
   /*
   Lema: dada una posición k, el peso y el valor del objeto Item en dicha posición del array items, son iguales al
   peso y el valor correspondientes en el modelo de items. 
   //
-  Propósito: demostrar el lema InputDataItemsForAll.
+  Propósito: demostrar el lema PartialConsistency en VA.dfy para asegurar que una solución sigue siendo parcial. 
+  Demostrar el lema InputDataItemsForAll.
   //
-  Verificación: trivial.
+  Demostración: trivial.
   */
   lemma InputDataItems(k : int)
     requires 0 <= k < items.Length
@@ -176,7 +135,7 @@ class Input {
   //
   Propósito:
   //
-  Verificación:
+  Demostración: usando el lema InputDataItems.
   */
   lemma InputDataItemsForAll()
     ensures forall k | 0 <= k < items.Length ::
@@ -199,6 +158,4 @@ class Input {
       }
     }
   }
-
-
 }

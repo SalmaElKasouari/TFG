@@ -1,14 +1,14 @@
 /*-----------------------------------------------------------------------------------------------------------------
 
-El tipo SolutionData es el modelo de la representación formal de una solución parcial en el contexto del problema
-de la mochila. Proporciona las herramientas necesarias para verificar diferentes configuraciones de una solución.
+El tipo SolutionData es el modelo de la representación formal de las soluciones del problema de la mochila. 
+Proporciona las herramientas necesarias para verificar diferentes configuraciones de una solución.
 
 Estructura del fichero:
 
   Datatype
-  - itemsAssign: array de asignaciones de los objetos, donde true indica que el objeto ha sido seleccionado, 
-    y false que no ha sido seleccionado.
-  - k: etapa del árbol de exploración de la solución. Denota el número de objetos tratados del array anterior. 
+  - itemsAssign: array de bool de tamaño número de objetos donde cada posición corresponde a un objeto y cuyo 
+      valor almacenado indica si el objeto ha sido seleccionado (true) o no (false).
+  - k: etapa del árbol de exploración de la solución. Denota el número de objetos tratados de itemsAssign. 
 
   Funciones
     - TotalWeight: suma total de los pesos de los objetos seleccionados.
@@ -38,8 +38,6 @@ Estructura del fichero:
 
 include "InputData.dfy"
 include "ItemData.dfy"
-include "../../ContainersOps.dfy"
-include "../../Math.dfy"
 include "../Implementation/Input.dfy"
 include "../Implementation/Solution.dfy"
 
@@ -55,8 +53,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   */
   ghost function TotalWeight(items: seq<ItemData>): real
     decreases k
-    requires k <= |items|
-    requires k <= |itemsAssign|
+    requires k <= |items| == |itemsAssign|
   {
     if k == 0 then
       0.0
@@ -115,7 +112,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     requires this.Valid(input)
     requires input.Valid()
   {
-    forall otherSolution: SolutionData | otherSolution.Valid(input) :: otherSolution.TotalValue(input.items) <= TotalValue(input.items)
+    forall s: SolutionData | s.Valid(input) :: s.TotalValue(input.items) <= TotalValue(input.items)
   }
 
   /*
@@ -131,7 +128,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   }
 
   /*
-    Predicado: verifica que una solución (this) es una extensión óptima de ps, garantizando que no haya 
+    Predicado: verifica que una solución (this) es una extensión óptima de la solución parcial ps, garantizando que no haya 
     soluciones válidas con un mayor valor total que this.
   */
   ghost predicate OptimalExtension(ps : SolutionData, input : InputData)
@@ -158,65 +155,6 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
 
   /* Lemas */
-  static lemma AllTruesIsUpperBoundForAll(ps : SolutionData, ps' : SolutionData, input : InputData)
-    requires |ps'.itemsAssign| == |ps.itemsAssign|
-    requires input.Valid()
-    requires |input.items| == |ps'.itemsAssign| == ps'.k >= ps.k
-    requires ps'.Extends(ps)
-    requires forall j | ps.k <= j < |ps'.itemsAssign| :: ps'.itemsAssign[j]
-    ensures forall s : SolutionData | |s.itemsAssign| == |ps.itemsAssign|
-                                      && s.k == |s.itemsAssign|
-                                      && ps.k <= s.k
-                                      && s.Extends(ps) ::
-              s.TotalValue(input.items) <= ps'.TotalValue(input.items)
-  {
-    forall s : SolutionData | |s.itemsAssign| == |ps.itemsAssign|
-                              && s.k == |s.itemsAssign|
-                              && ps.k <= s.k
-                              && s.Extends(ps)
-      ensures s.TotalValue(input.items) <= ps'.TotalValue(input.items)
-    {
-      assert SolutionData(s.itemsAssign, ps.k).Equals(ps);
-      assert SolutionData(ps'.itemsAssign, ps.k).Equals(ps);
-      SolutionData(s.itemsAssign, ps.k).EqualValueWeightFromEquals(SolutionData(ps'.itemsAssign, ps.k), input);
-      SolutionData.AllTruesIsUpperBound(ps.k, s, ps, ps', input);
-    }
-  }
-
-  static lemma {:induction i} AllTruesIsUpperBound(i : int, s : SolutionData, ps : SolutionData, ps' : SolutionData, input :InputData)
-    decreases |ps.itemsAssign| - i
-    requires input.Valid()
-    requires |input.items| == |ps'.itemsAssign| == ps'.k >= ps.k
-    requires ps.k <= i <= |ps.itemsAssign|
-    requires |ps'.itemsAssign| == |ps.itemsAssign|
-    requires ps'.Extends(ps)
-    requires forall j | ps.k <= j < |ps'.itemsAssign| :: ps'.itemsAssign[j]
-    requires |s.itemsAssign| == |ps.itemsAssign|
-             && s.k == |s.itemsAssign|
-             && ps.k <= s.k
-             && s.Extends(ps)
-    requires SolutionData(s.itemsAssign, i).TotalValue(input.items) <= SolutionData(ps'.itemsAssign, i).TotalValue(input.items)
-    ensures s.TotalValue(input.items) <= ps'.TotalValue(input.items)
-  {
-    if i == |ps'.itemsAssign| {
-      assert SolutionData(s.itemsAssign, i) == s;
-      assert SolutionData(ps'.itemsAssign, i) == ps';
-    }
-    else {
-      if (s.itemsAssign[i] && ps'.itemsAssign[i]) {
-        AllTruesIsUpperBound(i + 1, s, ps, ps', input);
-      }
-      else {
-        AddFalsePreservesWeightValue(SolutionData(s.itemsAssign, i), SolutionData(s.itemsAssign, i+1), input);
-        AllTruesIsUpperBound(i + 1, s, ps, ps', input);        
-      }      
-    }
-  }
-
-
-
-
-
 
   /* 
   Lema: dado un itemsAssign cuyas posiciones son todas a false, es decir, que ningun objeto ha 
@@ -368,6 +306,77 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
       }
       assert this.Extends(ps2);
       assert forall s : SolutionData | s.Valid(input) && s.Extends(ps2) :: s.TotalValue(input.items) <= this.TotalValue(input.items);
+    }
+  }
+
+
+  /* 
+  Lema: dada una solución parcial ps y otra solución ps' que extiende a ella con todos las asignaciones a true, 
+  entonces ps' siempre es cota superior de cualquier otra extensión de ps.
+  //
+  Propósito: verificar el método Cota en VAPoda.dfy.
+  //
+  Demostración: usando los lemas EqualValueWeightFromEquals y AllTruesIsUpperBound.
+  */
+  static lemma AllTruesIsUpperBoundForAll(ps : SolutionData, ps' : SolutionData, input : InputData)
+    requires ps.k <= ps'.k == |ps'.itemsAssign| == |ps.itemsAssign| == |input.items|
+    requires input.Valid()
+    requires ps'.Extends(ps)
+    requires forall j | ps.k <= j < |ps'.itemsAssign| :: ps'.itemsAssign[j]
+    ensures forall s : SolutionData | |s.itemsAssign| == |ps.itemsAssign|
+                                      && s.k == |s.itemsAssign|
+                                      && ps.k <= s.k
+                                      && s.Extends(ps) ::
+              s.TotalValue(input.items) <= ps'.TotalValue(input.items)
+  {
+    forall s : SolutionData | && |s.itemsAssign| == |ps.itemsAssign|
+                              && s.k == |s.itemsAssign|
+                              && ps.k <= s.k
+                              && s.Extends(ps)
+      ensures s.TotalValue(input.items) <= ps'.TotalValue(input.items)
+    {
+      assert SolutionData(s.itemsAssign, ps.k).Equals(ps);
+      assert SolutionData(ps'.itemsAssign, ps.k).Equals(ps);
+      SolutionData(s.itemsAssign, ps.k).EqualValueWeightFromEquals(SolutionData(ps'.itemsAssign, ps.k), input);
+      SolutionData.AllTruesIsUpperBound(ps.k, s, ps, ps', input);
+    }
+  }
+
+
+  /* 
+  Lema: dada una solución parcial ps, una solución completa ps' que extiende a ella con todos las asignaciones a 
+  true, y otra solución completa s que extiende a ps, entonces ps' es cota superior a s.
+  //
+  Propósito: demostrar el lema AllTruesIsUpperBoundForAll.
+  //
+  Demostración: mediante inducción en i.
+  */
+  static lemma {:induction i} AllTruesIsUpperBound(i : int, s : SolutionData, ps : SolutionData, ps' : SolutionData, input :InputData)
+    decreases |ps.itemsAssign| - i
+    requires input.Valid()
+    requires ps.k <= ps'.k == |input.items| == |ps'.itemsAssign| == |ps.itemsAssign| == |s.itemsAssign|
+    requires ps.k <= i <= |ps.itemsAssign|
+    requires forall j | ps.k <= j < |ps'.itemsAssign| :: ps'.itemsAssign[j]
+    requires && s.k == |s.itemsAssign|
+             && ps.k <= s.k
+    requires ps'.Extends(ps)
+    requires s.Extends(ps)
+    requires SolutionData(s.itemsAssign, i).TotalValue(input.items) 
+              <= SolutionData(ps'.itemsAssign, i).TotalValue(input.items)
+    ensures s.TotalValue(input.items) <= ps'.TotalValue(input.items)
+  {
+    if i == |ps'.itemsAssign| {
+      assert SolutionData(s.itemsAssign, i) == s;
+      assert SolutionData(ps'.itemsAssign, i) == ps';
+    }
+    else {
+      if (s.itemsAssign[i] && ps'.itemsAssign[i]) {
+        AllTruesIsUpperBound(i + 1, s, ps, ps', input);
+      }
+      else {
+        AddFalsePreservesWeightValue(SolutionData(s.itemsAssign, i), SolutionData(s.itemsAssign, i+1), input);
+        AllTruesIsUpperBound(i + 1, s, ps, ps', input);
+      }
     }
   }
 }
