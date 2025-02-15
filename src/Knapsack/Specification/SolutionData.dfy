@@ -120,8 +120,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     hasta el índice k.
   */
   ghost predicate Extends(ps : SolutionData) // ps es prefijo de ps' (el que llama a la función), (ps y ps' iguales hasta k)
-    requires |this.itemsAssign| == |ps.itemsAssign|
-    requires this.k <= |this.itemsAssign|
+    requires this.k <= |this.itemsAssign| == |ps.itemsAssign|
     requires ps.k <= this.k
   {
     forall i | 0 <= i < ps.k :: this.itemsAssign[i] == ps.itemsAssign[i]

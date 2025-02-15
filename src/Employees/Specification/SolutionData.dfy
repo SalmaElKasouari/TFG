@@ -34,16 +34,16 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   /*
     Función: calcula el tiempo total que tardan los funcionarios en realizar sus trabajos hasta el índice k.
   */
-  ghost function TotalTime(input : InputData) : real
+  ghost function TotalTime(times : seq<seq<real>>) : real
     decreases k
-    requires k <= |employeesAssign| == |input.times|
-    requires input.Valid()
-    requires this.Partial(input)
+    requires k <= |employeesAssign| == |times|
+    requires forall i | 0 <= i < |times| :: |times[i]| == |times|
+    requires forall i | 0 <= i < |employeesAssign| :: 0 <= employeesAssign[i] < |employeesAssign|
   {
     if k == 0 then
       0.0
     else
-      SolutionData(employeesAssign, k - 1).TotalTime(input) + input.times[k - 1][employeesAssign[k - 1]]
+      SolutionData(employeesAssign, k - 1).TotalTime(times) + times[k - 1][employeesAssign[k - 1]]
   }
 
 
@@ -62,7 +62,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     Predicado: verifica que la solución esté completa (hemos tratado todos los funcionarios) y sea válida.
   */
   ghost predicate Valid(input: InputData){
-    && k == |employeesAssign| == |input.times|
+    && k == |employeesAssign|
     && Partial(input)
   }
 
@@ -75,7 +75,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     requires this.Valid(input)
     requires input.Valid()
   {
-    forall s: SolutionData | && s.Valid(input) :: s.TotalTime(input) >= TotalTime(input)
+    forall s: SolutionData | && s.Valid(input) :: s.TotalTime(input.times) >= TotalTime(input.times)
   }
 
 
@@ -90,7 +90,6 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   }
 
 
-
   /*
     Predicado: verifica que una solución (this) es una extensión óptima de la solución parcial ps, garantizando que
     no haya soluciones válidas con un menor tiempo total que this.
@@ -103,7 +102,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     && this.Extends(ps)
     && forall s : SolutionData | && s.Valid(input)
                                  && s.Extends(ps)
-         :: s.TotalTime(input) <= this.TotalTime(input)
+         :: s.TotalTime(input.times) <= this.TotalTime(input.times)
   }
 
   /*
