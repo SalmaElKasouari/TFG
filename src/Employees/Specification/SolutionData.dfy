@@ -36,9 +36,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   */
   ghost function TotalTime(times : seq<seq<real>>) : real
     decreases k
-    requires k <= |employeesAssign| == |times|
-    requires forall i | 0 <= i < |times| :: |times[i]| == |times|
-    requires forall i | 0 <= i < |employeesAssign| :: 0 <= employeesAssign[i] < |employeesAssign|
+    requires Explicit(times)
   {
     if k == 0 then
       0.0
@@ -50,18 +48,42 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   /* Predicados */
 
   /*
+    Predicado: restricciones explícitas del problema.
+  */
+  ghost predicate Explicit(times: seq<seq<real>>)
+  {
+    && k <= |employeesAssign| == |times|
+    && (forall i | 0 <= i < |times| :: |times[i]| == |times|)
+    && (forall i | 0 <= i < this.k :: 0 <= employeesAssign[i] < |employeesAssign|) // at most one, at least one
+    && (forall i | 0 <= i < this.k :: (forall j | 0 <= j < this.k && i != j :: employeesAssign[i] != employeesAssign[j]))
+  }
+
+
+  /*
+    Predicado: restricciones implícitas del problema.
+  */
+  ghost predicate Implicit(times: seq<seq<real>>){
+    true
+  }
+
+
+  /*
     Predicado: verifica que una solución parcial sea válida hasta el índice k.
   */
-  ghost predicate Partial (input: InputData){
-    && 0 <= k <= |employeesAssign| == |input.times|
-    && forall i | 0 <= i < |employeesAssign| :: 0 <= employeesAssign[i] < |employeesAssign|
+  ghost predicate Partial (input: InputData)
+    requires input.Valid()
+  {
+    && Explicit(input.times)
+    && Implicit(input.times)
   }
 
 
   /*
     Predicado: verifica que la solución esté completa (hemos tratado todos los funcionarios) y sea válida.
   */
-  ghost predicate Valid(input: InputData){
+  ghost predicate Valid(input: InputData)
+    requires input.Valid()
+  {
     && k == |employeesAssign|
     && Partial(input)
   }
@@ -72,8 +94,8 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     válida con un menor tiempo total.
   */
   ghost predicate Optimal(input: InputData)
-    requires this.Valid(input)
     requires input.Valid()
+    requires this.Valid(input)
   {
     forall s: SolutionData | && s.Valid(input) :: s.TotalTime(input.times) >= TotalTime(input.times)
   }
@@ -98,7 +120,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     requires input.Valid()
   {
     && this.Valid(input)
-    && ps.Partial(input)
+    && ps.Explicit(input.times)
     && this.Extends(ps)
     && forall s : SolutionData | && s.Valid(input)
                                  && s.Extends(ps)
@@ -117,6 +139,17 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     && forall i | 0 <= i < this.k :: this.employeesAssign[i] == s.employeesAssign[i]
   }
 
-
-
+  /*
+  Lema: Dada una solución donde el array de asignaciones employeesAssign cumple que cada funcionario i realiza el trabajo i,  
+  entonces todas las componentes de employeesAssign son distintas entre sí.
+  //
+  Propósito: verificar el invariante del bucle que inicializa la bs.
+  //
+  Verificación: trivial.
+  */
+  lemma AllDifferent(input : InputData) 
+    requires && k <= |employeesAssign| == |input.times|
+    requires forall i | 0 <= i < this.k :: employeesAssign[i] == i
+    ensures forall i | 0 <= i < this.k :: (forall j | 0 <= j < this.k && i != j :: this.employeesAssign[i] != this.employeesAssign[j])
+  {}
 }

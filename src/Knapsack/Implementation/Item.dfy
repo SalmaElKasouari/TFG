@@ -35,6 +35,7 @@ class Item {
 
 
   /* Predicados */
+
   /*
   Predicado: verifica si un Item es válido.
   */
@@ -46,6 +47,7 @@ class Item {
 
 
   /* Funciones */
+
   /*
   Función: devuelve un ItemData, el modelo de un Item.
   */
@@ -55,7 +57,7 @@ class Item {
     ItemData(this.weight, this.value)
   }
 
-  /* Funciones */
+
   /*
   Función: devuelve el valor por unidad de peso.
   */

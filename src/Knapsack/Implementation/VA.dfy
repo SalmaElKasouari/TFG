@@ -11,18 +11,18 @@ Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
 
 
 Estructura del fichero:
-  Lemas
-    - PartialConsistency: si el peso de una solución oldps mas el peso de un objeto no excede el peso maximo (es 
-      Partial), entonces una solución ps que extiende a oldps con ese objeto asignado a true también será Partial.
-    - InvalidExtensionsFromInvalidPs: si una solución parcial ps extendida con true no es válida, entonces ninguna 
-      de sus extensiones tampoco será válida. 
-
   Métodos
     - Cota: calcula la cota que selecciona todos los items restantes para podar el árbol de exploración.
     - KnapsackVABaseCase: Define la condición de terminación.
     - KnapsackVAFalseBranch: Considera no incluir un elemento en la mochila.
     - KnapsackVATrueBranch: Considera incluir un elemento en la mochila.
     - KnapsackVA: Punto de partida para ejecutar el algoritmo VA.
+
+  Lemas
+    - PartialConsistency: si el peso de una solución oldps mas el peso de un objeto no excede el peso maximo (es 
+      Partial), entonces una solución ps que extiende a oldps con ese objeto asignado a true también será Partial.
+    - InvalidExtensionsFromInvalidPs: si una solución parcial ps extendida con true no es válida, entonces ninguna 
+      de sus extensiones tampoco será válida. 
 
 Todas las definiciones incluyen una sección de comentarios explicando su propósito.
 
@@ -32,7 +32,6 @@ Todas las definiciones incluyen una sección de comentarios explicando su propó
 include "Solution.dfy"
 include "../Specification/SolutionData.dfy"
 include "Input.dfy"
-include "../../Ord.dfy"
 
 /* Métodos */
 
@@ -273,7 +272,7 @@ method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
 
 
 /* 
-Método: punto de partida del algoritmo VA. El método busca explorar todas las posibles combinaciones de objetos, 
+Método: punto de partida del algoritmo VA. El método explora todas las posibles asignaciones de objetos, 
 respetando las restricciones de peso maxWeight) y seleccionando las combinaciones que maximicen el valor total.
 En este contexto, se inicializa bs con todo a false, ya que es un problema de maximización (se busca el valor
 más alto). El árbol de búsqueda es un árbol binario que cuenta con dos ramas:
@@ -469,7 +468,7 @@ Verificación: se aplican los lemas GreaterOrEqualValueWeightFromExtends y AddTr
   que cualquier solución s extendida tiene como mínimo el peso de la solución original (ps), que ya excedía del peso 
   máximo. Como consecuencia, s también incumple esa restricción, y por tanto no será válida.
 */
-lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input) //lema generico con forall
+lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input)
   requires 0 <= ps.k < ps.itemsAssign.Length
   requires ps.itemsAssign.Length == input.items.Length
   requires ps.totalWeight + input.items[ps.k].weight > input.maxWeight

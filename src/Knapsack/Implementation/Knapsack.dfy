@@ -25,7 +25,7 @@ implementado en VA.dfy. Se construyen dos soluciones:
 Ambas soluciones se inicializan con el array de asignaciones a falsos.
 //
 Verificación: se asegura que bs (la solución que se encuentra) es tanto válida como óptima:
-	- bs.Valid(input): mediante la poscondición en VA que asegura que bs es válida..
+	- bs.Valid(input): mediante la poscondición en VA que asegura que bs es válida.
 	- bs.Optimal (input): mediante varias poscondiciones en VA que aseguran que bs es óptima.
 */
 method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
@@ -33,10 +33,10 @@ method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
 	ensures bs.Valid(input)
 	ensures bs.Optimal(input)	
 {
-	var size := input.items.Length;
+	var n := input.items.Length;
 
 	/* Construimos una solución parcial (ps) */
-	var ps_itemsAssign: array<bool> := new bool[size](i => false);
+	var ps_itemsAssign: array<bool> := new bool[n](i => false);
   	var ps_totalValue: real := 0.0;
   	var ps_totalWeight: real := 0.0;
   	var ps_k: int := 0;
@@ -47,16 +47,17 @@ method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
 	}
 
 	/* Construimos una solución mejor (bs) */
-	var bs_itemsAssign: array<bool> := new bool[size](i => false);
+	var bs_itemsAssign: array<bool> := new bool[n](i => false);
   	var bs_totalValue: real := 0.0;
   	var bs_totalWeight: real := 0.0;
-  	var bs_k: int := size;
+  	var bs_k: int := n;
 	bs := new Solution(bs_itemsAssign, bs_totalValue, bs_totalWeight, bs_k);
 	ghost var oldbsmodel := bs.Model();
 
 	assert bs.Valid(input) by {
 		bs.Model().SumOfFalsesEqualsZero(input.Model());	
 	}
+
 	KnapsackVA(input, ps, bs);
 
 	
@@ -89,7 +90,7 @@ method Main() {
 	
 	
 	/* Peso máximo de la mochila */
-	var maxWeight: real := 8.0; // peso máximo de la mochila
+	var maxWeight: real := 8.0;
 
 	/* Generar la entrada del problema */
 	var input := new Input(items, maxWeight);

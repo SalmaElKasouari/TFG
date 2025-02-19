@@ -5,7 +5,6 @@ La clase Solution implementa una representación formal la entrada del problema 
 Estructura del fichero:
 
   Atributos y constructor
-    - n: número de funcionarios y trabajos.
     - times: matriz que contiene el tiempo que tarda cada funcionario en realizar cada trabajo. Las filas 
       corresponden a los funcionarios y las columnas a los trabajos.
 
@@ -30,14 +29,11 @@ include "../Specification/InputData.dfy"
 class Input {
 
   /* Atributos y constructor */
-  var n: int
   var times: array2<real>
 
-  constructor(n: int, times: array2<real>)
-    ensures this.n == n
+  constructor(times: array2<real>)
     ensures this.times == times
   {
-    this.n := n;
     this.times := times;
   }
 
@@ -46,12 +42,14 @@ class Input {
   /* Predicados */
 
   /* 
-  Predicado: verifica que una entrada sea válida, es decir, que su modelo sea válido.
+  Predicado: verifica que una entrada sea válida, en este caso, la matriz debe ser cuadrada y que el 
+  modelo sea válido.
   */
-  ghost predicate Valid()
+  ghost predicate  Valid()
     reads this, times
   {
-    && n == times.Length0 == times.Length1 > 0
+    && times.Length0 == times.Length1 > 0 //puede sobrar por la siguiente linea
+    && this.Model().Valid()
   }
 
 
@@ -63,10 +61,10 @@ class Input {
   */
   ghost function Model(): InputData
     reads this, times
-    requires this.Valid()
-    ensures n == Model().n
     ensures |Model().times| == times.Length0 == times.Length1
-    ensures (forall i | 0 <= i < |Model().times| :: |Model().times[i]| == |Model().times| == n)
+    ensures (forall i | 0 <= i < |Model().times| :: |Model().times[i]| == |Model().times|)
+    ensures forall i | 0 <= i < |Model().times| :: (forall j | 0 <= j < |Model().times[i]| :: times[i,j] == Model().times[i][j])
+
 
 
   

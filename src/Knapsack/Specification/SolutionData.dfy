@@ -15,6 +15,8 @@ Estructura del fichero:
     - TotalValue: suma total de los valores de los objetos seleccionados.
   
   Predicados
+    - Explicit: restricciones explícitas del problema.
+    - Implicit: restricciones implícitas del problema.
     - Partial: una solución parcial es válida.
     - Valid: una solución completa es válida.
     - Optimal: una solución es óptima.
@@ -53,7 +55,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   */
   ghost function TotalWeight(items: seq<ItemData>): real
     decreases k
-    requires k <= |items| == |itemsAssign|
+    requires Explicit(items)
   {
     if k == 0 then
       0.0
@@ -63,6 +65,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
       SolutionData(itemsAssign, k - 1).TotalWeight(items)
   }
 
+
   /*
     Función: calcula el valor total de los objetos seleccionados hasta el índice k. Si el objeto está seleccionado
     se añade su valor al valor total acumulado de la solución. Si no está seleccionado, se mantiene el valor 
@@ -70,8 +73,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   */
   ghost function TotalValue(items: seq<ItemData>): real
     decreases k
-    requires k <= |items|
-    requires k <= |itemsAssign|
+    requires Explicit(items)
   {
     if k == 0 then
       0.0
@@ -86,34 +88,58 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   /* Predicados */
 
   /*
-    Predicado: verifica que una solución parcial sea válida hasta el índice k, observando que el peso total no 
-    supere el máximo peso permitido.
+    Predicado: restricciones explícitas del problema.
   */
-  ghost predicate Partial (input: InputData){
-    && 0 <= k <= |itemsAssign|
-    && |itemsAssign| == |input.items|
-    && this.TotalWeight(input.items) <= input.maxWeight
+  ghost predicate Explicit (items: seq<ItemData>){
+    0 <= k <= |items| == |itemsAssign|
   }
 
+
   /*
-    Predicado: verifica que la solución esté completa (hemos tratado todos los objetos) y sea válida, cumpliendo 
-    con las restricciones de peso.
+    Predicado: restricciones implícitas del problema.
   */
-  ghost predicate Valid(input: InputData){
+  ghost predicate Implicit(items: seq<ItemData>, maxWeight : real)
+    requires Explicit(items)
+  {
+    this.TotalWeight(items) <= maxWeight
+  }
+
+
+  /*
+    Predicado: verifica que una solución parcial sea válida hasta el índice k, respetando todas las restricciones 
+    sdel problema.
+  */
+  ghost predicate Partial (input: InputData)
+    requires input.Valid()
+  {
+    && Explicit(input.items)
+    && Implicit(input.items, input.maxWeight)
+  }
+
+
+  /*
+    Predicado: verifica que la solución esté completa (hemos tratado todos los objetos) y sea válida, respetando 
+    todas las restricciones del problema.
+  */
+  ghost predicate Valid(input: InputData)
+    requires input.Valid()
+  {
     && k == |itemsAssign|
     && Partial(input)
   }
+
 
   /*
     Predicado: asegura que una solución válida (this) sea óptima, es decir, que no exista ninguna otra solución 
     válida con un mayor valor total.
   */
   ghost predicate Optimal(input: InputData)
-    requires this.Valid(input)
     requires input.Valid()
+    requires this.Valid(input)
   {
     forall s: SolutionData | s.Valid(input) :: s.TotalValue(input.items) <= TotalValue(input.items)
   }
+
 
   /*
     Predicado: verifica una solución es una extensión de la solución parcial (ps), manteniendo la igualdad 
@@ -125,6 +151,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   {
     forall i | 0 <= i < ps.k :: this.itemsAssign[i] == ps.itemsAssign[i]
   }
+
 
   /*
     Predicado: verifica que una solución (this) es una extensión óptima de la solución parcial ps, garantizando que no haya 
@@ -138,6 +165,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     && this.Extends(ps)
     && forall s : SolutionData | s.Valid(input) && s.Extends(ps) :: s.TotalValue(input.items) <= this.TotalValue(input.items)
   }
+
 
   /*
     Predicado: verifica que dos soluciones this y s sean iguales hasta el índice k, es decir, que cuentan con la 
@@ -153,6 +181,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   }
 
 
+
   /* Lemas */
 
   /* 
@@ -165,12 +194,14 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   */
   lemma SumOfFalsesEqualsZero(input : InputData)
     decreases k
+    requires input.Valid()
     requires k <= |itemsAssign|
     requires |itemsAssign| == |input.items|
     requires forall i | 0 <= i < |itemsAssign| :: !itemsAssign[i]
     ensures && TotalWeight(input.items) == 0.0
             && TotalValue(input.items) == 0.0
   {}
+
 
   /* 
   Lema: dada una solución s1 que se extiende añadiendo un elemento a true generando una nueva 
@@ -184,6 +215,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   */
   static lemma AddTrueMaintainsSumConsistency(s1 : SolutionData, s2 : SolutionData, input : InputData) //s1 viejo, s2 nuevo
     decreases s1.k
+    requires input.Valid()
     requires 0 <= s1.k <= |s1.itemsAssign|
     requires 0 < s2.k <= |s2.itemsAssign|
     requires |s2.itemsAssign| == |s1.itemsAssign| == |input.items|
@@ -196,6 +228,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   {
     s1.EqualValueWeightFromEquals(SolutionData(s2.itemsAssign, s2.k-1), input);
   }
+
 
   /* 
   Lema: dada una solución s1 que se extiende añadiendo un elemento a false generando una nueva 
@@ -221,6 +254,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     s1.EqualValueWeightFromEquals(SolutionData(s2.itemsAssign, s2.k-1), input);
   }
 
+
   /* 
   Lema: si dos soluciones (this y s) son idénticas (igualdad de campos), entonces tienen las mismas 
   sumas de pesos y valores. Esto es por que el contenido de itemsAssign de cada solución es igual y los cálculos 
@@ -232,6 +266,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   */
   lemma {:induction this, s} EqualValueWeightFromEquals(s : SolutionData, input : InputData)
     decreases k
+    requires input.Valid()
     requires |input.items| == |this.itemsAssign| == |s.itemsAssign|
     requires this.k <= |this.itemsAssign|
     requires s.k <= |s.itemsAssign|
@@ -246,6 +281,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
       SolutionData(itemsAssign, k - 1).EqualValueWeightFromEquals(SolutionData(s.itemsAssign, s.k - 1), input);
     }
   }
+
 
   /* 
   Lema: si dos soluciones (this y s) son idénticas (igualdad de campos), entonces tienen las mismas 
@@ -276,6 +312,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
     }
   }
 
+
   /* 
   Lema: dadas dos soluciones parciales ps1 y ps2 que son idénticas (igualdad de campos) y 
   sabiendo que bs es una extension óptima de ps1, entonces bs también es extensión optima de ps2.
@@ -285,8 +322,8 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   Demostración: mediante el lema EqualValueWeightFromEquals.
   */
   lemma EqualsOptimalExtensionFromEquals(ps1 : SolutionData, ps2: SolutionData, input : InputData)
-    requires this.Valid(input)
     requires input.Valid()
+    requires this.Valid(input)
     requires |ps1.itemsAssign| == |ps2.itemsAssign|
     requires ps1.k <= |ps1.itemsAssign|
     requires ps2.k <= |ps2.itemsAssign|
@@ -360,8 +397,8 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
              && ps.k <= s.k
     requires ps'.Extends(ps)
     requires s.Extends(ps)
-    requires SolutionData(s.itemsAssign, i).TotalValue(input.items) 
-              <= SolutionData(ps'.itemsAssign, i).TotalValue(input.items)
+    requires SolutionData(s.itemsAssign, i).TotalValue(input.items)
+          <= SolutionData(ps'.itemsAssign, i).TotalValue(input.items)
     ensures s.TotalValue(input.items) <= ps'.TotalValue(input.items)
   {
     if i == |ps'.itemsAssign| {

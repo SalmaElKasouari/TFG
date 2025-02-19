@@ -68,6 +68,8 @@ class Solution {
   */
   ghost predicate Partial (input : Input)
     reads this, this.itemsAssign, input, input.items, set i | 0 <= i < input.items.Length :: input.items[i]
+    requires input.Valid()
+
   {
     && 0 <= this.k <= this.itemsAssign.Length
     && Model().Partial(input.Model())
@@ -81,6 +83,8 @@ class Solution {
   */
   ghost predicate Valid (input : Input) // solución completa (final)
     reads this, this.itemsAssign, input, input.items, set i | 0 <= i < input.items.Length :: input.items[i]
+    requires input.Valid()
+
   {
     && this.k == this.itemsAssign.Length
     && Partial(input)
@@ -91,9 +95,8 @@ class Solution {
   */
   ghost predicate Optimal(input: Input)
     reads this, this.itemsAssign, input, input.items, set i | 0 <= i < input.items.Length :: input.items[i]
-
-    requires this.Valid(input)  // que la solución que llama al predicado sea completa --> valid
-    requires input.Valid() // la entrada debe ser valida
+    requires input.Valid()
+    requires this.Valid(input)
   {
     this.Model().Optimal(input.Model())
   }
@@ -136,12 +139,13 @@ class Solution {
   */
   method Copy(s : Solution)
     modifies this`totalValue, this`totalWeight, this`k, this.itemsAssign
-    requires this.itemsAssign.Length == s.itemsAssign.Length
     requires this != s
+    requires this.itemsAssign.Length == s.itemsAssign.Length
+    ensures this.k == s.k
     ensures this.totalValue == s.totalValue
     ensures this.totalWeight == s.totalWeight
     ensures this.itemsAssign == old(this.itemsAssign)
-    ensures this.k == s.k
+
     ensures forall i | 0 <= i < this.itemsAssign.Length :: this.itemsAssign[i] == s.itemsAssign[i]
     ensures this.Model() == s.Model()
   {
@@ -157,7 +161,7 @@ class Solution {
     this.k := s.k;
   }
 
-  
+
 
   /* Lemas */
 
@@ -170,6 +174,7 @@ class Solution {
   Demostración: trivial ya que la precondición asegura que this es idéntica a s en los aspectos relevantes para la validez.
   */
   lemma CopyModel (s : Solution, input : Input)
+    requires input.Valid()
     requires s.Valid(input)
     requires s.Model() == this.Model()
     requires s.totalWeight == this.totalWeight
