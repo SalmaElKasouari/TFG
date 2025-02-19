@@ -45,7 +45,7 @@ class Input {
   Predicado: verifica que una entrada sea válida, en este caso, la matriz debe ser cuadrada y que el 
   modelo sea válido.
   */
-  ghost predicate  Valid()
+  ghost predicate Valid()
     reads this, times
   {
     && times.Length0 == times.Length1 > 0 //puede sobrar por la siguiente linea

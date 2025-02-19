@@ -139,17 +139,20 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     && forall i | 0 <= i < this.k :: this.employeesAssign[i] == s.employeesAssign[i]
   }
 
+  
+  /* Lemas */
+
   /*
-  Lema: Dada una solución donde el array de asignaciones employeesAssign cumple que cada funcionario i realiza el trabajo i,  
-  entonces todas las componentes de employeesAssign son distintas entre sí.
+  Lema: Dada tiempo total no engativo, si le sumamos un tiempo extra que es positivo, el tiempo total no decrementa
+  y sigue siendo no negativo.
   //
-  Propósito: verificar el invariante del bucle que inicializa la bs.
+  Propósito: verificar un invariante del bucle que inicializa la bs.
   //
   Verificación: trivial.
   */
-  lemma AllDifferent(input : InputData) 
-    requires && k <= |employeesAssign| == |input.times|
-    requires forall i | 0 <= i < this.k :: employeesAssign[i] == i
-    ensures forall i | 0 <= i < this.k :: (forall j | 0 <= j < this.k && i != j :: this.employeesAssign[i] != this.employeesAssign[j])
+  static lemma SumPreservesNonNegativity(totalTime : real, time : real)
+    requires totalTime >= 0.0
+    requires time > 0.0
+    ensures totalTime + time >= 0.0
   {}
 }

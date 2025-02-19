@@ -47,51 +47,37 @@ method ComputeSolution(input: Input) returns (bs: Solution)
     assert ps.Model().Partial(input.Model());
   }
 
-  /* Construimos una solución mejor (bs). Como se trata de una solución completa y debe ser válida, se
-     inicializa tal que todos los funcionarios realizan trabajos diferentes, por ejemplo, al funcionario i le asignamos el trabajo i. */
+  /*
+    Construimos una solución mejor (bs). Como se trata de una solución completa (k == employeesAssign.Length) que 
+    debe ser válida, se inicializa de manera que todos los funcionarios realizan trabajos diferentes, por ejemplo, 
+    al funcionario i le asignamos el trabajo i.
+  */
   var bs_employeesAssign: array<int> := new int[n];
   var bs_totalTime := 0.0;
   for i := 0 to n
-    invariant 0 <= i <= n
-    invariant i != i + 1
-    invariant bs_employeesAssign.Length == n
+    invariant 0 <= bs_employeesAssign.Length == n
     invariant input.Valid()
     invariant forall j | 0 <= j < i :: 0 <= bs_employeesAssign[j] < n
     invariant forall j | 0 <= j < i :: bs_employeesAssign[j] == j
     invariant forall j | 0 <= j < i :: forall k | 0 <= k < i && j != k :: bs_employeesAssign[j] != bs_employeesAssign[k]
-    //invariant bs_totalTime >= 0.0
-    //invariant forall j | 0 <= j < i :: bs_totalTime == SolutionData(bs_employeesAssign[..], j).TotalTime(input.Model().times)
+    invariant bs_totalTime >= 0.0
+    invariant bs_totalTime == SolutionData(bs_employeesAssign[..], i+1).TotalTime(input.Model().times)
   {
     bs_employeesAssign[i] := i;
-    SolutionData(bs_employeesAssign[..], i+1).AllDifferent(input.Model());
-
     bs_totalTime := bs_totalTime + input.times[i,i];
+    SolutionData.SumPreservesNonNegativity(bs_totalTime, input.Model().times[i][i]);
   }
-  var bs_k: int := n;
+  var bs_k := n;
   bs := new Solution(bs_employeesAssign, bs_totalTime, bs_k);
-
-  ghost var oldbsmodel := bs.Model();
 
   assert bs.Valid(input) by {
     assert bs.Partial(input) by {
-      assert  bs.k <= |bs.Model().employeesAssign| == |input.Model().times|;
-      assert (forall i | 0 <= i < |input.Model().times| :: |input.Model().times[i]| == |input.Model().times|);
-      assert (forall i | 0 <= i < bs.k :: 0 <= bs.employeesAssign[i] < |bs.Model().employeesAssign|); // at most one, at least one
-      assert (forall i | 0 <= i < bs.k :: (forall j | 0 <= j < bs.k && i != j :: bs.employeesAssign[i] != bs.employeesAssign[j]));
+      assert bs.Model().Partial(input.Model());
       assert bs.Model().TotalTime(input.Model().times) == bs.totalTime;
     }
   }
 
   assume false;
-  assert ps.Partial(input) by {
-    assert ps.Model().Partial(input.Model()) by {
-      assume ps.k <= |ps.Model().employeesAssign| == |input.Model().times|;
-      assert (forall i | 0 <= i < |input.Model().times| :: |input.Model().times[i]| == |input.Model().times|);
-      assert (forall i | 0 <= i < ps.k :: 0 <= ps.Model().employeesAssign[i] < |ps.Model().employeesAssign|); // at most one, at least one
-      assert (forall i | 0 <= i < ps.k :: (forall j | 0 <= j < ps.k && i != j :: ps.Model().employeesAssign[i] != ps.Model().employeesAssign[j]));
-    }
-  }
-
   EmployeesVA(input, ps, bs);
 
   /* Primera postcondición: bs.Valid(input) 

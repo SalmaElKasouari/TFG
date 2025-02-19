@@ -116,4 +116,12 @@ class Solution {
   {
     this.employeesAssign.Length - this.k + 1
   }
+
+  lemma hola (input : Input)
+    requires input.Valid()
+    requires this.Partial(input)
+    ensures this.totalTime == this.Model().TotalTime(input.Model().times)
+  {
+
+  }
 }
