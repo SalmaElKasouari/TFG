@@ -61,7 +61,8 @@ method ComputeSolution(input: Input) returns (bs: Solution)
     invariant forall j | 0 <= j < i :: bs_employeesAssign[j] == j
     invariant forall j | 0 <= j < i :: forall k | 0 <= k < i && j != k :: bs_employeesAssign[j] != bs_employeesAssign[k]
     invariant bs_totalTime >= 0.0
-    invariant bs_totalTime == SolutionData(bs_employeesAssign[..], i+1).TotalTime(input.Model().times)
+    invariant bs_totalTime == SolutionData(bs_employeesAssign[..], i).TotalTime(input.Model().times)
+    invariant bs.Partial(input)
   {
     bs_employeesAssign[i] := i;
     bs_totalTime := bs_totalTime + input.times[i,i];
@@ -77,7 +78,6 @@ method ComputeSolution(input: Input) returns (bs: Solution)
     }
   }
 
-  assume false;
   EmployeesVA(input, ps, bs);
 
   /* Primera postcondición: bs.Valid(input) 

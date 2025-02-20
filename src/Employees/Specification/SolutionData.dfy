@@ -55,15 +55,16 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     && k <= |employeesAssign| == |times|
     && (forall i | 0 <= i < |times| :: |times[i]| == |times|)
     && (forall i | 0 <= i < this.k :: 0 <= employeesAssign[i] < |employeesAssign|) // at most one, at least one
-    && (forall i | 0 <= i < this.k :: (forall j | 0 <= j < this.k && i != j :: employeesAssign[i] != employeesAssign[j]))
   }
 
 
   /*
     Predicado: restricciones implícitas del problema.
   */
-  ghost predicate Implicit(times: seq<seq<real>>){
-    true
+  ghost predicate Implicit(times: seq<seq<real>>)
+  requires Explicit(times)
+  {
+    && (forall i,j | 0 <= i < this.k && 0 <= j < this.k && i != j :: employeesAssign[i] != employeesAssign[j])
   }
 
 
