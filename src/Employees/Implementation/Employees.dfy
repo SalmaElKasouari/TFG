@@ -54,25 +54,31 @@ method ComputeSolution(input: Input) returns (bs: Solution)
   */
   var bs_employeesAssign: array<int> := new int[n];
   var bs_totalTime := 0.0;
+
+  assert bs_totalTime == SolutionData(bs_employeesAssign[..], 0).TotalTime(input.Model().times);
+
   for i := 0 to n
     invariant 0 <= bs_employeesAssign.Length == n
     invariant input.Valid()
     invariant forall j | 0 <= j < i :: 0 <= bs_employeesAssign[j] < n
     invariant forall j | 0 <= j < i :: bs_employeesAssign[j] == j
-    invariant forall j | 0 <= j < i :: forall k | 0 <= k < i && j != k :: bs_employeesAssign[j] != bs_employeesAssign[k]
+    invariant forall j, k | 0 <= j < i && 0 <= k < i && j != k :: bs_employeesAssign[j] != bs_employeesAssign[k]
     invariant bs_totalTime >= 0.0
-    invariant bs_totalTime == SolutionData(bs_employeesAssign[..], i+1).TotalTime(input.Model().times)
+    invariant bs_totalTime == SolutionData(bs_employeesAssign[..], i).TotalTime(input.Model().times)
   {
+    var s1 := SolutionData(bs_employeesAssign[..], i);
     bs_employeesAssign[i] := i;
     bs_totalTime := bs_totalTime + input.times[i,i];
-    SolutionData.SumPreservesNonNegativity(bs_totalTime, input.Model().times[i][i]);
+
+    var s2 := SolutionData(bs_employeesAssign[..], i+1);
+    SolutionData.AddTimeMaintainsSumConsistency(s1, s2, input.Model(), i);
+
   }
   var bs_k := n;
   bs := new Solution(bs_employeesAssign, bs_totalTime, bs_k);
 
   assert bs.Valid(input) by {
     assert bs.Partial(input) by {
-      assert bs.Model().Partial(input.Model());
       assert bs.Model().TotalTime(input.Model().times) == bs.totalTime;
     }
   }

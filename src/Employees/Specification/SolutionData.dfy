@@ -55,15 +55,16 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     && k <= |employeesAssign| == |times|
     && (forall i | 0 <= i < |times| :: |times[i]| == |times|)
     && (forall i | 0 <= i < this.k :: 0 <= employeesAssign[i] < |employeesAssign|) // at most one, at least one
-    && (forall i | 0 <= i < this.k :: (forall j | 0 <= j < this.k && i != j :: employeesAssign[i] != employeesAssign[j]))
   }
 
 
   /*
     Predicado: restricciones implícitas del problema.
   */
-  ghost predicate Implicit(times: seq<seq<real>>){
-    true
+  ghost predicate Implicit(times: seq<seq<real>>)
+    requires Explicit(times)
+  {
+    && (forall i, j | 0 <= i < this.k && 0 <= j < this.k && i != j :: employeesAssign[i] != employeesAssign[j])
   }
 
 
@@ -139,20 +140,27 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     && forall i | 0 <= i < this.k :: this.employeesAssign[i] == s.employeesAssign[i]
   }
 
-  
+
+
   /* Lemas */
 
   /*
-  Lema: Dada tiempo total no engativo, si le sumamos un tiempo extra que es positivo, el tiempo total no decrementa
-  y sigue siendo no negativo.
+  Lema: 
   //
-  Propósito: verificar un invariante del bucle que inicializa la bs.
+  Propósito: 
   //
-  Verificación: trivial.
+  Verificación:
   */
-  static lemma SumPreservesNonNegativity(totalTime : real, time : real)
-    requires totalTime >= 0.0
-    requires time > 0.0
-    ensures totalTime + time >= 0.0
-  {}
+  static lemma AddTimeMaintainsSumConsistency(s1 : SolutionData, s2 : SolutionData, input : InputData, i : nat) // s1 viejo, s2 nuevo
+    requires input.Valid()
+    requires 0 <= i < |s2.employeesAssign| == |s1.employeesAssign| == |input.times|
+    requires s1.Explicit(input.times)
+    requires s2.Explicit(input.times)
+    requires 0 <= s1.k <= |s1.employeesAssign|
+    requires 0 < s2.k <= |s2.employeesAssign|   
+    requires s2.k == s1.k + 1
+    requires s1.employeesAssign[..s1.k] + [i] == s2.employeesAssign[..s2.k] 
+    ensures s1.TotalTime(input.times) + input.times[i][i] == s2.TotalTime(input.times)
+    
+  
 }
