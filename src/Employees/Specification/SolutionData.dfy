@@ -62,9 +62,9 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     Predicado: restricciones implícitas del problema.
   */
   ghost predicate Implicit(times: seq<seq<real>>)
-    requires Explicit(times)
+  requires Explicit(times)
   {
-    && (forall i, j | 0 <= i < this.k && 0 <= j < this.k && i != j :: employeesAssign[i] != employeesAssign[j])
+    && (forall i,j | 0 <= i < this.k && 0 <= j < this.k && i != j :: employeesAssign[i] != employeesAssign[j])
   }
 
 
