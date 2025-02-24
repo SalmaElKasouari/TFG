@@ -303,8 +303,8 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
   requires bs.itemsAssign != ps.itemsAssign
   requires bs != ps
 
-  ensures ps.Partial(input) //dentro ya comprueba ps.itemsAssign.Length == input.items.Length
-  ensures ps.Model().Equals(old(ps.Model())) // las ps actual y antigua deben ser iguales hasta la k
+  ensures ps.Partial(input)
+  ensures ps.Model().Equals(old(ps.Model()))
   ensures ps.k == old (ps.k)
   ensures ps.totalValue == old(ps.totalValue)
   ensures ps.totalWeight == old(ps.totalWeight)

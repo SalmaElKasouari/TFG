@@ -70,9 +70,9 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
 
   //Cualquier extension optima de ps, su valor debe ser mayor o igual que la mejor solucion (bs).
   ensures forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
-            s.TotalTime(input.Model().times) <= bs.Model().TotalTime(input.Model().times)
+            s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times)
 
-  // Si bs cambia, su nuevo valor total debe ser menir o igual al valor anterior
+  // Si bs cambia, su nuevo valor total debe ser menor o igual al valor anterior
   ensures bs.Model().TotalTime(input.Model().times) <= old(bs.Model().TotalTime(input.Model().times))
 
 

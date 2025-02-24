@@ -34,6 +34,7 @@ method ComputeSolution(input: Input) returns (bs: Solution)
   ensures bs.Valid(input)
   ensures bs.Optimal(input)
 {
+
   var n := input.times.Length0;
 
   /*
@@ -45,7 +46,6 @@ method ComputeSolution(input: Input) returns (bs: Solution)
   var bs_totalTime := 0.0;
 
   for i := 0 to n
-    invariant 0 <= bs_employeesAssign.Length == n
     invariant input.Valid()
     invariant forall j | 0 <= j < i :: 0 <= bs_employeesAssign[j] < n
     invariant forall j | 0 <= j < i :: bs_employeesAssign[j] == j
@@ -71,6 +71,7 @@ method ComputeSolution(input: Input) returns (bs: Solution)
     }
   }
 
+
   /* Construimos una solución parcial (ps) */
   var ps_employeesAssign := new int[n];
   var ps_totalTime := 0.0;
@@ -80,6 +81,7 @@ method ComputeSolution(input: Input) returns (bs: Solution)
   assert ps.Partial(input) by {
     assert ps.Model().Partial(input.Model());
   }
+
 
   /* Llamada inicial de la vuelta atrás */
   EmployeesVA(input, ps, bs);
@@ -91,17 +93,11 @@ method ComputeSolution(input: Input) returns (bs: Solution)
   /* Segunda postcondición: bs.Optimal(input)
    Se verifica gracias a varias poscondiciones en VA que aseguran que bs es óptima.
   */
+
   assert bs.Optimal(input) by {
 		forall s: SolutionData | s.Valid(input.Model()) 
 		ensures s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times) {
 			assert s.Extends(ps.Model());
-      assert s.OptimalExtension(ps.Model(), input.Model()) by {
-        forall s : SolutionData | && s.Valid(input.Model())
-                                 && s.Extends(ps.Model())
-         ensures s.TotalTime(input.Model().times) <= bs.Model().TotalTime(input.Model().times){
-          
-         }
-      }
 		}
 	}
 }

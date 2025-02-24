@@ -47,10 +47,10 @@ method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
 	}
 
 	/* Construimos una solución mejor (bs) */
-	var bs_itemsAssign: array<bool> := new bool[n](i => false);
-  	var bs_totalValue: real := 0.0;
-  	var bs_totalWeight: real := 0.0;
-  	var bs_k: int := n;
+	var bs_itemsAssign := new bool[n](i => false);
+  	var bs_totalValue := 0.0;
+  	var bs_totalWeight := 0.0;
+  	var bs_k := n;
 	bs := new Solution(bs_itemsAssign, bs_totalValue, bs_totalWeight, bs_k);
 
 	assert bs.Valid(input) by {
