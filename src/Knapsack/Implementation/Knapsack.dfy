@@ -36,12 +36,12 @@ method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
 	var n := input.items.Length;
 
 	/* Construimos una solución parcial (ps) */
-	var ps_itemsAssign: array<bool> := new bool[n](i => false);
-  	var ps_totalValue: real := 0.0;
-  	var ps_totalWeight: real := 0.0;
-  	var ps_k: int := 0;
+	var ps_itemsAssign := new bool[n](i => false);
+  	var ps_totalValue := 0.0;
+  	var ps_totalWeight := 0.0;
+  	var ps_k := 0;
 	var ps := new Solution(ps_itemsAssign, ps_totalValue, ps_totalWeight, ps_k);
-	ghost var oldpsmodel := ps.Model();
+
 	assert ps.Partial(input) by {
 		assert ps.Model().Partial(input.Model());
 	}
@@ -52,12 +52,12 @@ method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
   	var bs_totalWeight: real := 0.0;
   	var bs_k: int := n;
 	bs := new Solution(bs_itemsAssign, bs_totalValue, bs_totalWeight, bs_k);
-	ghost var oldbsmodel := bs.Model();
 
 	assert bs.Valid(input) by {
 		bs.Model().SumOfFalsesEqualsZero(input.Model());	
 	}
 
+	/* Llamada inicial de la vuelta atrás */
 	KnapsackVA(input, ps, bs);
 
 	

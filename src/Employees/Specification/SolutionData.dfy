@@ -52,7 +52,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   */
   ghost predicate Explicit(times: seq<seq<real>>)
   {
-    && k <= |employeesAssign| == |times|
+    && 0 <= k <= |employeesAssign| == |times|
     && (forall i | 0 <= i < |times| :: |times[i]| == |times|)
     && (forall i | 0 <= i < this.k :: 0 <= employeesAssign[i] < |employeesAssign|) // at most one, at least one
   }
@@ -62,7 +62,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     Predicado: restricciones implícitas del problema.
   */
   ghost predicate Implicit(times: seq<seq<real>>)
-  requires Explicit(times)
+    requires Explicit(times)
   {
     && (forall i,j | 0 <= i < this.k && 0 <= j < this.k && i != j :: employeesAssign[i] != employeesAssign[j])
   }
@@ -98,7 +98,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     requires input.Valid()
     requires this.Valid(input)
   {
-    forall s: SolutionData | && s.Valid(input) :: s.TotalTime(input.times) >= TotalTime(input.times)
+    forall s: SolutionData | s.Valid(input) :: s.TotalTime(input.times) >= TotalTime(input.times)
   }
 
 
@@ -145,22 +145,51 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   /* Lemas */
 
   /*
+  Lema:  dada una solución s1 que se extiende añadiendo un elemento a true generando una nueva solución s2, 
+  la suma de los tiempos de s2 se actualiza de manera consistente al incluir el tiempo del nuevo elemento.
+  //
+  Propósito: garantiza que la consistencia de los datos entre las versiones antigua y actual del modelo para 
+  verificar un invariante del bucle que inicializa bs de la solución de Employees.dfy.
+  //
+  Verificación: mediante el lema EqualTimeFromEquals.
+  */
+  static lemma AddTimeMaintainsSumConsistency(s1 : SolutionData, s2 : SolutionData, input : InputData) // s1 viejo, s2 nuevo
+    requires input.Valid()
+    requires |s2.employeesAssign| == |s1.employeesAssign|
+    requires s1.Explicit(input.times)
+    requires s2.Explicit(input.times)
+    requires 0 <= s1.k <= |s1.employeesAssign|
+    requires 0 < s2.k <= |s2.employeesAssign|
+    requires s2.k == s1.k + 1
+    requires s1.employeesAssign[..s1.k] + [s2.employeesAssign[s1.k]] == s2.employeesAssign[..s2.k]
+    ensures s1.TotalTime(input.times) + input.times[s1.k][s2.employeesAssign[s1.k]] == s2.TotalTime(input.times)
+  {
+    s1.EqualTimeFromEquals(SolutionData(s2.employeesAssign, s2.k-1), input);
+  }
+
+
+  /*
   Lema: 
   //
   Propósito: 
   //
   Verificación:
   */
-  static lemma AddTimeMaintainsSumConsistency(s1 : SolutionData, s2 : SolutionData, input : InputData, i : nat) // s1 viejo, s2 nuevo
+  lemma {:induction this, s} EqualTimeFromEquals(s : SolutionData, input : InputData)
+    decreases k
     requires input.Valid()
-    requires 0 <= i < |s2.employeesAssign| == |s1.employeesAssign| == |input.times|
-    requires s1.Explicit(input.times)
-    requires s2.Explicit(input.times)
-    requires 0 <= s1.k <= |s1.employeesAssign|
-    requires 0 < s2.k <= |s2.employeesAssign|   
-    requires s2.k == s1.k + 1
-    requires s1.employeesAssign[..s1.k] + [i] == s2.employeesAssign[..s2.k] 
-    ensures s1.TotalTime(input.times) + input.times[i][i] == s2.TotalTime(input.times)
-    
-  
+    requires this.Explicit(input.times)
+    requires |input.times| == |this.employeesAssign| == |s.employeesAssign|
+    requires this.k <= |this.employeesAssign|
+    requires s.k <= |s.employeesAssign|
+    requires this.Equals(s)
+    ensures this.TotalTime(input.times) == s.TotalTime(input.times)
+  {
+    if k == 0 {
+
+    }
+    else {
+      SolutionData(employeesAssign, k - 1).EqualTimeFromEquals(SolutionData(s.employeesAssign, s.k - 1), input);
+    }
+  }
 }

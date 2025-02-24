@@ -46,13 +46,13 @@ class Solution {
   var totalWeight: real
   var k: nat
 
-  constructor(itemsAssign: array<bool>, totalV: real, totalW: real, k': nat)
-    ensures itemsAssign == this.itemsAssign
+  constructor(itemsAssign': array<bool>, totalV: real, totalW: real, k': nat)
+    ensures this.itemsAssign == itemsAssign'
     ensures this.totalValue == totalV
     ensures this.totalWeight == totalW
     ensures this.k == k'
   {
-    this.itemsAssign := itemsAssign;
+    this.itemsAssign := itemsAssign';
     this.totalValue := totalV;
     this.totalWeight := totalW;
     this.k := k';

@@ -43,12 +43,12 @@ class Solution {
   var totalTime: real
   var k: nat
 
-  constructor(employeesAssign: array<int>, totalT: real, k': nat)
-    ensures employeesAssign == this.employeesAssign
+  constructor(employeesAssign': array<int>, totalT: real, k': nat)
+    ensures this.employeesAssign == employeesAssign'
     ensures this.totalTime == totalT
     ensures this.k == k'
   {
-    this.employeesAssign := employeesAssign;
+    this.employeesAssign := employeesAssign';
     this.totalTime := totalT;
     this.k := k';
   }
