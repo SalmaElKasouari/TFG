@@ -42,15 +42,18 @@ class Solution {
   var employeesAssign: array<int>
   var totalTime: real
   var k: nat
+  var tasks: array<bool>
 
-  constructor(employeesAssign': array<int>, totalT: real, k': nat)
+  constructor(employeesAssign': array<int>, totalT: real, k': nat, tasks' : array<bool>)
     ensures this.employeesAssign == employeesAssign'
     ensures this.totalTime == totalT
     ensures this.k == k'
+    ensures this.tasks == tasks'
   {
     this.employeesAssign := employeesAssign';
     this.totalTime := totalT;
     this.k := k';
+    this.tasks := tasks';
   }
 
 
@@ -61,13 +64,15 @@ class Solution {
   Predicado: el modelo de una solución es válido y el tiempo total de la solución coincide con el del modelo.
   */
   ghost predicate Partial (input : Input)
-    reads this, this.employeesAssign, input, input.times
+    reads this, this.employeesAssign, input, input.times, tasks
     requires input.Valid()
 
   {
     && 0 <= this.k <= this.employeesAssign.Length
     && Model().Partial(input.Model())
     && Model().TotalTime(input.Model().times) == totalTime
+    && this.employeesAssign.Length == tasks.Length
+    && (forall i | 0 <= i < this.employeesAssign.Length :: tasks[i] == (i in this.Model().employeesAssign[0..this.k]))
   }
 
 
@@ -76,7 +81,7 @@ class Solution {
   tratados (k == employeesAssign.Length).
   */
   ghost predicate Valid (input : Input) // solución completa (final)
-    reads this, this.employeesAssign, input, input.times
+    reads this, this.employeesAssign, input, input.times, tasks
     requires input.Valid()
   {
     && this.k == this.employeesAssign.Length
@@ -87,7 +92,7 @@ class Solution {
   Predicado: garantiza que una solución válida sea óptima en relación con el modelo del problema.
   */
   ghost predicate Optimal(input: Input)
-    reads this, this.employeesAssign, input, input.times
+    reads this, this.employeesAssign, input, input.times, tasks
     requires input.Valid()
     requires this.Valid(input)
   {
@@ -129,14 +134,17 @@ class Solution {
   correspondientes elementos de s.itemsAssign.
   */
   method Copy(s : Solution)
-    modifies this`totalTime, this`k, this.employeesAssign
+    modifies this`totalTime, this`k, this.employeesAssign, this.tasks
     requires this != s
     requires this.employeesAssign.Length == s.employeesAssign.Length
+    requires this.tasks.Length == s.tasks.Length
     ensures this.k == s.k
     ensures this.totalTime == s.totalTime
     ensures this.employeesAssign == old(this.employeesAssign)
-
+    ensures this.tasks == old(this.tasks)
     ensures forall i | 0 <= i < this.employeesAssign.Length :: this.employeesAssign[i] == s.employeesAssign[i]
+    ensures forall i | 0 <= i < this.tasks.Length :: this.tasks[i] == s.tasks[i]
+
     ensures this.Model() == s.Model()
   {
 
@@ -146,6 +154,14 @@ class Solution {
     {
       this.employeesAssign[i] := s.employeesAssign[i];
     }
+
+    for i := 0 to s.tasks.Length
+      invariant forall j | 0 <= j < this.employeesAssign.Length :: this.employeesAssign[j] == s.employeesAssign[j]
+      invariant forall j | 0 <= j < i :: this.tasks[j] == s.tasks[j]
+    {
+      this.tasks[i] := s.tasks[i];
+    }
+
     this.totalTime := s.totalTime;
     this.k := s.k;
   }
@@ -167,6 +183,8 @@ class Solution {
     requires s.Valid(input)
     requires s.Model() == this.Model()
     requires s.totalTime == this.totalTime
+    requires s.tasks.Length == tasks.Length
+    requires forall i | 0 <= i < tasks.Length :: tasks[i] == s.tasks[i]
     ensures this.Valid(input)
   {}
 }

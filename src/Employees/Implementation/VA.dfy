@@ -48,7 +48,7 @@ Verfificación:
 */
 method EmployeesVA(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),1 // Función de cota
-  modifies ps`totalTime, ps`k, ps.employeesAssign
+  modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign
 
   requires input.Valid()
@@ -182,7 +182,7 @@ decreases ps.Bound(),1 // Función de cota
 //     ps.totalTime := ps.totalTime + input.times[ps.k, i];
 //     ps.k := ps.k + 1;
 //     if (ps.Partial(input)){
-//       EmployeesVARecursive(input, ps, bs);
+//       EmployeesVA(input, ps, bs);
 //     }
 //     ps.totalTime := ps.totalTime - input.times[ps.k, i];
 //     ps.k := ps.k - 1;
