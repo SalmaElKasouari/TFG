@@ -94,6 +94,7 @@ method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
   requires ps.Partial(input)
   requires bs.Valid(input)
   requires bs.employeesAssign != ps.employeesAssign
+  requires bs.tasks != ps.tasks
   requires bs != ps
 
   requires ps.k == input.times.Length0
@@ -131,6 +132,7 @@ method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
         bs.Model().TotalTime(input.Model().times);
       }
     }
+  
   }
   /* No hemos encontrado una solución mejor */
   else { // ps.totalTime >= bs.totalTime
@@ -142,6 +144,7 @@ method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
       assert s.TotalTime(input.Model().times) == ps.Model().TotalTime(input.Model().times);
     }
   }
+  
 }
 
 method EmployeesVARecursive(input: Input, ps: Solution, bs: Solution)
