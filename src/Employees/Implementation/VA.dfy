@@ -115,16 +115,34 @@ method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
 
   // Si bs cambia, su nuevo valor total debe ser menor o igual al valor anterior
   ensures bs.Model().TotalTime(input.Model().times) <= old(bs.Model().TotalTime(input.Model().times))
-// {
-//   /* Hemos encontrado una solución mejor */
-//   if (ps.totalTime < bs.totalTime) {
-//     // bs.Copy(ps);
-//   }
-//   /* No hemos encontrado una solución mejor */
-//   else { // ps.totalTime >= bs.totalTime
-    
-//   }
-// }
+{
+  /* Hemos encontrado una solución mejor */
+  if (ps.totalTime < bs.totalTime) {
+    bs.Copy(ps);
+    forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model())
+      ensures s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times) 
+    {
+      assert s.Equals(ps.Model());
+      calc {
+        s.TotalTime(input.Model().times);
+        {s.EqualTimeFromEquals(ps.Model(), input.Model());}
+        ps.Model().TotalTime(input.Model().times);
+        {bs.CopyModel(ps, input);}
+        bs.Model().TotalTime(input.Model().times);
+      }
+    }
+  }
+  /* No hemos encontrado una solución mejor */
+  else { // ps.totalTime >= bs.totalTime
+     forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model())
+      ensures s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times) 
+    {
+      assert s.Equals(ps.Model());
+      s.EqualTimeFromEquals(ps.Model(), input.Model());
+      assert s.TotalTime(input.Model().times) == ps.Model().TotalTime(input.Model().times);
+    }
+  }
+}
 
 method EmployeesVARecursive(input: Input, ps: Solution, bs: Solution)
 decreases ps.Bound(),1 // Función de cota

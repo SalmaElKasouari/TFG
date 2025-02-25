@@ -116,4 +116,57 @@ class Solution {
   {
     this.employeesAssign.Length - this.k + 1
   }
+
+  /* Métodos */
+
+  /*
+  Método: copia los valores de una solución s a otra solución this, garantizando que todos los atributos de 
+  la solución copiada (incluyendo los objetos seleccionados y los valores acumulados) se copien correctamente, 
+  manteniendo la consistencia del modelo.
+  //
+  Verificación: se usa un invariante ya que el cuerpo del método incluye un bucle. El invariante establece que en
+  cada iteración i del bucle, todos los elementos anteriores a i en el array this.itemsAssign son iguales a los 
+  correspondientes elementos de s.itemsAssign.
+  */
+  method Copy(s : Solution)
+    modifies this`totalTime, this`k, this.employeesAssign
+    requires this != s
+    requires this.employeesAssign.Length == s.employeesAssign.Length
+    ensures this.k == s.k
+    ensures this.totalTime == s.totalTime
+    ensures this.employeesAssign == old(this.employeesAssign)
+
+    ensures forall i | 0 <= i < this.employeesAssign.Length :: this.employeesAssign[i] == s.employeesAssign[i]
+    ensures this.Model() == s.Model()
+  {
+
+    // Copiar los elementos del array uno por uno
+    for i := 0 to s.employeesAssign.Length
+      invariant forall j | 0 <= j < i :: this.employeesAssign[j] == s.employeesAssign[j]
+    {
+      this.employeesAssign[i] := s.employeesAssign[i];
+    }
+    this.totalTime := s.totalTime;
+    this.k := s.k;
+  }
+
+
+
+  /* Lemas */
+
+  /* 
+  Lema: dada una solución s que es válida por un input dado, y this tiene el mismo modelo, peso acumulado 
+    y valor acumulado que s, entonces this también será válida para el mismo input. 
+  //
+  Propósito: demostrar que el TotalValue de ps es igual al TotalValue de bs en KnapsackVABaseCase de VA.dfy.
+  //
+  Demostración: trivial ya que la precondición asegura que this es idéntica a s en los aspectos relevantes para la validez.
+  */
+  lemma CopyModel (s : Solution, input : Input)
+    requires input.Valid()
+    requires s.Valid(input)
+    requires s.Model() == this.Model()
+    requires s.totalTime == this.totalTime
+    ensures this.Valid(input)
+  {}
 }

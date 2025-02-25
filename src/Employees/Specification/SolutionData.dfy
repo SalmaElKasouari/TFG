@@ -125,7 +125,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     && this.Extends(ps)
     && forall s : SolutionData | && s.Valid(input)
                                  && s.Extends(ps)
-         :: s.TotalTime(input.times) <= this.TotalTime(input.times)
+         :: s.TotalTime(input.times) >= this.TotalTime(input.times)
   }
 
   /*
