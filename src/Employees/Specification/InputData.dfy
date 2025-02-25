@@ -25,6 +25,6 @@ datatype InputData = InputData(times : seq<seq<real>>) {
   */
   ghost predicate Valid() {
     && (forall i | 0 <= i < |times| :: |times[i]| == |times|)
-    && forall i | 0 <= i < |times| :: (forall j | 0 <= j < |times[i]| :: times[i][j] > 0.0)
+    && forall i, j | 0 <= i < |times| && 0 <= j < |times[i]| :: times[i][j] > 0.0
   }
 }
