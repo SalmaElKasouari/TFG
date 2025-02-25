@@ -140,7 +140,7 @@ method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
   requires ps.k < input.items.Length
 
   ensures ps.Partial(input)
-  ensures ps.Model().Equals(old(ps.Model())) // las ps actual y antigua deben ser iguales hasta la k
+  ensures ps.Model().Equals(old(ps.Model()))
   ensures ps.k == old (ps.k)
   ensures ps.totalValue == old(ps.totalValue)
   ensures ps.totalWeight == old(ps.totalWeight)

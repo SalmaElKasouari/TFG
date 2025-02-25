@@ -57,15 +57,47 @@ class Input {
   /* Funciones */
 
   /* 
+  Función: convierte una fila de times (array2<real) en seq<real>.
+  */
+  ghost function RowModel(i: nat, j : nat): seq<real> //i fila fija, j columnas recursion
+    reads this, times
+    requires 0 <= i < times.Length0
+    requires j <= times.Length1
+    ensures |RowModel(i, j)| == j
+    ensures forall k | 0 <= k < j :: RowModel(i, j)[k] == this.times[i,k]
+  {
+    if j == 0 then
+      []
+    else
+      RowModel(i, j-1) + [times[i, j-1]]
+  }
+
+  /* 
+  Función: convierte times (array2<real) en seq<seq<real>>.
+  */
+  ghost function ModelAux(k : int): seq<seq<real>>
+    reads this, times
+    requires k <= times.Length0
+    ensures |ModelAux(k)| == times.Length0 == times.Length1
+    ensures (forall i | 0 <= i < |ModelAux(k)| :: |ModelAux(k)[i]| == |ModelAux(k)|) // seq cuadrada
+    ensures forall i,j | 0 <= i < |ModelAux(k)| && 0 <= j < |ModelAux(k)[i]| :: times[i,j] == ModelAux(k)[i][j] // elementos iguales
+    // {
+    //   if k == 0 then
+    //   []
+    // else
+    //   [RowModel(k-1, times.Length0)] 
+    // }
+
+  /* 
   Función: devuelve el modelo de un Input (entrada del problema).
   */
-  ghost function Model(): InputData
+    ghost function Model(): InputData
     reads this, times
     ensures |Model().times| == times.Length0 == times.Length1
     ensures (forall i | 0 <= i < |Model().times| :: |Model().times[i]| == |Model().times|)
-    ensures forall i | 0 <= i < |Model().times| :: (forall j | 0 <= j < |Model().times[i]| :: times[i,j] == Model().times[i][j])
-
-
-
+    ensures forall i,j | 0 <= i < |Model().times| && 0 <= j < |Model().times[i]| :: times[i,j] == Model().times[i][j]
+    {
+      InputData(ModelAux(times.Length0))
+    }
   
 }

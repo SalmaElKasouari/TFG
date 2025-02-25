@@ -75,4 +75,99 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
   // Si bs cambia, su nuevo valor total debe ser menor o igual al valor anterior
   ensures bs.Model().TotalTime(input.Model().times) <= old(bs.Model().TotalTime(input.Model().times))
 
+{
+
+  if (ps.k == input.times.Length0) { // hemos tratado todos los funcionarios
+    EmployeesVABaseCase(input, ps, bs);
+  }
+  else {
+    EmployeesVARecursive(input, ps, bs);
+  }
+}
+
+method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
+  decreases ps.Bound(),1 // Función de cota
+  modifies ps`totalTime, ps`k, ps.employeesAssign
+  modifies bs`totalTime, bs`k, bs.employeesAssign
+
+  requires input.Valid()
+  requires ps.Partial(input)
+  requires bs.Valid(input)
+  requires bs.employeesAssign != ps.employeesAssign
+  requires bs != ps
+
+  requires ps.k == input.times.Length0
+
+  ensures ps.Partial(input)
+  ensures ps.Model().Equals(old(ps.Model())) // las ps actual y antigua deben ser iguales hasta la k
+  ensures ps.k == old (ps.k)
+  ensures ps.totalTime == old(ps.totalTime)
+
+  //La mejor solución debe ser válida
+  ensures bs.Valid(input)
+
+  //La mejor solución deber ser una extension optima de ps
+  ensures bs.Model().OptimalExtension(ps.Model(), input.Model()) || bs.Model().Equals(old(bs.Model()))
+
+  //Cualquier extension optima de ps, su valor debe ser mayor o igual que la mejor solucion (bs).
+  ensures forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
+            s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times)
+
+  // Si bs cambia, su nuevo valor total debe ser menor o igual al valor anterior
+  ensures bs.Model().TotalTime(input.Model().times) <= old(bs.Model().TotalTime(input.Model().times))
+// {
+//   /* Hemos encontrado una solución mejor */
+//   if (ps.totalTime < bs.totalTime) {
+//     // bs.Copy(ps);
+//   }
+//   /* No hemos encontrado una solución mejor */
+//   else { // ps.totalTime >= bs.totalTime
+    
+//   }
+// }
+
+method EmployeesVARecursive(input: Input, ps: Solution, bs: Solution)
+decreases ps.Bound(),1 // Función de cota
+  modifies ps`totalTime, ps`k, ps.employeesAssign
+  modifies bs`totalTime, bs`k, bs.employeesAssign
+
+  requires input.Valid()
+  requires ps.Partial(input)
+  requires bs.Valid(input)
+  requires bs.employeesAssign != ps.employeesAssign
+  requires bs != ps
+
+  requires ps.k < input.times.Length0
+
+  ensures ps.Partial(input)
+  ensures ps.Model().Equals(old(ps.Model())) // las ps actual y antigua deben ser iguales hasta la k
+  ensures ps.k == old (ps.k)
+  ensures ps.totalTime == old(ps.totalTime)
+
+  //La mejor solución debe ser válida
+  ensures bs.Valid(input)
+
+  //La mejor solución deber ser una extension optima de ps
+  ensures bs.Model().OptimalExtension(ps.Model(), input.Model()) || bs.Model().Equals(old(bs.Model()))
+
+  //Cualquier extension optima de ps, su valor debe ser mayor o igual que la mejor solucion (bs).
+  ensures forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
+            s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times)
+
+  // Si bs cambia, su nuevo valor total debe ser menor o igual al valor anterior
+  ensures bs.Model().TotalTime(input.Model().times) <= old(bs.Model().TotalTime(input.Model().times))
+// {
+
+//   for i := 0 to input.times.Length0 
+//   { 
+//     ps.employeesAssign[ps.k] := i;
+//     ps.totalTime := ps.totalTime + input.times[ps.k, i];
+//     ps.k := ps.k + 1;
+//     if (ps.Partial(input)){
+//       EmployeesVARecursive(input, ps, bs);
+//     }
+//     ps.totalTime := ps.totalTime - input.times[ps.k, i];
+//     ps.k := ps.k - 1;
+//   }
+// }
 
