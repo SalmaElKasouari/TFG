@@ -144,7 +144,6 @@ class Solution {
     ensures this.tasks == old(this.tasks)
     ensures forall i | 0 <= i < this.employeesAssign.Length :: this.employeesAssign[i] == s.employeesAssign[i]
     ensures forall i | 0 <= i < this.tasks.Length :: this.tasks[i] == s.tasks[i]
-
     ensures this.Model() == s.Model()
   {
 

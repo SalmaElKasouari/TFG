@@ -49,7 +49,7 @@ Verfificación:
 method EmployeesVA(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),1 // Función de cota
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
-  modifies bs`totalTime, bs`k, bs.employeesAssign
+  modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
 
   requires input.Valid()
   requires ps.Partial(input)
@@ -87,8 +87,8 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
 
 method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),1 // Función de cota
-  modifies ps`totalTime, ps`k, ps.employeesAssign
-  modifies bs`totalTime, bs`k, bs.employeesAssign
+  modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
+  modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
 
   requires input.Valid()
   requires ps.Partial(input)
