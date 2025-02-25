@@ -55,6 +55,7 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
   requires ps.Partial(input)
   requires bs.Valid(input)
   requires bs.employeesAssign != ps.employeesAssign
+  requires bs.tasks != ps.tasks
   requires bs != ps
 
   ensures ps.Partial(input)
