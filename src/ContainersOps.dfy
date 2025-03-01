@@ -1,6 +1,9 @@
 include "Ord.dfy"
 
-
+/*
+ * Función: dado una matriz de tipo T (array2<T>) y un número de filas k, devuelve una secuencia de k secuencias de 
+ * tipo T (seq<seq<T>>).
+ */
 function Array2ToSeqSeq<T>(a : array2<T>, k : int) : seq<seq<T>>
     reads a
     requires 0 <= k <= a.Length0
@@ -14,6 +17,10 @@ function Array2ToSeqSeq<T>(a : array2<T>, k : int) : seq<seq<T>>
       Array2ToSeqSeq(a, k-1) + [Array2ToSeq(a, k-1, a.Length1)]
   }
 
+/*
+ * Función: dado una matriz de tipo T (array2<T>), una fila k-esima y un numero de columnas j, transforma la fila k
+ * del array2 en una secuencia de j elementos de tipo T (seq<T>).
+ */
   function Array2ToSeq<T>(a : array2<T>, k : int, j : int) : seq<T>
     reads a
     requires 0 <= k < a.Length0

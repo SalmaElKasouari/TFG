@@ -44,7 +44,7 @@ method ComputeSolution(input: Input) returns (bs: Solution)
   */
   var bs_employeesAssign := new int[n];
   var bs_totalTime := 0.0;
-
+  var bs_tasks := new bool[n](i => false);
   for i := 0 to n
     invariant input.Valid()
     invariant forall j | 0 <= j < i :: 0 <= bs_employeesAssign[j] < n
@@ -63,7 +63,7 @@ method ComputeSolution(input: Input) returns (bs: Solution)
 
   }
   var bs_k := n;
-  bs := new Solution(bs_employeesAssign, bs_totalTime, bs_k);
+  bs := new Solution(bs_employeesAssign, bs_totalTime, bs_k, bs_tasks);
 
   assert bs.Valid(input) by {
     assert bs.Partial(input) by {
@@ -76,7 +76,8 @@ method ComputeSolution(input: Input) returns (bs: Solution)
   var ps_employeesAssign := new int[n];
   var ps_totalTime := 0.0;
   var ps_k := 0;
-  var ps := new Solution(ps_employeesAssign, ps_totalTime, ps_k);
+  var ps_tasks := new bool[n](i => false);
+  var ps := new Solution(ps_employeesAssign, ps_totalTime, ps_k, ps_tasks);
 
   assert ps.Partial(input) by {
     assert ps.Model().Partial(input.Model());
