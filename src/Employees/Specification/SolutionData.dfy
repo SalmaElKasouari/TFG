@@ -6,13 +6,13 @@ Proporciona las herramientas necesarias para verificar diferentes configuracione
 Estructura del fichero:
 
   Datatype
-  - employeesAssign: array de enteros de tamaño número de funcionarios/trabajos donde cada posición corresponde a 
-    un funcionario y cuyo valor almacenado representa el trabajo asignado a ese funcionario.
+  - employeesAssign: array de enteros de tamaño número de funcionarios/tareas donde cada posición corresponde a 
+    un funcionario y cuyo valor almacenado representa el tarea asignado a ese funcionario.
   - k: etapa del árbol de exploración de la solución. Denota el número de funcionarios tratados de employeesAssign 
     hasta el momento.
 
   Funciones
-    - TotalTime: suma total de los tiempos que tardan todos los funcionaios en realizar cada uno de sus trabajos.
+    - TotalTime: suma total de los tiempos que tardan todos los funcionaios en realizar cada uno de sus tareas.
   
   Predicados
     - Partial: una solución parcial es válida.
@@ -32,7 +32,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   /* Funciones */
 
   /*
-    Función: calcula el tiempo total que tardan los funcionarios en realizar sus trabajos hasta el índice k.
+    Función: calcula el tiempo total que tardan los funcionarios en realizar sus tareas hasta el índice k.
   */
   ghost function TotalTime(times : seq<seq<real>>) : real
     decreases k

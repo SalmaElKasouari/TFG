@@ -368,11 +368,11 @@ method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
   assert SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k + 1) == old@L(ps.Model());
 
   //La mejor solución deber ser una extension optima de ps
-  assert bs.Model().OptimalExtension( SolutionData(ps.Model().itemsAssign[ps.k:=true],ps.k+1), input.Model())
+  assert bs.Model().OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k + 1), input.Model())
          || bs.Model().Equals(old(bs.Model()));
 
   //Cualquier extension optima de ps, su valor debe ser menor o igual que la mejor solucion (bs).
-  assert forall s : SolutionData | s.Valid(input.Model()) && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k:=true],ps.k+1)) ::
+  assert forall s : SolutionData | s.Valid(input.Model()) && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k + 1)) ::
       s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
 }
 
@@ -417,14 +417,14 @@ lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtot
   assert oldtotalWeight == oldps.TotalWeight(input.Model().items);
   assert oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight;
 
-  calc {
-     ps.Model().TotalWeight(input.Model().items);
-    { SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model()); }
-     oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
-    { input.InputDataItems(ps.k - 1); }
-     oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
-    <= input.maxWeight;
-  }
+  // calc {
+  //    ps.Model().TotalWeight(input.Model().items);
+  //   { SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model()); }
+  //    oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
+  //   { input.InputDataItems(ps.k - 1); }
+  //    oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
+  //   <= input.maxWeight;
+  // }
 
   calc {
     ps.totalWeight;

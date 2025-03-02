@@ -21,7 +21,7 @@ include "Solution.dfy"
 /*
 Método: dado un input, encuentra la solución óptima mediante la llamada a un método de vuelta atrás (EmployeesVA)
 implementado en VA.dfy. Se construyen dos soluciones:
- - Una solución parcial (ps): va construyendo la solución actual (decide qué trabajo realiza cada funcionario).
+ - Una solución parcial (ps): va construyendo la solución actual (decide qué tarea realiza cada funcionario).
  - Una mejor soluión (bs): almacena la mejor solución encontrada hasta el momento.
 Ambas soluciones se inicializan con el array de asignaciones a falsos.
 //
@@ -39,8 +39,8 @@ method ComputeSolution(input: Input) returns (bs: Solution)
 
   /*
     Construimos una solución mejor (bs). Como se trata de una solución completa (k == employeesAssign.Length) que
-    debe ser válida, se inicializa de manera que todos los funcionarios realizan trabajos diferentes, por ejemplo,
-    al funcionario i le asignamos el trabajo i.
+    debe ser válida, se inicializa de manera que todos los funcionarios realizan tareas diferentes, por ejemplo,
+    al funcionario i le asignamos la tarea i.
   */
   var bs_employeesAssign := new int[n];
   var bs_totalTime := 0.0;
@@ -50,27 +50,22 @@ method ComputeSolution(input: Input) returns (bs: Solution)
     invariant forall j | 0 <= j < i :: 0 <= bs_employeesAssign[j] < n
     invariant forall j | 0 <= j < i :: bs_employeesAssign[j] == j
     invariant forall j, k | 0 <= j < i && 0 <= k < i && j != k :: bs_employeesAssign[j] != bs_employeesAssign[k]
-    invariant bs_totalTime >= 0.0
-    invariant bs_totalTime == SolutionData(bs_employeesAssign[..], i).TotalTime(input.Model().times)
+    invariant 0.0 <= bs_totalTime == SolutionData(bs_employeesAssign[..], i).TotalTime(input.Model().times)
     invariant SolutionData(bs_employeesAssign[..], i).Partial(input.Model())
+    invariant (forall j | 0 <= j < i :: bs_tasks[j] == (j in bs_employeesAssign[0..i]))
   {
-    var s1 := SolutionData(bs_employeesAssign[..], i);
+    var s1 := SolutionData(bs_employeesAssign[..], i); // s1 antigua, antes de sufrir cambios
     bs_employeesAssign[i] := i;
+    bs_tasks[i] := true;
     bs_totalTime := bs_totalTime + input.times[i,i];
 
-    var s2 := SolutionData(bs_employeesAssign[..], i+1);
+    var s2 := SolutionData(bs_employeesAssign[..], i+1); // s2 nueva
     SolutionData.AddTimeMaintainsSumConsistency(s1, s2, input.Model());
-
   }
   var bs_k := n;
   bs := new Solution(bs_employeesAssign, bs_totalTime, bs_k, bs_tasks);
 
-  assert bs.Valid(input) by {
-    assert bs.Partial(input) by {
-      assert bs.Model().TotalTime(input.Model().times) == bs.totalTime;
-    }
-  }
-
+  assert bs.Valid(input);
 
   /* Construimos una solución parcial (ps) */
   var ps_employeesAssign := new int[n];
@@ -83,7 +78,6 @@ method ComputeSolution(input: Input) returns (bs: Solution)
     assert ps.Model().Partial(input.Model());
   }
 
-
   /* Llamada inicial de la vuelta atrás */
   EmployeesVA(input, ps, bs);
 
@@ -94,13 +88,12 @@ method ComputeSolution(input: Input) returns (bs: Solution)
   /* Segunda postcondición: bs.Optimal(input)
    Se verifica gracias a varias poscondiciones en VA que aseguran que bs es óptima.
   */
-
   assert bs.Optimal(input) by {
-		forall s: SolutionData | s.Valid(input.Model()) 
-		ensures s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times) {
-			assert s.Extends(ps.Model());
-		}
-	}
+    forall s: SolutionData | s.Valid(input.Model())
+      ensures s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times) {
+      assert s.Extends(ps.Model());
+    }
+  }
 }
 
 /*
