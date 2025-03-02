@@ -307,7 +307,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
       this.EqualValueWeightFromEquals(s, input);
     }
     else {
-      ghost var s :=  SolutionData(s.itemsAssign, s.k-1);
+      ghost var s := SolutionData(s.itemsAssign, s.k-1);
       this.GreaterOrEqualValueWeightFromExtends(s, input);
     }
   }

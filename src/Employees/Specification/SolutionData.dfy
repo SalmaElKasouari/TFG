@@ -6,13 +6,13 @@ Proporciona las herramientas necesarias para verificar diferentes configuracione
 Estructura del fichero:
 
   Datatype
-  - employeesAssign: array de enteros de tamaño número de funcionarios/trabajos donde cada posición corresponde a 
-    un funcionario y cuyo valor almacenado representa el trabajo asignado a ese funcionario.
+  - employeesAssign: array de enteros de tamaño número de funcionarios/tareas donde cada posición corresponde a 
+    un funcionario y cuyo valor almacenado representa el tarea asignado a ese funcionario.
   - k: etapa del árbol de exploración de la solución. Denota el número de funcionarios tratados de employeesAssign 
     hasta el momento.
 
   Funciones
-    - TotalTime: suma total de los tiempos que tardan todos los funcionaios en realizar cada uno de sus trabajos.
+    - TotalTime: suma total de los tiempos que tardan todos los funcionaios en realizar cada uno de sus tareas.
   
   Predicados
     - Partial: una solución parcial es válida.
@@ -32,7 +32,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   /* Funciones */
 
   /*
-    Función: calcula el tiempo total que tardan los funcionarios en realizar sus trabajos hasta el índice k.
+    Función: calcula el tiempo total que tardan los funcionarios en realizar sus tareas hasta el índice k.
   */
   ghost function TotalTime(times : seq<seq<real>>) : real
     decreases k
@@ -151,7 +151,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   Propósito: garantiza que la consistencia de los datos entre las versiones antigua y actual del modelo para 
   verificar un invariante del bucle que inicializa bs de la solución de Employees.dfy.
   //
-  Verificación: mediante el lema EqualTimeFromEquals.
+  Demostración: mediante el lema EqualTimeFromEquals.
   */
   static lemma AddTimeMaintainsSumConsistency(s1 : SolutionData, s2 : SolutionData, input : InputData) // s1 viejo, s2 nuevo
     requires input.Valid()
@@ -169,11 +169,13 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
 
 
   /*
-  Lema: 
+  Lema: si dos soluciones (this y s) son idénticas (igualdad de campos), entonces tienen la misma sumas de timpos. 
+  Esto es por que el contenido de employeesAssign de cada solución es igual y el cálculo acumulativo de tiempos
+  serán idéntico.
   //
-  Propósito: 
+  Propósito: demostrar el lema AddTimeMaintainsSumConsistency.
   //
-  Verificación:
+  Verificación: mediante inducción en this y s.
   */
   lemma {:induction this, s} EqualTimeFromEquals(s : SolutionData, input : InputData)
     decreases k

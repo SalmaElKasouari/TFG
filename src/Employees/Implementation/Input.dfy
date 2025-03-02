@@ -5,8 +5,8 @@ La clase Solution implementa una representación formal la entrada del problema 
 Estructura del fichero:
 
   Atributos y constructor
-    - times: matriz que contiene el tiempo que tarda cada funcionario en realizar cada trabajo. Las filas 
-      corresponden a los funcionarios y las columnas a los trabajos.
+    - times: matriz que contiene el tiempo que tarda cada funcionario en realizar cada tarea. Las filas 
+      corresponden a los funcionarios y las columnas a las tareas.
 
   Predicados
     - Valid: una entrada es válido.

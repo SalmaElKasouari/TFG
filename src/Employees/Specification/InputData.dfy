@@ -5,8 +5,8 @@ El tipo InputData es el modelo de la representación formal de la entrada del pr
 Estructura del fichero:
 
   Datatype
-  - times: matriz que contiene el tiempo que tarda cada funcionario en realizar cada trabajo. Las filas 
-    corresponden a los funcionarios y las columnas a los trabajos.
+  - times: matriz que contiene el tiempo que tarda cada funcionario en realizar cada tarea. Las filas 
+    corresponden a los funcionarios y las columnas a los tareas.
   
   Predicados
     - Valid: una entrada es válida.

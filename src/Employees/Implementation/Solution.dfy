@@ -66,13 +66,11 @@ class Solution {
   ghost predicate Partial (input : Input)
     reads this, this.employeesAssign, input, input.times, tasks
     requires input.Valid()
-
   {
-    && 0 <= this.k <= this.employeesAssign.Length
+    && 0 <= this.k <= this.employeesAssign.Length == this.tasks.Length
     && Model().Partial(input.Model())
     && Model().TotalTime(input.Model().times) == totalTime
-    && this.employeesAssign.Length == tasks.Length
-    && (forall i | 0 <= i < this.employeesAssign.Length :: tasks[i] == (i in this.Model().employeesAssign[0..this.k]))
+    && (forall i | 0 <= i < this.tasks.Length :: this.tasks[i] == (i in this.Model().employeesAssign[0..this.k]))
   }
 
 
@@ -186,4 +184,62 @@ class Solution {
     requires forall i | 0 <= i < tasks.Length :: tasks[i] == s.tasks[i]
     ensures this.Valid(input)
   {}
+
+
+  /* 
+  Lema: dada una tarea t, si tasks[t] es true, se garantiza que algún funcionario (y solo uno) tiene
+  asignado la tarea t. Esto es porque true significa que la tarea ha sido asignada a alguien, es decir, que no está
+  libre.
+  //
+  Propósito: demostrar el lema PartialConsistency de VA.dfy.
+  //
+  Demostración:
+  */
+  lemma OneEmployeeHasTrueTask(t : int, input : Input) //oldps todavia no tiene el t sumado
+    requires input.Valid()
+    requires this.k <= this.employeesAssign.Length
+    requires 0 <= t < this.tasks.Length == this.employeesAssign.Length
+    requires this.tasks[t]
+    ensures (exists i | 0 <= i < this.k :: this.employeesAssign[i] == t )  // hay uno
+             //&& forall j | 0 <= j < this.k && i != j :: this.employeesAssign[j] != t) // y solo uno
+
+
+
+
+  /*
+  Lema: dada una solución tarea t que no ha sido asignada (tasks[t] == false), se garantiza que ningún funcionario 
+  tiene asignado la tarea t.
+  //
+  Propósito: demostrar el lema PartialConsistency de VA.dfy.
+  //
+  Demostración:
+  */
+  lemma NoEmployeeHasFalseTask(t : int, input : Input)
+    requires input.Valid()
+    requires 0 <= t < this.tasks.Length == this.employeesAssign.Length
+    requires this.k <= this.employeesAssign.Length
+    requires !this.tasks[t]
+    ensures !(exists i | 0 <= i < this.k :: this.employeesAssign[i] == t) // no hay ninguno
+
+
+  /* 
+  Lema: si una tarea t1 ha sido asignada al funcionario i y la tarea t2 al funcionario j, entonces t1 y t2 
+  son diferentes.
+  //
+  Propósito: demostrar el lema PartialConsistency de VA.dfy.
+  //
+  Demostración:
+  */
+  lemma AllDifferent(t1 : int, t2 : int, input : Input)
+    requires input.Valid()
+    requires this.k <= this.employeesAssign.Length == this.tasks.Length
+    requires 0 <= t1 < this.tasks.Length
+    requires 0 <= t2 < this.tasks.Length
+    requires exists i,j | && 0 <= i < this.employeesAssign.Length
+                          && 0 <= j < this.employeesAssign.Length
+                          && i != j
+               :: this.employeesAssign[i] == t1 && this.employeesAssign[j] == t2
+    ensures t1 != t2
+  
+
 }
