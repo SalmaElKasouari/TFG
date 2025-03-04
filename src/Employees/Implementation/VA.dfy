@@ -127,7 +127,7 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
       else { // lema es imposible generar soluciones mejores con una tarea falsa
         assume false;
       }
-      assert bs.Model().Equals(old(bs.Model()))
+      assume bs.Model().Equals(old(bs.Model()))
              || (exists i | 0 <= i < t+1 ::
                    var ext := SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1);
                    ext.Valid(input.Model())
