@@ -127,16 +127,10 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
       else { // lema es imposible generar soluciones mejores con una tarea falsa
         assume false;
       }
-      assume bs.Model().Equals(old(bs.Model()))
-             || (exists i | 0 <= i < t+1 ::
-                   var ext := SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1);
-                   ext.Valid(input.Model())
-                   && bs.Model().OptimalExtension(ext, input.Model()));
+      assert bs.Model().Equals(old(bs.Model()))
+                || ExistsBranchOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1);
 
-      assume forall i | 0 <= i < t+1 ::
-          (forall s : SolutionData | var ext := SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1);
-                                     s.Valid(input.Model()) && s.Extends(ext) ::
-             s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times));
+      assume ForallBranchesOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1);
       t := t + 1;
     }
   }
