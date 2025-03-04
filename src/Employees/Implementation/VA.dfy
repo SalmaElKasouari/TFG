@@ -174,7 +174,7 @@ method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
   }
 }
 
-method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int)
+method KnapsackVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : nat)
   decreases ps.Bound(),0 // Función de cota
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -235,22 +235,21 @@ method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : in
   //Cualquier extension optima de ps, su valor debe ser mayor o igual que la mejor solucion (bs).
   assert forall s : SolutionData | s.Valid(input.Model()) && s.Extends(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1)) ::
       s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times);
-//assume false;
+
+  assert bs.Model().TotalTime(input.Model().times) <= old(bs.Model().TotalTime(input.Model().times));
 }
 
 
 
 /* Lemas */
 
-/* 
-Lema: si extendemos una solución parcial (oldps) añadiendo un funcionario asignado a una tarea t dando lugar a una
-nueva solución parcial (ps), entonces ps también cumple con las propiedades de consistencia parcial definidas por el método Partial.
-//
-Propósito: garantizar que ps sigue siendo Partial en EmployeesVARecursiveCase después de añadirle un funcionario 
-asignado a una tarea t que estaba a false (libre).
-//
-Verificación:
-*/
+/* Lema:
+ *  
+ * Propósito:
+ *
+ * Verificación:
+ */
+
 lemma PartialConsistency(ps : Solution, oldps : SolutionData, input : Input,  oldtotalTime : real, t : nat)
   requires input.Valid()
   requires 1 <= ps.k <= ps.employeesAssign.Length
@@ -273,28 +272,14 @@ lemma PartialConsistency(ps : Solution, oldps : SolutionData, input : Input,  ol
     oldtotalTime + input.times[ps.k - 1, t];
     oldps.TotalTime(input.Model().times) + input.times[ps.k - 1, t];
     { SolutionData.AddTimeMaintainsSumConsistency(oldps, ps.Model(), input.Model()); }
-    ps.Model().TotalTime(input.Model().times);
-  }
-
-  assert ps.Partial(input) by {
-
-    /* Todos los funcionarios tienen tareas diferentes */
-    forall i,j | 0 <= i < ps.k && 0 <= j < ps.k && i != j
-      ensures ps.employeesAssign[i] != ps.employeesAssign[j]
-    {
-      ps.AllDifferent(ps.employeesAssign[i], ps.employeesAssign[j], input);
-    }
-    
-    /* Todas las tareas que han sido asignadas (ps.tasks[i] = true) corresponden a un funcionario */
-    forall i | 0 <= i < ps.tasks.Length
-      ensures ps.tasks[i] == (i in ps.Model().employeesAssign[0..ps.k])
+     oldps.TotalTime(input.Model().times) + input.Model().times[ps.k - 1][t];
     { 
-      if (ps.tasks[i]) {
-        ps.OneEmployeeHasTrueTask(i, input);
-      }
-      else {
-        ps.NoEmployeeHasFalseTask(i, input);
-      }
-    }
+      // DECIR QUE ARRAY2 Y SEQ SON IGUALES (la matriz de un Input es igual a la de su modelo (InputData))
+     }
+     oldps.TotalTime(input.Model().times) + input.times[ps.k - 1, t];
   }
+  
 }
+
+  
+
