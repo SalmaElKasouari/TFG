@@ -28,6 +28,32 @@ include "../Specification/SolutionData.dfy"
 include "Input.dfy"
 include "../../Ord.dfy"
 
+ghost predicate ExistsBranchOptimalExtension(bs : SolutionData, ps : SolutionData, input : InputData, t : int)
+requires input.Valid()
+requires ps.k < |ps.employeesAssign|
+requires ps.Partial(input)
+requires bs.Valid(input)
+requires 0 <= t <= |ps.employeesAssign|
+{
+  exists i | 0 <= i < t ::
+                      var ext := SolutionData(ps.employeesAssign[ps.k := i], ps.k + 1);
+                      ext.Valid(input)
+                      && bs.OptimalExtension(ext, input)
+}
+
+ghost predicate ForallBranchesOptimalExtension(bs : SolutionData, ps : SolutionData, input : InputData, t : int)
+requires input.Valid()
+requires ps.k < |ps.employeesAssign|
+requires ps.Partial(input)
+requires bs.Valid(input)
+requires 0 <= t <= |ps.employeesAssign|
+{
+  forall i,s : SolutionData | 0 <= i < t && var ext := SolutionData(ps.employeesAssign[ps.k := i], ps.k + 1);
+                                     s.Valid(input) && s.Extends(ext) ::
+             s.TotalTime(input.times) >= bs.TotalTime(input.times)
+}
+
+
 /* 
 Método: punto de partida del algoritmo VA. El método explora todas las posibles asignaciones funcionario-tarea, 
 respetando las restricciones del problema y seleccionando la asignación que minimice el tiempo total.
@@ -37,7 +63,6 @@ El árbol de búsqueda es un árbol n-ario donde:
 //
 Verfificación:
   
-
 */
 method EmployeesVA(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),1 // Función de cota
@@ -74,7 +99,8 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
     EmployeesVABaseCase(input, ps, bs);
   }
   else {
-    for t := 0 to input.times.Length0
+    var t := 0;
+    while t < input.times.Length0
       invariant 0 <= t <= input.times.Length0
       invariant input.Valid()
       invariant ps.Partial(input)
@@ -84,20 +110,14 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
       invariant bs != ps
       invariant ps.k < input.times.Length0
       invariant ps.Model().Equals(old(ps.Model()))
-      invariant ps.k == old (ps.k)
+      invariant ps.k == old(ps.k)
       invariant ps.totalTime == old(ps.totalTime)
       invariant forall i | 0 <= i < ps.tasks.Length :: ps.tasks[i] == old(ps.tasks[i])
       invariant bs.Valid(input)
       invariant bs.Model().Equals(old(bs.Model()))
-                || (exists i | 0 <= i < t ::
-                      var ext := SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1);
-                      ext.Valid(input.Model())
-                      && bs.Model().OptimalExtension(ext, input.Model()))
+                || ExistsBranchOptimalExtension(bs.Model(), ps.Model(), input.Model(), t)
 
-      invariant forall i | 0 <= i < t ::
-          (forall s : SolutionData | var ext := SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1);
-                                     s.Valid(input.Model()) && s.Extends(ext) ::
-             s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times))
+      invariant ForallBranchesOptimalExtension(bs.Model(), ps.Model(), input.Model(), t)
 
       invariant bs.Model().TotalTime(input.Model().times) <= old(bs.Model().TotalTime(input.Model().times))
     {
@@ -107,6 +127,17 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
       else { // lema es imposible generar soluciones mejores con una tarea falsa
         assume false;
       }
+      assert bs.Model().Equals(old(bs.Model()))
+             || (exists i | 0 <= i < t+1 ::
+                   var ext := SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1);
+                   ext.Valid(input.Model())
+                   && bs.Model().OptimalExtension(ext, input.Model()));
+
+      assume forall i | 0 <= i < t+1 ::
+          (forall s : SolutionData | var ext := SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1);
+                                     s.Valid(input.Model()) && s.Extends(ext) ::
+             s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times));
+      t := t + 1;
     }
   }
 }
