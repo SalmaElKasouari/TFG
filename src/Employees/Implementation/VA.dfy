@@ -88,31 +88,27 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
       invariant ps.totalTime == old(ps.totalTime)
       invariant forall i | 0 <= i < ps.tasks.Length :: ps.tasks[i] == old(ps.tasks[i])
       invariant bs.Valid(input)
-      invariant bs.Model().OptimalExtension(ps.Model(), input.Model()) || bs.Model().Equals(old(bs.Model()))
+      invariant bs.Model().Equals(old(bs.Model()))
+                || (exists i | 0 <= i < t ::
+                      var ext := SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1);
+                      ext.Valid(input.Model())
+                      && bs.Model().OptimalExtension(ext, input.Model()))
 
-      invariant bs.Model().Equals(old(bs.Model())) 
-              || (exists i | 0 <= i < t :: 
-                  var ext := SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1); 
-                  ext.Valid(input.Model()) 
-                  && bs.Model().OptimalExtension(ext, input.Model()))
-
-      invariant forall i | 0 <= i < t :: 
-      (forall s : SolutionData | var ext := SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1);
-                                 s.Valid(input.Model()) && s.Extends(ext) ::
-                                  s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times))
+      invariant forall i | 0 <= i < t ::
+          (forall s : SolutionData | var ext := SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1);
+                                     s.Valid(input.Model()) && s.Extends(ext) ::
+             s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times))
 
       invariant bs.Model().TotalTime(input.Model().times) <= old(bs.Model().TotalTime(input.Model().times))
     {
       if (!ps.tasks[t]) {
         KnapsackVARecursiveCase(input, ps, bs, t);
       }
-      else { 
+      else { // lema es imposible generar soluciones mejores con una tarea falsa
         assume false;
       }
     }
-    assume false;
   }
-  
 }
 
 method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
@@ -191,7 +187,6 @@ method KnapsackVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int
   requires ps.k < input.times.Length0
   requires !ps.tasks[t]
 
-
   ensures ps.Partial(input)
   ensures ps.Model().Equals(old(ps.Model()))
   ensures ps.k == old(ps.k)
@@ -200,24 +195,17 @@ method KnapsackVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int
   //La mejor solución debe ser válida
   ensures bs.Valid(input)
 
-  //La mejor solución deber ser una extension optima de ps
-  ensures bs.Model().OptimalExtension(ps.Model(), input.Model()) || bs.Model().Equals(old(bs.Model()))
-
-  //Cualquier extension optima de ps, su valor debe ser mayor o igual que la mejor solucion (bs).
-  ensures forall s : SolutionData | s.Valid(input.Model()) && s.Extends(ps.Model()) ::
-            s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times)
+  ensures bs.Model().Equals(old(bs.Model()))
+          || (var ext := SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1);
+              ext.Valid(input.Model())
+              && bs.Model().OptimalExtension(ext, input.Model()))
 
   // Si bs cambia, su nuevo valor total debe ser menor o igual al valor anterior
   ensures bs.Model().TotalTime(input.Model().times) <= old(bs.Model().TotalTime(input.Model().times))
 
-  ensures bs.Model().Equals(old(bs.Model())) 
-          || (var ext := SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1); 
-            ext.Valid(input.Model()) 
-            && bs.Model().OptimalExtension(ext, input.Model()))
-
   ensures forall s : SolutionData | var ext := SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1);
-                                 s.Valid(input.Model()) && s.Extends(ext) ::
-                                  s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times)
+                                    s.Valid(input.Model()) && s.Extends(ext) ::
+            s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times)
 // {
 //   ghost var oldps := ps.Model();
 //   ghost var oldtotalTime := ps.totalTime;
@@ -296,7 +284,7 @@ lemma PartialConsistency(ps : Solution, oldps : SolutionData, input : Input,  ol
 
     forall i | 0 <= i < ps.employeesAssign.Length
       ensures ps.tasks[i] == (i in ps.Model().employeesAssign[0..ps.k])
-    { 
+    {
       if (ps.tasks[i]) {
         ps.OneEmployeeHasTrueTask(i, input);
       }
