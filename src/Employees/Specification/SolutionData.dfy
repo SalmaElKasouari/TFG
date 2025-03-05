@@ -54,7 +54,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   {
     && 0 <= k <= |employeesAssign| == |times|
     && (forall i | 0 <= i < |times| :: |times[i]| == |times|)
-    && (forall i | 0 <= i < this.k :: 0 <= employeesAssign[i] < |employeesAssign|) // at most one, at least one
+    && (forall i | 0 <= i < this.k :: 0 <= employeesAssign[i] < |employeesAssign|) // tareas válidas
   }
 
 

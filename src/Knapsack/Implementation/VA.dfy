@@ -454,22 +454,22 @@ Lema: si una solución parcial ps extendida con true no es válida, entonces nin
 será válida. 
 //
 Propósito: garantizar en KnapsackVA que en el caso de que no se ejecute la rama true es porque no se han encontrado
-  soluciones válidas. Por lo tanto, ninguna solución óptima que salga de dicha rama puede ser mejor que bs.
-  Se aplica después de haber ejecutado KnapsackVAFalseBranch (rama false) en los siguientes 
-  casos:
+soluciones válidas. Por lo tanto, ninguna solución óptima que salga de dicha rama puede ser mejor que bs.
+Se aplica después de haber ejecutado KnapsackVAFalseBranch (rama false) en los siguientes 
+casos:
   - La bs (extensión óptima de ps) se ha encontrado en dicha rama.
   - La bs (extensión óptima de ps) no se ha encontrado en dicha rama, y por lo tanto es igual a la antigua, (la que 
-  salió de la rama true).
+    salió de la rama true).
 //
 Verificación: se aplican los lemas GreaterOrEqualValueWeightFromExtends y AddTrueMaintainsSumConsistency para demostrar 
-  que cualquier solución s extendida tiene como mínimo el peso de la solución original (ps), que ya excedía del peso 
-  máximo. Como consecuencia, s también incumple esa restricción, y por tanto no será válida.
+que cualquier solución s extendida tiene como mínimo el peso de la solución original (ps), que ya excedía del peso 
+máximo. Como consecuencia, s también incumple esa restricción, y por tanto no será válida.
 */
 lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input)
+  requires input.Valid()
   requires 0 <= ps.k < ps.itemsAssign.Length
   requires ps.itemsAssign.Length == input.items.Length
   requires ps.totalWeight + input.items[ps.k].weight > input.maxWeight
-  requires input.Valid()
   requires ps.Partial(input)
   ensures forall s : SolutionData | && |s.itemsAssign| == |(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)).itemsAssign|
                                     && s.k <= |s.itemsAssign| 

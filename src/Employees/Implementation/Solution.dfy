@@ -91,11 +91,19 @@ class Solution {
   Predicado: garantiza que una solución válida sea óptima en relación con el modelo del problema.
   */
   ghost predicate Optimal(input: Input)
-    reads this, this.employeesAssign, input, input.times, tasks
+    reads this, this.employeesAssign, this.tasks, input, input.times
     requires input.Valid()
     requires this.Valid(input)
   {
     this.Model().Optimal(input.Model())
+  }
+
+  ghost predicate Equals(s: Solution)
+    reads this, this.employeesAssign, this.tasks, s, s.employeesAssign, s.tasks
+    requires this.k <= this.employeesAssign.Length == this.tasks.Length == s.employeesAssign.Length == s.tasks.Length
+    requires s.k <= s.employeesAssign.Length
+  {
+    forall i | 0 <= i < this.tasks.Length :: this.tasks[i] == s.tasks[i]
   }
 
 
@@ -202,7 +210,7 @@ class Solution {
     requires 0 <= t < this.tasks.Length == this.employeesAssign.Length
     requires this.tasks[t]
     ensures (exists i | 0 <= i < this.k :: this.employeesAssign[i] == t   // hay uno
-              && forall j | 0 <= j < this.k && i != j :: this.employeesAssign[j] != t) // y solo uno
+                                           && forall j | 0 <= j < this.k && i != j :: this.employeesAssign[j] != t) // y solo uno
 
 
 
@@ -238,7 +246,7 @@ class Solution {
     requires exists i,j | && 0 <= i < this.employeesAssign.Length
                           && 0 <= j < this.employeesAssign.Length
                           && i != j
-                          :: this.employeesAssign[i] == t1 && this.employeesAssign[j] == t2
+               :: this.employeesAssign[i] == t1 && this.employeesAssign[j] == t2
     ensures t1 != t2
 
 }

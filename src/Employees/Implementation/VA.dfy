@@ -9,6 +9,11 @@ Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
   - bs mantiene la mejor solución encontrada hasta el momento.
 
 Estructura del fichero: 
+
+  Predicados
+    - ExistsBranchIsOptimalExtension:
+    - ForallBranchesIsOptimalExtension:
+
   Métodos
     - KnapsackVABaseCase: Define la condición de terminación.
     - KnapsackVARecursiveCase: Considera incluir un elemento en la mochila.
@@ -22,35 +27,37 @@ Todas las definiciones incluyen una sección de comentarios explicando su propó
 
 ---------------------------------------------------------------------------------------------------------------------*/
 
-
 include "Solution.dfy"
 include "../Specification/SolutionData.dfy"
 include "Input.dfy"
 include "../../Ord.dfy"
 
-ghost predicate ExistsBranchOptimalExtension(bs : SolutionData, ps : SolutionData, input : InputData, t : int)
-requires input.Valid()
-requires ps.k < |ps.employeesAssign|
-requires ps.Partial(input)
-requires bs.Valid(input)
-requires 0 <= t <= |ps.employeesAssign|
+/* Predicado: bs tiene es una extensión óptima de alguna ps extendida con una de las tareas anteriores */
+ghost predicate ExistsBranchIsOptimalExtension(bs : SolutionData, ps : SolutionData, input : InputData, t : int)
+  requires input.Valid()
+  requires ps.k < |ps.employeesAssign|
+  requires ps.Partial(input)
+  requires bs.Valid(input)
+  requires 0 <= t <= |ps.employeesAssign|
 {
   exists i | 0 <= i < t ::
-                      var ext := SolutionData(ps.employeesAssign[ps.k := i], ps.k + 1);
-                      ext.Valid(input)
-                      && bs.OptimalExtension(ext, input)
+    var ext := SolutionData(ps.employeesAssign[ps.k := i], ps.k + 1);
+    ext.Valid(input)
+    && bs.OptimalExtension(ext, input)
 }
 
-ghost predicate ForallBranchesOptimalExtension(bs : SolutionData, ps : SolutionData, input : InputData, t : int)
-requires input.Valid()
-requires ps.k < |ps.employeesAssign|
-requires ps.Partial(input)
-requires bs.Valid(input)
-requires 0 <= t <= |ps.employeesAssign|
+/* Predicado: bs es mejor que todas las soluciones que extienden a ps con cada una de las tareas anteriores */
+ghost predicate ForallBranchesIsOptimalExtension(bs : SolutionData, ps : SolutionData, input : InputData, t : int)
+  requires input.Valid()
+  requires ps.k < |ps.employeesAssign|
+  requires ps.Partial(input)
+  requires bs.Valid(input)
+  requires 0 <= t <= |ps.employeesAssign|
 {
   forall i,s : SolutionData | 0 <= i < t && var ext := SolutionData(ps.employeesAssign[ps.k := i], ps.k + 1);
-                                     s.Valid(input) && s.Extends(ext) ::
-             s.TotalTime(input.times) >= bs.TotalTime(input.times)
+                                         && s.Valid(input) 
+                                         && s.Extends(ext) 
+                                         :: s.TotalTime(input.times) >= bs.TotalTime(input.times)
 }
 
 
@@ -115,22 +122,31 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
       invariant forall i | 0 <= i < ps.tasks.Length :: ps.tasks[i] == old(ps.tasks[i])
       invariant bs.Valid(input)
       invariant bs.Model().Equals(old(bs.Model()))
-                || ExistsBranchOptimalExtension(bs.Model(), ps.Model(), input.Model(), t)
+                || ExistsBranchIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t)
 
-      invariant ForallBranchesOptimalExtension(bs.Model(), ps.Model(), input.Model(), t)
+      invariant ForallBranchesIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t)
 
       invariant bs.Model().TotalTime(input.Model().times) <= old(bs.Model().TotalTime(input.Model().times))
     {
+
+
+      label L:
+
+      /* La tarea t no ha sido asignada a ningñun funcionario */
       if (!ps.tasks[t]) {
         KnapsackVARecursiveCase(input, ps, bs, t);
       }
-      else { // lema es imposible generar soluciones mejores con una tarea falsa
-        assume false;
+      /* La tarea t ya ha sido asignada a un funcionario */
+      else {
+        /* Si se asignara dicha tarea, ps no sería válida, luego esta generaría soluciones inválidas que no pueden ser mejor que la bs */
+        InvalidExtensionsFromInvalidPs(ps, input, t);
       }
-      assert bs.Model().Equals(old(bs.Model()))
-                || ExistsBranchOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1);
+      
+      assume bs.Model().Equals(old(bs.Model()))
+             || ExistsBranchIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1);
 
-      assume ForallBranchesOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1);
+      assert ForallBranchesIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1);
+
       t := t + 1;
     }
   }
@@ -317,5 +333,55 @@ lemma PartialConsistency(ps : Solution, oldps : SolutionData, input : Input,  ol
         ps.NoEmployeeHasFalseTask(i, input);
       }
     }
+  }
+}
+
+
+/*
+Lema: si una solución parcial ps la extendemos con un funcionario más asignandole la tarea t que ya estaba 
+asignada (ps.tasks[t] = true) generando una solución invalidPs, entonces cualquier extensión s de invalidPs
+tampoco serán válida.
+//
+Propósito: garantizar en EmployeesVA que en el caso de que no se ejecute la rama t-esima (ps.tasks[t] = true), es 
+porque no se van a encontrar soluciones válidas. Por lo tanto, ninguna solución que salga de dicha rama puede ser
+mejor que bs.
+//
+Verificación: demostrando que invalidPs es invalido por no respetar la restricción de no repetir las tareas. Como 
+sabemos que s extiende a InvalidPs (son iguales hasta invalidPs.k), se infiere que s tampoco respeta dicha 
+restricción, luego s no es válida.
+*/
+lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input, t : int)
+  requires input.Valid()
+  requires 0 <= ps.k < ps.employeesAssign.Length
+  requires 0 <= t < ps.tasks.Length == ps.employeesAssign.Length
+  requires ps.employeesAssign.Length == input.times.Length0
+  requires ps.tasks[t] // ya estaba asignada
+  requires ps.Partial(input)
+  ensures forall s : SolutionData | var invalidPs := SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1);
+                                    && |s.employeesAssign| == |invalidPs.employeesAssign|
+                                    && s.k <= |s.employeesAssign|
+                                    && invalidPs.k == ps.k + 1 <= s.k
+                                    && s.Extends(invalidPs)
+                                    :: !s.Valid(input.Model())
+{
+  forall s : SolutionData |
+    var invalidPs := SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1);
+    && |s.employeesAssign| == |invalidPs.employeesAssign|
+    && s.k <= |s.employeesAssign|
+    && ps.k + 1 <= s.k
+    && s.Extends(invalidPs)
+    ensures !s.Valid(input.Model())
+  {
+    /* ps original esta bien, respeta la restricción de no repetir tareas, es Partial */
+
+    /* invalidPs es ps con un funcionario más con la tarea t que ya estaba asignada, entonces viola la restricción */
+    var invalidPs := SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1);
+    // Debe haber mínimo 2 funcionarios con la tarea t
+    assert exists i | 0 <= i < invalidPs.k :: invalidPs.employeesAssign[i] == t
+                                              && !(forall j | 0 <= j < invalidPs.k && i != j :: invalidPs.employeesAssign[j] != t) by {
+      assert invalidPs.employeesAssign[ps.k] == t;
+      assert invalidPs.Extends(ps.Model());
+    }
+
   }
 }
