@@ -194,4 +194,34 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
       SolutionData(employeesAssign, k - 1).EqualTimeFromEquals(SolutionData(s.employeesAssign, s.k - 1), input);
     }
   }
+
+  /* 
+  Lema: dadas dos soluciones parciales ps1 y ps2 que son idénticas (igualdad de campos) y 
+  sabiendo que bs es una extension óptima de ps1, entonces bs también es extensión optima de ps2.
+  //
+  Propósito: verificar que bs es la extensión óptima de ps al salir de la rama t-esima en EmployeesVA de VA.dfy.
+  //
+  Demostración: mediante el lema EqualTimeFromEquals.
+  */
+  lemma EqualsOptimalExtensionFromEquals(ps1 : SolutionData, ps2: SolutionData, input : InputData)
+    requires input.Valid()
+    requires this.Valid(input)
+    requires |ps1.employeesAssign| == |ps2.employeesAssign|
+    requires ps1.k <= |ps1.employeesAssign|
+    requires ps2.k <= |ps2.employeesAssign|
+    requires ps1.Equals(ps2)
+    requires this.OptimalExtension(ps1, input)
+    ensures this.OptimalExtension(ps2, input)
+  {
+
+    assert ps1.k == ps2.k && forall i | 0 <= i < ps1.k :: ps1.employeesAssign[i] == ps2.employeesAssign[i]; //def clave de Equals
+
+    assert this.OptimalExtension(ps2, input) by {
+      assert ps2.Partial(input) by {
+          ps1.EqualTimeFromEquals(ps2, input);
+      }
+      assert this.Extends(ps2);
+      assert forall s : SolutionData | s.Valid(input) && s.Extends(ps2) :: s.TotalTime(input.times) >= this.TotalTime(input.times);
+    }
+  }
 }

@@ -32,7 +32,7 @@ include "../Specification/SolutionData.dfy"
 include "Input.dfy"
 include "../../Ord.dfy"
 
-/* Predicado: bs tiene es una extensión óptima de alguna ps extendida con una de las tareas anteriores */
+/* Predicado: bs es una extensión óptima de alguna ps extendida con una de las tareas anteriores */
 ghost predicate ExistsBranchIsOptimalExtension(bs : SolutionData, ps : SolutionData, input : InputData, t : int)
   requires input.Valid()
   requires ps.k < |ps.employeesAssign|
@@ -55,9 +55,9 @@ ghost predicate ForallBranchesIsOptimalExtension(bs : SolutionData, ps : Solutio
   requires 0 <= t <= |ps.employeesAssign|
 {
   forall i,s : SolutionData | 0 <= i < t && var ext := SolutionData(ps.employeesAssign[ps.k := i], ps.k + 1);
-                                         && s.Valid(input) 
-                                         && s.Extends(ext) 
-                                         :: s.TotalTime(input.times) >= bs.TotalTime(input.times)
+                                         && s.Valid(input)
+                                         && s.Extends(ext)
+    :: s.TotalTime(input.times) >= bs.TotalTime(input.times)
 }
 
 
@@ -128,11 +128,11 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
 
       invariant bs.Model().TotalTime(input.Model().times) <= old(bs.Model().TotalTime(input.Model().times))
     {
+      label L: // capturamos el momento antes de la llamada
 
+      ghost var oldbs := bs.Model();
 
-      label L:
-
-      /* La tarea t no ha sido asignada a ningñun funcionario */
+      /* La tarea t no ha sido asignada a ningún funcionario */
       if (!ps.tasks[t]) {
         KnapsackVARecursiveCase(input, ps, bs, t);
       }
@@ -141,11 +141,17 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
         /* Si se asignara dicha tarea, ps no sería válida, luego esta generaría soluciones inválidas que no pueden ser mejor que la bs */
         InvalidExtensionsFromInvalidPs(ps, input, t);
       }
-      
-      assume bs.Model().Equals(old(bs.Model()))
-             || ExistsBranchIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1);
 
-      assert ForallBranchesIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1);
+      /* Si bs ha cambiado, entonces es extensión óptima de ps + t actual */
+      if (!old@L(bs.Model()).Equals(bs.Model())) {
+        assert bs.Model().OptimalExtension(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1), input.Model());
+      }
+      /* Si bs no ha cambiado, sigue igual (no tiene porque ser una extensión óptima de ps) */
+      else {
+        assume bs.Model().Equals(old(bs.Model()));
+      }
+
+      assume ForallBranchesIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1); //ok
 
       t := t + 1;
     }
@@ -340,7 +346,7 @@ lemma PartialConsistency(ps : Solution, oldps : SolutionData, input : Input,  ol
 /*
 Lema: si una solución parcial ps la extendemos con un funcionario más asignandole la tarea t que ya estaba 
 asignada (ps.tasks[t] = true) generando una solución invalidPs, entonces cualquier extensión s de invalidPs
-tampoco serán válida.
+tampoco será válida.
 //
 Propósito: garantizar en EmployeesVA que en el caso de que no se ejecute la rama t-esima (ps.tasks[t] = true), es 
 porque no se van a encontrar soluciones válidas. Por lo tanto, ninguna solución que salga de dicha rama puede ser
@@ -362,7 +368,7 @@ lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input, t : int)
                                     && s.k <= |s.employeesAssign|
                                     && invalidPs.k == ps.k + 1 <= s.k
                                     && s.Extends(invalidPs)
-                                    :: !s.Valid(input.Model())
+            :: !s.Valid(input.Model())
 {
   forall s : SolutionData |
     var invalidPs := SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1);
@@ -376,7 +382,7 @@ lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input, t : int)
 
     /* invalidPs es ps con un funcionario más con la tarea t que ya estaba asignada, entonces viola la restricción */
     var invalidPs := SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1);
-    // Debe haber mínimo 2 funcionarios con la tarea t
+    // Luego invalidPs tiene que tener mínimo 2 funcionarios con la tarea t
     assert exists i | 0 <= i < invalidPs.k :: invalidPs.employeesAssign[i] == t
                                               && !(forall j | 0 <= j < invalidPs.k && i != j :: invalidPs.employeesAssign[j] != t) by {
       assert invalidPs.employeesAssign[ps.k] == t;

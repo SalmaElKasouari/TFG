@@ -107,7 +107,7 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
 
     KnapsackVAFalseBranch(input, ps, bs);
 
-    assert bs.Model().OptimalExtension( SolutionData(ps.Model().itemsAssign[ps.k:=false], ps.k+1), input.Model())
+    assert bs.Model().OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k:=false], ps.k+1), input.Model())
            || bs.Model().Equals(oldbs);
     assert ps.Model().Equals(old(ps.Model()));
 
