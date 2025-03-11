@@ -319,7 +319,13 @@ method KnapsackVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int
        }
        else {
         //assert ps.tasks[i] == old(ps.tasks[i]); 
-        if (ps.tasks[i]) { ps.OneEmployeeHasTrueTask(i,input);}
+        if (ps.tasks[i]) {
+          assert old(ps.tasks[i]);
+          assert i in old(ps.Model().employeesAssign[0..ps.k]);
+          assert old(ps.Model().employeesAssign[0..ps.k]) == ps.Model().employeesAssign[0..ps.k-1];
+          assert i in  ps.Model().employeesAssign[0..ps.k-1];
+          assert i in ps.Model().employeesAssign[0..ps.k];
+        }
         else {}
       }
        
