@@ -142,24 +142,51 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
         InvalidExtensionsFromInvalidPs(ps, input, t);
       }
 
+      assert bs.Model().Equals(old(bs.Model()))
+                || ExistsBranchIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1) by{
       /* Si bs ha cambiado, entonces es extensión óptima de ps + t actual */
-      if (!old@L(bs.Model()).Equals(bs.Model())) {
+      if bs.Model().Equals(old(bs.Model())) { 
+      
+      } else if (!old@L(bs.Model()).Equals(bs.Model())) {
         assert bs.Model().OptimalExtension(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1), input.Model());
       }
       /* Si bs no ha cambiado, sigue igual (no tiene porque ser una extensión óptima de ps) */
-      else if bs.Model().Equals(old(bs.Model())) {
-      } else {
-        assert ExistsBranchIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1) by {
-          assert ExistsBranchIsOptimalExtension(old@L(bs.Model()), old@L(ps.Model()), old@L(input.Model()), t);
-          assert ExistsBranchIsOptimalExtension(old@L(bs.Model()), ps.Model(), input.Model(), t);
-          assert ExistsBranchIsOptimalExtension(old@L(bs.Model()), ps.Model(), input.Model(), t+1);
-          assert ExistsBranchIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1);
+      else {
+          //assert old@L(bs.Model()).Equals(bs.Model());  
+          //assert old@L(ps.Model()).Equals(ps.Model());
+          assert ExistsBranchIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1) by {
+          
+            assert ExistsBranchIsOptimalExtension(old@L(bs.Model()), old@L(ps.Model()), input.Model(), t);
+            var i :| 0 <= i < t &&
+                     var ext := old@L(SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1));
+                     ext.Valid(input.Model())
+                     && old@L(bs.Model()).OptimalExtension(ext, input.Model());
+            var ext := old@L(SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1));
+            assert old@L(SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1)).Equals(SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1));
+            assert ExistsBranchIsOptimalExtension(old@L(bs.Model()), ps.Model(), input.Model(), t);
+            assert ExistsBranchIsOptimalExtension(old@L(bs.Model()), ps.Model(), input.Model(), t+1);
+            assert ExistsBranchIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1);
+          }
+        }
+      }
+      assert ForallBranchesIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1) by{
+        assert ForallBranchesIsOptimalExtension(old@L(bs.Model()), old@L(ps.Model()), input.Model(), t);
+        assert ForallBranchesIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t);
+        forall i,s : SolutionData | 0 <= i < t+1 && var ext := SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1);
+                                         && s.Valid(input.Model())
+                                         && s.Extends(ext)
+        ensures s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times){
+           if (i < t) {}
+           else {
+            assert s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times);
+           }
+
         }
       }
 
-      assume ForallBranchesIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1); //ok
-
       t := t + 1;
+
+      assert ForallBranchesIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t);
     }
   }
 }
