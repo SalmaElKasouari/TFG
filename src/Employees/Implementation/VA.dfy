@@ -251,7 +251,7 @@ method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
   }
 }
 
-method {:only} KnapsackVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int)
+method KnapsackVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int)
   decreases ps.Bound(),0 // Función de cota
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -294,8 +294,37 @@ method {:only} KnapsackVARecursiveCase(input: Input, ps: Solution, bs: Solution,
   ps.tasks[t] := true;
   ps.totalTime := ps.totalTime + input.times[ps.k, t];
   ps.k := ps.k + 1;
-
-  PartialConsistency(ps, oldps, input,  oldtotalTime, t);
+  //assert forall i | 0 <= i < ps.tasks.Length && i!= t :: ps.tasks[i] == old(ps.tasks[i]);
+   assert ps.Partial(input) by{
+     // assert 0 <= ps.k <= ps.employeesAssign.Length;
+     // assert ps.employeesAssign.Length == ps.tasks.Length;
+     // assert ps.Model().Partial(input.Model());
+      assert ps.Model().TotalTime(input.Model().times) == ps.totalTime by{
+        calc {
+         ps.totalTime;
+         oldtotalTime + input.times[ps.k - 1, t];
+         oldps.TotalTime(input.Model().times) + input.times[ps.k - 1, t];
+         { SolutionData.AddTimeMaintainsSumConsistency(oldps, ps.Model(), input.Model()); }
+           ps.Model().TotalTime(input.Model().times);
+         }
+      }
+      forall i | 0 <= i < ps.tasks.Length 
+      ensures ps.tasks[i] == (i in ps.Model().employeesAssign[0..ps.k])
+      {
+       if i == t
+        { 
+         //assert ps.tasks[i];
+         //assert i in ps.Model().employeesAssign[0..ps.k];
+         //assert ps.tasks[i] == (i in ps.Model().employeesAssign[0..ps.k]);
+       }
+       else {
+        //assert ps.tasks[i] == old(ps.tasks[i]); 
+        if (ps.tasks[i]) { ps.OneEmployeeHasTrueTask(i,input);}
+        else {}
+      }
+       
+      }
+     }
 
   EmployeesVA(input, ps, bs);
 
