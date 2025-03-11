@@ -147,8 +147,14 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
         assert bs.Model().OptimalExtension(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1), input.Model());
       }
       /* Si bs no ha cambiado, sigue igual (no tiene porque ser una extensión óptima de ps) */
-      else {
-        assume bs.Model().Equals(old(bs.Model()));
+      else if bs.Model().Equals(old(bs.Model())) {
+      } else {
+        assert ExistsBranchIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1) by {
+          assert ExistsBranchIsOptimalExtension(old@L(bs.Model()), old@L(ps.Model()), old@L(input.Model()), t);
+          assert ExistsBranchIsOptimalExtension(old@L(bs.Model()), ps.Model(), input.Model(), t);
+          assert ExistsBranchIsOptimalExtension(old@L(bs.Model()), ps.Model(), input.Model(), t+1);
+          assert ExistsBranchIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1);
+        }
       }
 
       assume ForallBranchesIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1); //ok
