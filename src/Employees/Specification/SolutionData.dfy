@@ -121,7 +121,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     requires input.Valid()
   {
     && this.Valid(input)
-    && ps.Explicit(input.times)
+    && ps.Partial(input)
     && this.Extends(ps)
     && forall s : SolutionData | && s.Valid(input)
                                  && s.Extends(ps)

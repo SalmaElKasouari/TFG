@@ -227,7 +227,7 @@ class Solution {
     requires 0 <= t < this.tasks.Length == this.employeesAssign.Length
     requires this.k <= this.employeesAssign.Length
     requires !this.tasks[t]
-    ensures !(exists i | 0 <= i < this.k :: this.employeesAssign[i] == t)
+    ensures forall i | 0 <= i < this.k :: this.employeesAssign[i] != t
 
 
   /* 

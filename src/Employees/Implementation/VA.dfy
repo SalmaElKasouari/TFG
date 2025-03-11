@@ -42,7 +42,7 @@ ghost predicate ExistsBranchIsOptimalExtension(bs : SolutionData, ps : SolutionD
 {
   exists i | 0 <= i < t ::
     var ext := SolutionData(ps.employeesAssign[ps.k := i], ps.k + 1);
-    ext.Valid(input)
+    ext.Partial(input)
     && bs.OptimalExtension(ext, input)
 }
 
@@ -71,7 +71,7 @@ El árbol de búsqueda es un árbol n-ario donde:
 Verfificación:
   
 */
-method EmployeesVA(input: Input, ps: Solution, bs: Solution)
+method {:only} EmployeesVA(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),1 // Función de cota
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -159,7 +159,7 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
             assert ExistsBranchIsOptimalExtension(old@L(bs.Model()), old@L(ps.Model()), input.Model(), t);
             var i :| 0 <= i < t &&
                      var ext := old@L(SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1));
-                     ext.Valid(input.Model())
+                     ext.Partial(input.Model())
                      && old@L(bs.Model()).OptimalExtension(ext, input.Model());
             var ext := old@L(SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1));
             assert old@L(SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1)).Equals(SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1));
@@ -277,7 +277,7 @@ method KnapsackVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int
 
   ensures bs.Model().Equals(old(bs.Model()))
           || (var ext := SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1);
-              ext.Valid(input.Model())
+              ext.Partial(input.Model())
               && bs.Model().OptimalExtension(ext, input.Model()))
 
   // Si bs cambia, su nuevo valor total debe ser menor o igual al valor anterior
@@ -286,36 +286,54 @@ method KnapsackVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int
   ensures forall s : SolutionData | var ext := SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1);
                                     s.Valid(input.Model()) && s.Extends(ext) ::
             s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times)
-// {
-//   ghost var oldps := ps.Model();
-//   ghost var oldtotalTime := ps.totalTime;
+{
+  ghost var oldps := ps.Model();
+  ghost var oldtotalTime := ps.totalTime;
 
-//   ps.employeesAssign[ps.k] := t;
-//   ps.tasks[t] := true;
-//   ps.totalTime := ps.totalTime + input.times[ps.k, t];
-//   ps.k := ps.k + 1;
+  ps.employeesAssign[ps.k] := t;
+  ps.tasks[t] := true;
+  ps.totalTime := ps.totalTime + input.times[ps.k, t];
+  ps.k := ps.k + 1;
 
-//   PartialConsistency(ps, oldps, input,  oldtotalTime, t);
+  PartialConsistency(ps, oldps, input,  oldtotalTime, t);
 
-//   EmployeesVA(input, ps, bs);
+  EmployeesVA(input, ps, bs);
 
-//   label L:
+  assert ps.Model().Equals(old(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k+1)));
 
-//   ps.k := ps.k - 1;
-//   ps.totalTime := ps.totalTime - input.times[ps.k, t];
-//   ps.tasks[t] := false;
+  label L:
 
-//   assert ps.Partial(input);
-//   assert SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1) == old@L(ps.Model());
+  ps.k := ps.k - 1;
+  ps.totalTime := ps.totalTime - input.times[ps.k, t];
+  ps.tasks[t] := false;
 
-//   //La mejor solución deber ser una extension optima de ps
-//   assert bs.Model().OptimalExtension(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1), input.Model()) || bs.Model().Equals(old(bs.Model()));
+  assert ps.Partial(input);
+  assert SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1) == old@L(ps.Model());
 
-//   //Cualquier extension optima de ps, su valor debe ser mayor o igual que la mejor solucion (bs).
-//   assert forall s : SolutionData | s.Valid(input.Model()) && s.Extends(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1)) ::
-//       s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times);
+  //La mejor solución deber ser una extension optima de ps
+  assert bs.Model().OptimalExtension(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1), input.Model()) 
+  || bs.Model().Equals(old(bs.Model()));
 
-// }
+  //Cualquier extension optima de ps, su valor debe ser mayor o igual que la mejor solucion (bs).
+  assert forall s : SolutionData | s.Valid(input.Model()) && s.Extends(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1)) ::
+      s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times);
+
+  if (bs.Model().Equals(old(bs.Model()))) {
+
+  }
+  else {
+    assert bs.Model().OptimalExtension(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1), input.Model());
+    var ext := SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1);
+    assert ext.Valid(input.Model()) by {
+      bs.OneEmployeeHasTrueTask(t, input);
+    }
+  }
+      assert bs.Model().Equals(old(bs.Model()))
+          || (var ext := SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1);
+              ext.Partial(input.Model())
+              && bs.Model().OptimalExtension(ext, input.Model()));
+
+}
 
 
 
