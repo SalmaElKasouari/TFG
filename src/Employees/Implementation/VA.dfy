@@ -71,7 +71,7 @@ El árbol de búsqueda es un árbol n-ario donde:
 Verfificación:
   
 */
-method {:only} EmployeesVA(input: Input, ps: Solution, bs: Solution)
+method EmployeesVA(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),1 // Función de cota
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -251,7 +251,7 @@ method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
   }
 }
 
-method KnapsackVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int)
+method {:only} KnapsackVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int)
   decreases ps.Bound(),0 // Función de cota
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -317,22 +317,6 @@ method KnapsackVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int
   //Cualquier extension optima de ps, su valor debe ser mayor o igual que la mejor solucion (bs).
   assert forall s : SolutionData | s.Valid(input.Model()) && s.Extends(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1)) ::
       s.TotalTime(input.Model().times) >= bs.Model().TotalTime(input.Model().times);
-
-  if (bs.Model().Equals(old(bs.Model()))) {
-
-  }
-  else {
-    assert bs.Model().OptimalExtension(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1), input.Model());
-    var ext := SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1);
-    assert ext.Valid(input.Model()) by {
-      bs.OneEmployeeHasTrueTask(t, input);
-    }
-  }
-      assert bs.Model().Equals(old(bs.Model()))
-          || (var ext := SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k + 1);
-              ext.Partial(input.Model())
-              && bs.Model().OptimalExtension(ext, input.Model()));
-
 }
 
 

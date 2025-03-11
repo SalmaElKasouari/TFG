@@ -239,7 +239,7 @@ class Solution {
   Demostración:
   */
   lemma AllDifferent(t1 : int, t2 : int, input : Input)
-    requires input.Valid()
+    requires input.Valid() 
     requires this.k <= this.employeesAssign.Length == this.tasks.Length
     requires 0 <= t1 < this.tasks.Length
     requires 0 <= t2 < this.tasks.Length
