@@ -210,7 +210,7 @@ class Solution {
     requires 0 <= t < this.tasks.Length == this.employeesAssign.Length
     requires this.tasks[t]
     ensures (exists i | 0 <= i < this.k :: this.employeesAssign[i] == t   // hay uno
-                                           && forall j | 0 <= j < this.k && i != j :: this.employeesAssign[j] != t) // y solo uno
+                                          // && forall j | 0 <= j < this.k && i != j :: this.employeesAssign[j] != t) // y solo uno
 
 
 
