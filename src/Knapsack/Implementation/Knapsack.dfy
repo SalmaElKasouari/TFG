@@ -6,7 +6,7 @@ Estructura del fichero:
 
   Métodos:
 	- ComputeSolution: encuentra una solución óptima que resuelve el problema mediante al algoritmo de vuelta atrás.
-  	- Main: ejecuta el programa principal y muestra la solución.
+  - Main: ejecuta el programa principal y muestra la solución.
 
 ---------------------------------------------------------------------------------------------------------------------*/
 
@@ -20,15 +20,15 @@ include "Input.dfy"
 /*
 Método: dado un input, encuentra la solución óptima mediante la llamada a un método de vuelta atrás (KnapsackVA)
 implementado en VA.dfy. Se construyen dos soluciones:
-	- Una solución parcial (ps): va construyendo la solución actual (decide las asignaciones de los objetos).
-	- Una mejor soluión (bs): almacena la mejor solución encontrada hasta el momento. 
+	- Una solución parcial (ps): va generando la solución actual (decide las asignaciones de los objetos).
+	- Una mejor solución (bs): almacena la mejor solución encontrada hasta el momento. 
 Ambas soluciones se inicializan con el array de asignaciones a falsos.
 //
-Verificación: se asegura que bs (la solución que se encuentra) es tanto válida como óptima:
-	- bs.Valid(input): mediante la poscondición en VA que asegura que bs es válida.
+Verificación: se asegura que la mejor solución encontrada (bs) es tanto válida como óptima:
+	- bs.Valid(input): mediante la postcondición en VA que asegura que bs es válida.
 	- bs.Optimal (input): mediante varias poscondiciones en VA que aseguran que bs es óptima.
 */
-method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
+method ComputeSolution(input: Input) returns (bs: Solution)
 	requires input.Valid()
 	ensures bs.Valid(input)
 	ensures bs.Optimal(input)	
@@ -37,9 +37,9 @@ method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
 
 	/* Construimos una solución parcial (ps) */
 	var ps_itemsAssign := new bool[n](i => false);
-  	var ps_totalValue := 0.0;
-  	var ps_totalWeight := 0.0;
-  	var ps_k := 0;
+	var ps_totalValue := 0.0;
+	var ps_totalWeight := 0.0;
+	var ps_k := 0;
 	var ps := new Solution(ps_itemsAssign, ps_totalValue, ps_totalWeight, ps_k);
 
 	assert ps.Partial(input) by {
@@ -48,9 +48,9 @@ method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
 
 	/* Construimos una solución mejor (bs) */
 	var bs_itemsAssign := new bool[n](i => false);
-  	var bs_totalValue := 0.0;
-  	var bs_totalWeight := 0.0;
-  	var bs_k := n;
+	var bs_totalValue := 0.0;
+	var bs_totalWeight := 0.0;
+	var bs_k := n;
 	bs := new Solution(bs_itemsAssign, bs_totalValue, bs_totalWeight, bs_k);
 
 	assert bs.Valid(input) by {
@@ -60,9 +60,8 @@ method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
 	/* Llamada inicial de la vuelta atrás */
 	KnapsackVA(input, ps, bs);
 
-	
 	/* Primera postcondición: bs.Valid(input) 
-		Se verifica gracias a la poscondición en VA que asegura que bs es válida.
+		Se verifica gracias a la postcondición en VA que asegura que bs es válida.
 	*/
 
 	/* Segunda postcondición: bs.Optimal(input) 
@@ -77,8 +76,8 @@ method ComputeSolution(input: Input) returns (bs: Solution) //llamarlo bs
 }
 
 /*
-Método: main que ejecuta el programa principal resolviendo el problema de la mochila con un conjunto de objetos 
-y un peso máximo definidos.
+Método: main que ejecuta el programa principal resolviendo el problema de la mochila con una lista de objetos 
+y un peso máximo.
 */
 method Main() {
 

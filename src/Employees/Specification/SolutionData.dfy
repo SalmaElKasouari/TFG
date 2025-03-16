@@ -224,4 +224,33 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
       assert forall s : SolutionData | s.Valid(input) && s.Extends(ps2) :: s.TotalTime(input.times) >= this.TotalTime(input.times);
     }
   }
+
+  /* 
+  Lema: sea una solución s que extiende a this, entonces el tiempo total de s debe ser al menos el tiempo total 
+  de ps. Esto es por que el contenido de employeesAssign de cada solución es igual hasta this.k.
+  //
+  Propósito: demostrar el lema InvalidExtensionsFromInvalidPs de VA.dfy.
+  //
+  Demostración: mediante inducción en s, esta se va reduciendo hasta this.k.
+  */
+  lemma {:induction s} GreaterOrEqualTimeFromExtends(s: SolutionData, input: InputData)
+    decreases s.k
+    requires input.Valid()
+    requires |this.employeesAssign| == |s.employeesAssign| == |input.times|
+    requires this.k <= |this.employeesAssign|
+    requires s.k <= |s.employeesAssign|
+    requires this.k <= s.k
+    requires this.Explicit(input.times)
+    requires s.Extends(this)
+    requires s.Explicit(input.times)
+    ensures s.TotalTime(input.times) >= this.TotalTime(input.times)
+  {
+    if this.k == s.k {
+      this.EqualTimeFromEquals(s, input);
+    }
+    else {
+      ghost var s := SolutionData(s.employeesAssign, s.k-1);
+      this.GreaterOrEqualTimeFromExtends(s, input);
+    }
+  }
 }

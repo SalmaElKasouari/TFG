@@ -5,8 +5,8 @@ Este fichero incluye la resolución del problema de los funcionarios.
 Estructura del fichero:
 
   Métodos:
- - ComputeSolution: encuentra una solución óptima que resuelve el problema mediante al algoritmo de vuelta atrás.
-   - Main: ejecuta el programa principal y muestra la solución.
+    - ComputeSolution: encuentra una solución óptima que resuelve el problema mediante al algoritmo de vuelta atrás.
+    - Main: ejecuta el programa principal y muestra la solución.
 
 ---------------------------------------------------------------------------------------------------------------------*/
 
@@ -21,13 +21,12 @@ include "Solution.dfy"
 /*
 Método: dado un input, encuentra la solución óptima mediante la llamada a un método de vuelta atrás (EmployeesVA)
 implementado en VA.dfy. Se construyen dos soluciones:
- - Una solución parcial (ps): va construyendo la solución actual (decide qué tarea realiza cada funcionario).
- - Una mejor soluión (bs): almacena la mejor solución encontrada hasta el momento.
-Ambas soluciones se inicializan con el array de asignaciones a falsos.
+  - Una solución parcial (ps): va generando la solución actual (decide qué tarea realiza cada funcionario).
+  - Una mejor solución (bs): almacena la mejor solución encontrada hasta el momento.
 //
-Verificación: se asegura que bs (la solución que se encuentra) es tanto válida como óptima:
- - bs.Valid(input): mediante la poscondición en VA que asegura que bs es válida.
- - bs.Optimal (input): mediante varias poscondiciones en VA que aseguran que bs es óptima.
+Verificación: se asegura que la mejor solución encontrada (bs) es tanto válida como óptima:
+  - bs.Valid(input): mediante la postcondición en VA que asegura que bs es válida.
+  - bs.Optimal (input): mediante varias poscondiciones en VA que aseguran que bs es óptima.
 */
 method ComputeSolution(input: Input) returns (bs: Solution)
   requires input.Valid()
@@ -39,8 +38,9 @@ method ComputeSolution(input: Input) returns (bs: Solution)
 
   /*
     Construimos una solución mejor (bs). Como se trata de una solución completa (k == employeesAssign.Length) que
-    debe ser válida, se inicializa de manera que todos los funcionarios realizan tareas diferentes, por ejemplo,
-    al funcionario i le asignamos la tarea i.
+    debe ser válida, el array de asignaciones se inicializa de manera que todos los funcionarios realizan tareas 
+    diferentes, por ejemplo, al funcionario i le asignamos la tarea i. El marcador de tareas estará llenos de trues,
+    lo que indica que todas las tareas han sido asignadas.
   */
   var bs_employeesAssign := new int[n];
   var bs_totalTime := 0.0;
@@ -67,7 +67,11 @@ method ComputeSolution(input: Input) returns (bs: Solution)
 
   assert bs.Valid(input);
 
-  /* Construimos una solución parcial (ps) */
+  /* 
+    Construimos una solución parcial (ps). Es irrelevante el contenido inicial del array de asignaciones puesto que
+    empezamos en la etapa k = 0, a partir de aquí se empieza a generar las asignaciones. Por ello, el marcador de 
+    tareas estará lleno de falses lo que indica que todas las tareas están disponibles.
+  */
   var ps_employeesAssign := new int[n];
   var ps_totalTime := 0.0;
   var ps_k := 0;
@@ -82,7 +86,7 @@ method ComputeSolution(input: Input) returns (bs: Solution)
   EmployeesVA(input, ps, bs);
 
   /* Primera postcondición: bs.Valid(input)
-   Se verifica gracias a la poscondición en VA que asegura que bs es válida.
+   Se verifica gracias a la postcondición en VA que asegura que bs es válida.
   */
 
   /* Segunda postcondición: bs.Optimal(input)
@@ -97,8 +101,9 @@ method ComputeSolution(input: Input) returns (bs: Solution)
 }
 
 /*
-Método: main que ejecuta el programa principal resolviendo el problema de la mochila con un conjunto de objetos
-y un peso máximo definidos.
+Método: main que ejecuta el programa principal resolviendo el problema de los funcionarios con una matriz de tiempos
+cuyas filas representan los funcionarios y las columnas las tareas. Cada componente de la matriz indica el tiempo 
+que tarda un funcionario i en realizar una tarea j.
 */
 method Main() {
 
@@ -121,6 +126,5 @@ method Main() {
   print "By the next assignment:\n";
   for i := 0 to input.times.Length0 {
     print "Employee ", i," with work: ", bs.employeesAssign[i];
-
   }
 }

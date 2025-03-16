@@ -2,7 +2,7 @@
 
 Este fichero cuenta con la implementación del problema de los funcionarios utilizando el algoritmo de vuelta atrás. 
 Se implementa de manera que el árbol de exploración es un árbol n-ario, donde las etapas son los funcionarios que 
-se deben tratar, y las ramas las distintas tareas que pueden realizar.
+se deben tratar, y las ramas las distintas tareas que pueden realizar. Se incluye una poda.
 
 Estructura del fichero: 
 
@@ -11,6 +11,8 @@ Estructura del fichero:
     - ForallBranchesIsOptimalExtension:
 
   Métodos
+    - Cota: calcula la cota que estima que los funcionarios que quedan por asignar tardan el mismo tiempo y el 
+      mínimo posible.
     - EmployeesVA: Punto de partida para ejecutar el algoritmo VA.
     - EmployeesVABaseCase: Define la condición de terminación.
     - EmployeesVARecursiveCase: Considera una tarea específica.
@@ -24,6 +26,8 @@ include "Solution.dfy"
 include "../Specification/SolutionData.dfy"
 include "Input.dfy"
 include "../../Ord.dfy"
+
+/* Predicados */
 
 /* Predicado: bs es una extensión óptima de alguna ps extendida con una de las tareas anteriores */
 ghost predicate ExistsBranchIsOptimalExtension(bs : SolutionData, ps : SolutionData, input : InputData, t : int)
@@ -52,6 +56,113 @@ ghost predicate ForallBranchesIsOptimalExtension(bs : SolutionData, ps : Solutio
                                          && s.Extends(ext)
     :: s.TotalTime(input.times) >= bs.TotalTime(input.times)
 }
+
+
+
+/* Métodos */
+
+/*
+Método:
+//
+Verificación
+*/
+method {:only} Cota(ps : Solution, input : Input) returns (cota : real)
+  requires input.Valid()
+  requires ps.Partial(input)
+  ensures forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
+                                    && s.k == |s.employeesAssign|
+                                    && ps.k <= s.k
+                                    && s.Extends(ps.Model())
+                                    && s.Explicit(input.Model().times)
+            :: s.TotalTime(input.Model().times) >= cota
+{
+  assert forall f,c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: input.times[f,c] > 0.0;
+
+  var min := input.times[0, 0];
+  var oldmin := min;
+  assert 0.0 < min == oldmin <= input.times[0, 0];
+  assert (exists k, l | 0 <= k < input.times.Length0 && 0 <= l < input.times.Length1 :: min == input.times[k, l]);
+  assert (exists k, l | 0 <= k < input.times.Length0 && 0 <= l < input.times.Length1 :: oldmin == input.times[k, l]);
+
+  for i := 0 to input.times.Length0
+    invariant forall f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: input.times[f, c] > 0.0
+    //invariant forall f, c | 0 <= f < i && 0 <= c < input.times.Length1 :: min <= input.times[f-1, c]
+    //invariant exists f, c | 0 <= f < i && 0 <= c < input.times.Length1 :: min == input.times[f-1,c]
+  {
+    for j := 0 to input.times.Length1
+      invariant forall f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: input.times[f, c] > 0.0
+      //invariant forall f, c | 0 <= f < i && 0 <= c < j :: 0.0 < min <= input.times[f, c]
+      //invariant exists f, c | 0 <= f < i && 0 <= c < j :: min == input.times[f, c]
+    {
+      oldmin := min;
+      if input.times[i, j] <= min {
+        min := input.times[i, j];
+        assert min == input.times[i,j] > 0.0;
+        assert exists f, c | 0 <= f <= i && 0 <= c <= j :: min == input.times[f, c] == input.times[i,j];
+      }
+
+      assert oldmin >= min;
+      assert min <= input.times[i, j];
+      assert forall f,c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: input.times[f,c] > 0.0;
+    }
+  }
+
+  var n := ps.employeesAssign.Length as real;
+  var k := ps.k as real;
+  cota := ps.totalTime + ((n - k) * min);
+
+  forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
+                            && s.k == |s.employeesAssign|
+                            && ps.k <= s.k
+                            && s.Extends(ps.Model())
+                            && s.Explicit(input.Model().times)
+    ensures s.TotalTime(input.Model().times) >= cota
+  {
+    ps.Model().GreaterOrEqualTimeFromExtends(s, input.Model());
+    assert s.TotalTime(input.Model().times) >= ps.totalTime;
+    var resto := s.TotalTime(input.Model().times) - ps.totalTime;
+
+    assert resto >= ((n - k) * min) by {
+      assert s.Extends(ps.Model());      
+      assume false;
+    }
+  }
+}
+
+// method {:only} Cota2(ps : Solution, input : Input, min : real) returns (cota : real)
+//   requires input.Valid()
+//   requires ps.Partial(input)
+//   requires forall i,j | 0 <= i < input.times.Length0 && 0 <= j < input.times.Length1 :: min <= input.times[i,j]
+//   requires exists i,j | 0 <= i < input.times.Length0 && 0 <= j < input.times.Length1 :: min == input.times[i,j]
+//   ensures forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
+//                                     && s.k == |s.employeesAssign|
+//                                     && ps.k <= s.k
+//                                     && s.Extends(ps.Model())
+//                                     && s.Explicit(input.Model().times)
+//             :: s.TotalTime(input.Model().times) >= cota
+// {
+//   var n := ps.employeesAssign.Length as real;
+//   var k := ps.k as real;
+//   cota := ps.totalTime + ((n - k) * min);
+
+//   forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
+//                             && s.k == |s.employeesAssign|
+//                             && ps.k <= s.k
+//                             && s.Extends(ps.Model())
+//                             && s.Explicit(input.Model().times)
+//     ensures s.TotalTime(input.Model().times) >= cota
+//   {
+//     ps.Model().GreaterOrEqualTimeFromExtends(s, input.Model());
+//     assert s.TotalTime(input.Model().times) >= ps.totalTime;
+//     var resto := s.TotalTime(input.Model().times) - ps.totalTime;
+
+//     assert resto >= ((n - k) * min) by {
+//       assert s.Extends(ps.Model());
+     
+//     }
+//   }
+// }
+
 
 
 /* 
@@ -146,7 +257,7 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
 
       assert bs.Model().Equals(old(bs.Model()))
              || ExistsBranchIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1) by {
-        
+
         /* bs no ha cambiado en ninguna de las ramas, sigue siendo igual a la que entró en el método */
         if bs.Model().Equals(old(bs.Model())) {
 
@@ -195,6 +306,11 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
   }
 }
 
+/*
+Método:
+//
+Verificación
+*/
 method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound() // Función de cota
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
@@ -255,6 +371,11 @@ method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
   }
 }
 
+/*
+Método:
+//
+Verificación
+*/
 method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int)
   decreases ps.Bound(),0 // Función de cota
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
@@ -337,7 +458,10 @@ method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : in
     }
   }
 
-  EmployeesVA(input, ps, bs);
+  var cota := Cota(ps, input);
+  if (cota <= bs.totalTime) {
+    EmployeesVA(input, ps, bs);
+  }
 
   assert ps.Model().Equals(old(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k+1)));
 

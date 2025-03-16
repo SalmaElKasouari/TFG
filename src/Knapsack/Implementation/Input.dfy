@@ -1,10 +1,12 @@
 /*---------------------------------------------------------------------------------------------------------------------
 
-La clase Solution implementa una representación formal la entrada del problema de la mochila.
+La clase Input implementa una representación formal de la entrada del problema de la mochila.
 
 Estructura del fichero:
 
   Atributos y constructor
+    - items: lista de objetos.
+    - maxWeight: peso máximo de la mochila.
 
   Predicados
     - Valid: una entrada es válida.
@@ -12,7 +14,7 @@ Estructura del fichero:
 
   Funciones
     - ModelAt: devuelve el modelo del objeto en la posición i del array items.
-    - ItemsUntil: devuelve en una secuencia los k primeros elementos (Item) del array items convertidos a ItemData.
+    - ItemsUntil: devuelve una secuencia con los k primeros elementos (Item) del array items convertidos a ItemData.
     - Model: devuelve el modelo de un Input.
   
   Lemas
@@ -53,6 +55,7 @@ class Input {
     this.Model().Valid()
   }
 
+
   /* 
   Predicado: verifica que el array items esta ordenado de manera decreciente según valor por unidad de peso.
   */
@@ -79,7 +82,7 @@ class Input {
 
 
   /* 
-  Función: devuelve en una secuencia los k primeros elementos del array items convertidos a ItemData.
+  Función: devuelve una secuencia con los k primeros elementos del array items convertidos a ItemData.
   */
   ghost function ItemsUntil(k: nat): seq<ItemData>
     reads this, items, set i | 0 <= i < k :: items[i]

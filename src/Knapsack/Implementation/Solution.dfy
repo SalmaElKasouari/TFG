@@ -9,7 +9,7 @@ Estructura del fichero:
     - itemsAssign: array de bool de tamaño número de objetos donde cada posición corresponde a un objeto y cuyo 
       valor almacenado indica si el objeto ha sido seleccionado (true) o no (false).
     - totalValue: valor total acumulado de los objetos escogidos (asignados a true en itemsAssign).
-    -totalWeight: peso total acumulado de los objetos escogidos (asignados a true en itemsAssign).
+    - totalWeight: peso total acumulado de los objetos escogidos (asignados a true en itemsAssign).
     - k: etapa del árbol de exploración de la solución. Denota el número de objetos tratados de itemsAssign.
 
 
@@ -24,7 +24,7 @@ Estructura del fichero:
     - Bound: número de etapas restantes en la solución parcial.
 
   Métodos
-    - Copy: copia los valores de una solución a otra.
+    - Copy: copia los valores de los campos de una solución a otra.
   
   Lemas
     - CopyModel: dadas dos soluciones que tiene  el mismo modelo, valor y peso, si una es válida con respecto a un
@@ -78,10 +78,9 @@ class Solution {
   }
 
   /* 
-  Predicado: valida si la solución está completa, lo que significa que todos los objetos han sido 
-  tratados (k == itemsAssign.Length).
+  Predicado: verifica si la solución es válida y completa (todos los objetos han sido tratados (k == itemsAssign.Length).
   */
-  ghost predicate Valid (input : Input) // solución completa (final)
+  ghost predicate Valid (input : Input)
     reads this, this.itemsAssign, input, input.items, set i | 0 <= i < input.items.Length :: input.items[i]
     requires input.Valid()
 
@@ -130,10 +129,9 @@ class Solution {
 
   /*
   Método: copia los valores de una solución s a otra solución this, garantizando que todos los atributos de 
-  la solución copiada (incluyendo los objetos seleccionados y los valores acumulados) se copien correctamente, 
-  manteniendo la consistencia del modelo.
+  la solución copiada this sea completamente idética a s, manteniendo la consistencia del modelo.
   //
-  Verificación: se usa un invariante ya que el cuerpo del método incluye un bucle. El invariante establece que en
+  Verificación: se usa un invariante en el bucle que establece que en
   cada iteración i del bucle, todos los elementos anteriores a i en el array this.itemsAssign son iguales a los 
   correspondientes elementos de s.itemsAssign.
   */
@@ -145,7 +143,6 @@ class Solution {
     ensures this.totalValue == s.totalValue
     ensures this.totalWeight == s.totalWeight
     ensures this.itemsAssign == old(this.itemsAssign)
-
     ensures forall i | 0 <= i < this.itemsAssign.Length :: this.itemsAssign[i] == s.itemsAssign[i]
     ensures this.Model() == s.Model()
   {
@@ -167,11 +164,11 @@ class Solution {
 
   /* 
   Lema: dada una solución s que es válida por un input dado, y this tiene el mismo modelo, peso acumulado 
-    y valor acumulado que s, entonces this también será válida para el mismo input. 
+  y valor acumulado que s, entonces this también será válida para el mismo input. 
   //
   Propósito: demostrar que el TotalValue de ps es igual al TotalValue de bs en KnapsackVABaseCase de VA.dfy.
   //
-  Demostración: trivial ya que la precondición asegura que this es idéntica a s en los aspectos relevantes para la validez.
+  Demostración: trivial.
   */
   lemma CopyModel (s : Solution, input : Input)
     requires input.Valid()

@@ -2,7 +2,7 @@
 
 Este fichero cuenta con la implementación del problema de los funcionarios utilizando el algoritmo de vuelta atrás. 
 Se implementa de manera que el árbol de exploración es un árbol n-ario, donde las etapas son los funcionarios que 
-se deben tratar, y las ramas las distintas tareas que pueden realizar.
+se deben tratar, y las ramas las distintas tareas que pueden realizar. Se incluye una poda.
 
 Estructura del fichero: 
 
@@ -11,6 +11,7 @@ Estructura del fichero:
     - ForallBranchesIsOptimalExtension:
 
   Métodos
+    - Cota: calcula la cota que estima que el resto del tiempo de la solución es nulo.
     - EmployeesVA: Punto de partida para ejecutar el algoritmo VA.
     - EmployeesVABaseCase: Define la condición de terminación.
     - EmployeesVARecursiveCase: Considera una tarea específica.
@@ -24,6 +25,8 @@ include "Solution.dfy"
 include "../Specification/SolutionData.dfy"
 include "Input.dfy"
 include "../../Ord.dfy"
+
+/* Predicados */
 
 /* Predicado: bs es una extensión óptima de alguna ps extendida con una de las tareas anteriores */
 ghost predicate ExistsBranchIsOptimalExtension(bs : SolutionData, ps : SolutionData, input : InputData, t : int)
@@ -51,6 +54,42 @@ ghost predicate ForallBranchesIsOptimalExtension(bs : SolutionData, ps : Solutio
                                          && s.Valid(input)
                                          && s.Extends(ext)
     :: s.TotalTime(input.times) >= bs.TotalTime(input.times)
+}
+
+
+
+/* Métodos */
+
+/*
+Método: cálculo de la cota. Al tratarse de un problema de minimización (minimizar el tiempo que tardan los 
+funcionarios en realizar las tareas), necesitamos una cota inferior del tiempo de la mejor solución alcanzable. 
+En este caso, la cota estima que el tiempo que van a tardar el resto de funcionarios en hacer sus tareas es 0.
+//
+Verificación: usando el lema GreaterOrEqualTimeFromExtends.
+*/
+method Cota(ps : Solution, input :Input) returns (cota : real)
+  requires input.Valid()
+  requires ps.Partial(input)
+  ensures forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
+                                    && s.k == |s.employeesAssign|
+                                    && ps.k <= s.k
+                                    && s.Extends(ps.Model())
+                                    && s.Explicit(input.Model().times) 
+                                    :: s.TotalTime(input.Model().times) >= cota
+{
+  cota := ps.totalTime + 0.0;
+  assert cota == ps.Model().TotalTime(input.Model().times);
+
+  forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
+                                    && s.k == |s.employeesAssign|
+                                    && ps.k <= s.k
+                                    && s.Extends(ps.Model())
+                                    && s.Explicit(input.Model().times) 
+  ensures s.TotalTime(input.Model().times) >= cota 
+  {
+    /* s.totalTime debe ser como mínimo ps.totalTime debido a que s extiende de ps */
+      ps.Model().GreaterOrEqualTimeFromExtends(s, input.Model());
+  }
 }
 
 
@@ -146,7 +185,7 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
 
       assert bs.Model().Equals(old(bs.Model()))
              || ExistsBranchIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1) by {
-        
+
         /* bs no ha cambiado en ninguna de las ramas, sigue siendo igual a la que entró en el método */
         if bs.Model().Equals(old(bs.Model())) {
 
@@ -195,6 +234,11 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
   }
 }
 
+/*
+Método:
+//
+Verificación
+*/
 method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound() // Función de cota
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
@@ -255,6 +299,11 @@ method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
   }
 }
 
+/*
+Método:
+//
+Verificación
+*/
 method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int)
   decreases ps.Bound(),0 // Función de cota
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
@@ -337,7 +386,10 @@ method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : in
     }
   }
 
-  EmployeesVA(input, ps, bs);
+  var cota := Cota(ps, input);
+  if (cota <= bs.totalTime) {
+    EmployeesVA(input, ps, bs);
+  }
 
   assert ps.Model().Equals(old(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k+1)));
 

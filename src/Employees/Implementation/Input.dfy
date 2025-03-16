@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------------------------------------------------
 
-La clase Solution implementa una representación formal la entrada del problema de la mochila.
+La clase Input implementa una representación formal la entrada del problema de los funcionarios.
 
 Estructura del fichero:
 
@@ -9,17 +9,10 @@ Estructura del fichero:
       corresponden a los funcionarios y las columnas a las tareas.
 
   Predicados
-    - Valid: una entrada es válido.
+    - Valid: una entrada es válida.
 
   Funciones
-    - ModelAt: devuelve el modelo del objeto en la posición i del array items.
-    - ItemsUntil: devuelve en una secuencia los k primeros elementos (Item) del array items convertidos a ItemData.
     - Model: devuelve el modelo de un Input.
-  
-  Lemas
-    - InputDataItems: el peso y valor de un cierto k en items coinciden con el peso y el valor correspondientes
-      en el modelo de items.
-    - InputDataItemsForAll: generalización del lema anterior.
 
 ---------------------------------------------------------------------------------------------------------------------*/
 

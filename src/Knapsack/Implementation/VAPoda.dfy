@@ -36,6 +36,44 @@ include "Input.dfy"
 
 /* Métodos */
 
+/*
+Método: cálculo de la cota. Al tratarse de un problema de maximización (maximizar el valor de los objetos), necesitamos 
+una cota superior del valor de la mejor solución alcanzable. En este caso, la cota consiste en seleccionar todos 
+los objetos restantes.
+//
+Verificación: usando el lema AllTruesIsUpperBoundForAll.
+*/
+method Cota (ps : Solution, input : Input) returns (cota : real)
+  requires input.Valid()
+  requires ps.Partial(input)
+  ensures forall s : SolutionData | && |s.itemsAssign| == |ps.Model().itemsAssign|
+                                    && s.k == |s.itemsAssign| 
+                                    && ps.k <= s.k
+                                    && s.Extends(ps.Model()) :: 
+                                    s.TotalValue(input.Model().items) <= cota
+{
+  ghost var ps' := SolutionData(ps.Model().itemsAssign, ps.k);
+  assert |ps'.itemsAssign| == |ps.Model().itemsAssign|;
+  cota := ps.totalValue;
+
+  assert cota == ps'.TotalValue(input.Model().items);
+ 
+  for i := ps.k to ps.itemsAssign.Length
+    invariant ps.k <= ps'.k <= |ps'.itemsAssign| == |ps.Model().itemsAssign|
+    invariant ps'.Extends(ps.Model())
+    invariant forall j | ps.k <= j < i :: ps'.itemsAssign[j]
+    invariant i == ps'.k
+    invariant cota == ps'.TotalValue(input.Model().items)
+  {
+    var oldps' := ps';
+    ps' := SolutionData(ps'.itemsAssign[ps'.k := true], ps'.k+1);
+    cota := cota + input.items[i].value;
+    SolutionData.AddTrueMaintainsSumConsistency(oldps', ps', input.Model());
+  }
+  SolutionData.AllTruesIsUpperBoundForAll(ps.Model(), ps', input.Model());
+}
+
+
 /* 
 Método: punto de partida del algoritmo VA. El método explora todas las posibles asignaciones de objetos, 
 respetando las restricciones de peso maxWeight) y seleccionando las combinaciones que maximicen el valor total.
@@ -141,45 +179,6 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
           s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
     }
   }
-}
-
-
-/*
-Método: cálculo de la cota. Al tratar un problema de maximización (maximizar el valor de los objetos), necesitamos 
-una cota superior del valor de la mejor solución alcanzable. En este caso, la cota consiste en seleccionar todos 
-los objetos restantes.
-//
-Verificación: usando el lema AllTruesIsUpperBoundForAll.
-*/
-method Cota (ps : Solution, input : Input) returns (cota : real)
-  requires input.Valid()
-  requires ps.Partial(input)
-  requires ps.k <= ps.itemsAssign.Length
-  ensures forall s : SolutionData | && |s.itemsAssign| == |ps.Model().itemsAssign|
-                                    && s.k == |s.itemsAssign| 
-                                    && ps.k <= s.k 
-                                    && s.Extends(ps.Model()) :: 
-                                    s.TotalValue(input.Model().items) <= cota
-{
-  ghost var ps' := SolutionData(ps.Model().itemsAssign, ps.k);
-  assert |ps'.itemsAssign| == |ps.Model().itemsAssign|;
-  cota := ps.totalValue;
-
-  assert cota == ps'.TotalValue(input.Model().items);
- 
-  for i := ps.k to ps.itemsAssign.Length
-    invariant ps.k <= ps'.k <= |ps'.itemsAssign| == |ps.Model().itemsAssign|
-    invariant ps'.Extends(ps.Model())
-    invariant forall j | ps.k <= j < i :: ps'.itemsAssign[j]
-    invariant i == ps'.k
-    invariant cota == ps'.TotalValue(input.Model().items)
-  {
-    var oldps' := ps';
-    ps' := SolutionData(ps'.itemsAssign[ps'.k := true], ps'.k+1);
-    cota := cota + input.items[i].value;
-    SolutionData.AddTrueMaintainsSumConsistency(oldps', ps', input.Model());
-  }
-  SolutionData.AllTruesIsUpperBoundForAll(ps.Model(), ps', input.Model());
 }
 
 

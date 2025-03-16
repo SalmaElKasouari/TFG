@@ -284,9 +284,9 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
 
   /* 
-  Lema: si dos soluciones (this y s) son idénticas (igualdad de campos), entonces tienen las mismas 
-  sumas de pesos y valores. Esto es por que el contenido de itemsAssign de cada solución es igual y los cálculos 
-  acumulativos de pesos y valores serán idénticos.
+  Lema: sea una solución s que extiende a this, entonces el peso total y valor total de s deben ser al menos 
+  iguales al peso total y valor total de ps. Esto es por que el contenido de employeesAssign de cada solución es 
+  igual hasta this.k.
   //
   Propósito: demostrar el lema InvalidExtensionsFromInvalidPs de VA.dfy.
   //

@@ -5,11 +5,6 @@ de vuelta atrás. Se implementa de manera que el árbol de exploración es un á
 los objetos que se deben tratar, mientras que las ramas del árbol representan las decisiones sobre si incluir o 
 no un objeto en la solución. Se incluye una poda.
 
-Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
-  - ps es la solución parcial que se va llenando durante el proceso de vuelta atrás.
-  - bs mantiene la mejor solución encontrada hasta el momento.
-
-
 Estructura del fichero:
   Métodos
     - KnapsackVA: Punto de partida para ejecutar el algoritmo VA.
@@ -23,8 +18,6 @@ Estructura del fichero:
     - InvalidExtensionsFromInvalidPs: si una solución parcial ps extendida con true no es válida, entonces ninguna 
       de sus extensiones tampoco será válida. 
 
-Todas las definiciones incluyen una sección de comentarios explicando su propósito.
-
 ---------------------------------------------------------------------------------------------------------------------*/
 
 
@@ -37,6 +30,9 @@ include "Input.dfy"
 /* 
 Método: punto de partida del algoritmo VA. El método explora todas las posibles asignaciones de objetos, 
 respetando las restricciones de peso maxWeight) y seleccionando las combinaciones que maximicen el valor total.
+Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
+  - ps es la solución parcial que se va llenando durante el proceso de vuelta atrás.
+  - bs mantiene la mejor solución encontrada hasta el momento
 En este contexto, se inicializa bs con todo a false, ya que es un problema de maximización (se busca el valor
 más alto). El árbol de búsqueda es un árbol binario que cuenta con dos ramas:
   - Rama True: el objeto es seleccionado pero solo si el peso total no excede el peso máximo permitido.
@@ -417,14 +413,14 @@ lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtot
   assert oldtotalWeight == oldps.TotalWeight(input.Model().items);
   assert oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight <= input.maxWeight;
 
-  // calc {
-  //    ps.Model().TotalWeight(input.Model().items);
-  //   { SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model()); }
-  //    oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
-  //   { input.InputDataItems(ps.k - 1); }
-  //    oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
-  //   <= input.maxWeight;
-  // }
+  calc {
+     ps.Model().TotalWeight(input.Model().items);
+    { SolutionData.AddTrueMaintainsSumConsistency(oldps, ps.Model(), input.Model()); }
+     oldps.TotalWeight(input.Model().items) + input.Model().items[ps.k - 1].weight;
+    { input.InputDataItems(ps.k - 1); }
+     oldps.TotalWeight(input.Model().items) + input.items[ps.k - 1].weight;
+    <= input.maxWeight;
+  }
 
   calc {
     ps.totalWeight;
