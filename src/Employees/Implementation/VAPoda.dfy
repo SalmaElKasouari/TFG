@@ -84,7 +84,7 @@ method Cota(ps : Solution, input : Input) returns (cota : real)
                                     && s.k == |s.employeesAssign|
                                     && ps.k <= s.k
                                     && s.Extends(ps.Model())
-                                    && s.Explicit(input.Model().times) 
+                                    && s.Valid(input.Model()) 
   ensures s.TotalTime(input.Model().times) >= cota
   {
     /* s.totalTime debe ser como mínimo ps.totalTime debido a que s extiende de ps */
