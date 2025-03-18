@@ -49,8 +49,9 @@ method Cota (ps : Solution, input : Input) returns (cota : real)
   ensures forall s : SolutionData | && |s.itemsAssign| == |ps.Model().itemsAssign|
                                     && s.k == |s.itemsAssign| 
                                     && ps.k <= s.k
-                                    && s.Extends(ps.Model()) :: 
-                                    s.TotalValue(input.Model().items) <= cota
+                                    && s.Extends(ps.Model())
+                                    && s.Valid(input.Model())
+                                    :: s.TotalValue(input.Model().items) <= cota
 {
   ghost var ps' := SolutionData(ps.Model().itemsAssign, ps.k);
   assert |ps'.itemsAssign| == |ps.Model().itemsAssign|;

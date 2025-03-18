@@ -73,8 +73,8 @@ method {:only} Cota(ps : Solution, input : Input) returns (cota : real)
                                     && s.k == |s.employeesAssign|
                                     && ps.k <= s.k
                                     && s.Extends(ps.Model())
-                                    && s.Explicit(input.Model().times)
-            :: s.TotalTime(input.Model().times) >= cota
+                                    && s.Valid(input.Model())
+                                    :: s.TotalTime(input.Model().times) >= cota
 {
   assert forall f,c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: input.times[f,c] > 0.0;
 

@@ -67,14 +67,14 @@ En este caso, la cota estima que el tiempo que van a tardar el resto de funciona
 //
 Verificación: usando el lema GreaterOrEqualTimeFromExtends.
 */
-method Cota(ps : Solution, input :Input) returns (cota : real)
+method Cota(ps : Solution, input : Input) returns (cota : real)
   requires input.Valid()
   requires ps.Partial(input)
   ensures forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
                                     && s.k == |s.employeesAssign|
                                     && ps.k <= s.k
                                     && s.Extends(ps.Model())
-                                    && s.Explicit(input.Model().times) 
+                                    && s.Valid(input.Model())
                                     :: s.TotalTime(input.Model().times) >= cota
 {
   cota := ps.totalTime + 0.0;
@@ -85,7 +85,7 @@ method Cota(ps : Solution, input :Input) returns (cota : real)
                                     && ps.k <= s.k
                                     && s.Extends(ps.Model())
                                     && s.Explicit(input.Model().times) 
-  ensures s.TotalTime(input.Model().times) >= cota 
+  ensures s.TotalTime(input.Model().times) >= cota
   {
     /* s.totalTime debe ser como mínimo ps.totalTime debido a que s extiende de ps */
       ps.Model().GreaterOrEqualTimeFromExtends(s, input.Model());
