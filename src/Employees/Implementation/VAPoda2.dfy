@@ -66,9 +66,12 @@ Método:
 //
 Verificación
 */
-method {:only} Cota(ps : Solution, input : Input) returns (cota : real)
+method {:only} Cota(ps : Solution, input : Input, min : real) returns (cota : real)
   requires input.Valid()
   requires ps.Partial(input)
+  // requires exists k, l | 0 <= k < input.times.Length0 && 0 <= l < input.times.Length1 :: min == input.times[k, l]
+  // requires forall f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: min <= input.times[f, c]
+  requires input.IsMin(min, 0)
   ensures forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
                                     && s.k == |s.employeesAssign|
                                     && ps.k <= s.k
@@ -76,40 +79,9 @@ method {:only} Cota(ps : Solution, input : Input) returns (cota : real)
                                     && s.Valid(input.Model())
                                     :: s.TotalTime(input.Model().times) >= cota
 {
-  assert forall f,c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: input.times[f,c] > 0.0;
-
-  var min := input.times[0, 0];
-  var oldmin := min;
-  assert 0.0 < min == oldmin <= input.times[0, 0];
-  assert (exists k, l | 0 <= k < input.times.Length0 && 0 <= l < input.times.Length1 :: min == input.times[k, l]);
-  assert (exists k, l | 0 <= k < input.times.Length0 && 0 <= l < input.times.Length1 :: oldmin == input.times[k, l]);
-
-  for i := 0 to input.times.Length0
-    invariant forall f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: input.times[f, c] > 0.0
-    //invariant forall f, c | 0 <= f < i && 0 <= c < input.times.Length1 :: min <= input.times[f-1, c]
-    //invariant exists f, c | 0 <= f < i && 0 <= c < input.times.Length1 :: min == input.times[f-1,c]
-  {
-    for j := 0 to input.times.Length1
-      invariant forall f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: input.times[f, c] > 0.0
-      //invariant forall f, c | 0 <= f < i && 0 <= c < j :: 0.0 < min <= input.times[f, c]
-      //invariant exists f, c | 0 <= f < i && 0 <= c < j :: min == input.times[f, c]
-    {
-      oldmin := min;
-      if input.times[i, j] <= min {
-        min := input.times[i, j];
-        assert min == input.times[i,j] > 0.0;
-        assert exists f, c | 0 <= f <= i && 0 <= c <= j :: min == input.times[f, c] == input.times[i,j];
-      }
-
-      assert oldmin >= min;
-      assert min <= input.times[i, j];
-      assert forall f,c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: input.times[f,c] > 0.0;
-    }
-  }
-
-  var n := ps.employeesAssign.Length as real;
-  var k := ps.k as real;
-  cota := ps.totalTime + ((n - k) * min);
+  
+  var rest : real := (ps.employeesAssign.Length - ps.k - 1) as real;
+  cota := ps.totalTime + (rest * min);
 
   forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
                             && s.k == |s.employeesAssign|
@@ -122,7 +94,7 @@ method {:only} Cota(ps : Solution, input : Input) returns (cota : real)
     assert s.TotalTime(input.Model().times) >= ps.totalTime;
     var resto := s.TotalTime(input.Model().times) - ps.totalTime;
 
-    assert resto >= ((n - k) * min) by {
+    assert resto >= (rest * min) by {
       assert s.Extends(ps.Model());      
       assume false;
     }
@@ -187,7 +159,7 @@ También se añaden los asertos necesarios para verificar dos de los invariantes
 
 - invariante: bs es mejor que todas las ramas anteriores que han sido exploradas
 */
-method EmployeesVA(input: Input, ps: Solution, bs: Solution)
+method EmployeesVA(input: Input, ps: Solution, bs: Solution, min : real)
   decreases ps.Bound(),1 // Función de cota
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -198,6 +170,8 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
   requires bs.employeesAssign != ps.employeesAssign
   requires bs.tasks != ps.tasks
   requires bs != ps
+  requires exists k, l | 0 <= k < input.times.Length0 && 0 <= l < input.times.Length1 :: min == input.times[k, l]
+  requires forall f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: min <= input.times[f, c]
 
   ensures ps.Partial(input)
   ensures ps.Model().Equals(old(ps.Model())) // las ps actual y antigua deben ser iguales hasta la k
@@ -248,7 +222,7 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
 
       /* La tarea t no ha sido asignada a ningún funcionario */
       if (!ps.tasks[t]) {
-        EmployeesVARecursiveCase(input, ps, bs, t);
+        EmployeesVARecursiveCase(input, ps, bs, t, min);
       }
       /* La tarea t ya ha sido asignada a un funcionario */
       else {
@@ -376,7 +350,7 @@ Método:
 //
 Verificación
 */
-method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int)
+method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int, min : real)
   decreases ps.Bound(),0 // Función de cota
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -458,9 +432,9 @@ method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : in
     }
   }
 
-  var cota := Cota(ps, input);
+  var cota := Cota(ps, input, min);
   if (cota <= bs.totalTime) {
-    EmployeesVA(input, ps, bs);
+    EmployeesVA(input, ps, bs, min);
   }
 
   assert ps.Model().Equals(old(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k+1)));

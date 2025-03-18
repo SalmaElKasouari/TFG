@@ -12,7 +12,7 @@ Estructura del fichero:
 
 include "../../Math.dfy"
 include "../../ContainersOps.dfy"
-include "VA.dfy"
+include "VAPoda2.dfy"
 include "Input.dfy"
 include "Solution.dfy"
 
@@ -83,7 +83,8 @@ method ComputeSolution(input: Input) returns (bs: Solution)
   }
 
   /* Llamada inicial de la vuelta atrás */
-  EmployeesVA(input, ps, bs);
+  var min := Precalculation(input);
+  EmployeesVA(input, ps, bs, min);
 
   /* Primera postcondición: bs.Valid(input)
    Se verifica gracias a la postcondición en VA que asegura que bs es válida.
@@ -101,34 +102,26 @@ method ComputeSolution(input: Input) returns (bs: Solution)
 }
 
 method Precalculation(input : Input) returns (min : real)
-  requires 0 < input.times.Length0
-  requires 0 < input.times.Length1
-  ensures exists k, l | 0 <= k < input.times.Length0 && 0 <= l < input.times.Length1 :: min == input.times[k, l]
-  ensures forall f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: min <= input.times[f, c]
+  requires input.Valid()
+  ensures input.IsMin(min, 0)
+  //   ensures exists k, l | 0 <= k < input.times.Length0 && 0 <= l < input.times.Length1 :: min == input.times[k, l]
+  //   ensures forall f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: min <= input.times[f, c]
 {
 
   min := input.times[0, 0];
-  var oldmin := min;
-  assert min == oldmin <= input.times[0, 0];
-  assert (exists k, l | 0 <= k < input.times.Length0 && 0 <= l < input.times.Length1 :: min == input.times[k, l]);
-  assert (exists k, l | 0 <= k < input.times.Length0 && 0 <= l < input.times.Length1 :: oldmin == input.times[k, l]);
 
   for i := 0 to input.times.Length0
     invariant forall f, c | 0 <= f < i && 0 <= c < input.times.Length1 :: min <= input.times[f, c]
-    invariant exists f, c | 0 <= f < i && 0 <= c < input.times.Length1 :: min == input.times[f,c]
+    invariant exists f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: min == input.times[f,c]
   {
     for j := 0 to input.times.Length1
-      invariant forall f, c | 0 <= f < i && 0 <= c < j :: min <= input.times[f, c]
-      invariant exists f, c | 0 <= f < i && 0 <= c < j :: min == input.times[f, c]
+      invariant forall f, c | 0 <= f < i && 0 <= c < input.times.Length1 :: min <= input.times[f, c]
+      invariant forall c | 0 <= c < j :: min <= input.times[i,c]
+      invariant exists f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: min == input.times[f, c]
     {
-      oldmin := min;
       if input.times[i, j] <= min {
         min := input.times[i, j];
-        assert exists f, c | 0 <= f <= i && 0 <= c <= j :: min == input.times[f, c] == input.times[i,j];
       }
-      assert exists f, c | 0 <= f <= i && 0 <= c <= j :: min == input.times[f, c] == input.times[i,j];
-      assert oldmin >= min;
-      assert min <= input.times[i, j];
     }
   }
 }

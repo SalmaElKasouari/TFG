@@ -61,4 +61,13 @@ class Input {
   {
     InputData(Array2ToSeqSeq(times, times.Length0))
   }
+
+  ghost predicate IsMin(min : real, f : int)
+  reads this, times
+  requires this.Valid()
+  requires 0 <= f < this.times.Length0
+  {
+    && (exists k, l | f <= k < this.times.Length0 && 0 <= l < this.times.Length1 :: min == this.times[k, l])
+    && (forall i, j | f <= i < this.times.Length0 && 0 <= j < this.times.Length1 :: min <= this.times[i, j])
+  }
 }
