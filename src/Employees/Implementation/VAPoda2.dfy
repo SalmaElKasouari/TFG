@@ -77,9 +77,9 @@ method {:only} Cota(ps : Solution, input : Input, min : real) returns (cota : re
                                     && ps.k <= s.k
                                     && s.Extends(ps.Model())
                                     && s.Valid(input.Model())
-                                    :: s.TotalTime(input.Model().times) >= cota
+            :: s.TotalTime(input.Model().times) >= cota
 {
-  
+
   var rest : real := (ps.employeesAssign.Length - ps.k - 1) as real;
   cota := ps.totalTime + (rest * min);
 
@@ -87,54 +87,27 @@ method {:only} Cota(ps : Solution, input : Input, min : real) returns (cota : re
                             && s.k == |s.employeesAssign|
                             && ps.k <= s.k
                             && s.Extends(ps.Model())
-                            && s.Explicit(input.Model().times)
+                            && s.Valid(input.Model())
     ensures s.TotalTime(input.Model().times) >= cota
   {
-    ps.Model().GreaterOrEqualTimeFromExtends(s, input.Model());
-    assert s.TotalTime(input.Model().times) >= ps.totalTime;
+
+    assert ps.totalTime == ps.Model().TotalTime(input.Model().times);
+
     var resto := s.TotalTime(input.Model().times) - ps.totalTime;
 
-    assert resto >= (rest * min) by {
-      assert s.Extends(ps.Model());      
-      assume false;
+    assert s.TotalTime(input.Model().times) >= ps.totalTime + (rest * min) by {
+      assert ps.totalTime == ps.Model().TotalTime(input.Model().times);
+      assert s.Extends(ps.Model());
+      assert input.IsMin(min, 0);
+      ps.Model().GreaterOrEqualTimeFromExtends(s, input.Model());
+      assert s.TotalTime(input.Model().times) >= ps.totalTime;
+      assert forall i | 0 <= i < ps.k :: min <= input.times[i, ps.Model().employeesAssign[i]];
+      assert forall i | 0 <= i < ps.k :: s.employeesAssign[i] == ps.employeesAssign[i];
+      assert forall i | ps.k <= i < |s.employeesAssign| :: min <= input.times[i, s.employeesAssign[i]];
+
     }
   }
 }
-
-// method {:only} Cota2(ps : Solution, input : Input, min : real) returns (cota : real)
-//   requires input.Valid()
-//   requires ps.Partial(input)
-//   requires forall i,j | 0 <= i < input.times.Length0 && 0 <= j < input.times.Length1 :: min <= input.times[i,j]
-//   requires exists i,j | 0 <= i < input.times.Length0 && 0 <= j < input.times.Length1 :: min == input.times[i,j]
-//   ensures forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
-//                                     && s.k == |s.employeesAssign|
-//                                     && ps.k <= s.k
-//                                     && s.Extends(ps.Model())
-//                                     && s.Explicit(input.Model().times)
-//             :: s.TotalTime(input.Model().times) >= cota
-// {
-//   var n := ps.employeesAssign.Length as real;
-//   var k := ps.k as real;
-//   cota := ps.totalTime + ((n - k) * min);
-
-//   forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
-//                             && s.k == |s.employeesAssign|
-//                             && ps.k <= s.k
-//                             && s.Extends(ps.Model())
-//                             && s.Explicit(input.Model().times)
-//     ensures s.TotalTime(input.Model().times) >= cota
-//   {
-//     ps.Model().GreaterOrEqualTimeFromExtends(s, input.Model());
-//     assert s.TotalTime(input.Model().times) >= ps.totalTime;
-//     var resto := s.TotalTime(input.Model().times) - ps.totalTime;
-
-//     assert resto >= ((n - k) * min) by {
-//       assert s.Extends(ps.Model());
-     
-//     }
-//   }
-// }
-
 
 
 /* 

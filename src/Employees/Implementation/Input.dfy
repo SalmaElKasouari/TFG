@@ -67,7 +67,7 @@ class Input {
   requires this.Valid()
   requires 0 <= f < this.times.Length0
   {
-    && (exists k, l | f <= k < this.times.Length0 && 0 <= l < this.times.Length1 :: min == this.times[k, l])
+    && (exists i, j | f <= i < this.times.Length0 && 0 <= j < this.times.Length1 :: min == this.times[i, j])
     && (forall i, j | f <= i < this.times.Length0 && 0 <= j < this.times.Length1 :: min <= this.times[i, j])
   }
 }
