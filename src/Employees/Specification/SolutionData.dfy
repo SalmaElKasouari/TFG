@@ -167,6 +167,26 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     s1.EqualTimeFromEquals(SolutionData(s2.employeesAssign, s2.k-1), input);
   }
 
+  static lemma {:only} AddTimes(ps : SolutionData, s: SolutionData, input : InputData, min : real) // s1 viejo, s2 nuevo
+    requires input.Valid()
+    requires 0 < |input.times|
+    requires input.IsMin(min, 0)
+    requires |ps.employeesAssign| == |s.employeesAssign|
+    requires ps.Partial(input)
+    requires|s.employeesAssign| == |ps.employeesAssign|
+            && s.k == |s.employeesAssign|
+            && ps.k <= s.k
+            && s.Extends(ps)
+            && s.Valid(input)
+    ensures s.TotalTime(input.times) >= ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min
+  {
+    assert forall t | 0 <= t < |ps.employeesAssign| :: input.times[ps.k][t] >= min;
+    var ps' := SolutionData(ps.employeesAssign[ps.k := s.employeesAssign[ps.k]], ps.k + 1);
+    assert ps'.TotalTime(input.times) >= ps.TotalTime(input.times) + min;
+    AddTimes(ps', s, input, min);
+    assume false;
+  }
+
 
   /*
   Lema: si dos soluciones (this y s) son idénticas (igualdad de campos), entonces tienen la misma sumas de timpos. 
@@ -218,7 +238,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
 
     assert this.OptimalExtension(ps2, input) by {
       assert ps2.Partial(input) by {
-          ps1.EqualTimeFromEquals(ps2, input);
+        ps1.EqualTimeFromEquals(ps2, input);
       }
       assert this.Extends(ps2);
       assert forall s : SolutionData | s.Valid(input) && s.Extends(ps2) :: s.TotalTime(input.times) >= this.TotalTime(input.times);

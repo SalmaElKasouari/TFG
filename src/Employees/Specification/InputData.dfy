@@ -27,4 +27,12 @@ datatype InputData = InputData(times : seq<seq<real>>) {
     && (forall i | 0 <= i < |times| :: |times[i]| == |times|)
     && forall i, j | 0 <= i < |times| && 0 <= j < |times[i]| :: times[i][j] > 0.0
   }
+
+  ghost predicate IsMin(min : real, f : int)
+  requires this.Valid()
+  requires 0 <= f < |this.times|
+  {
+    && (exists i, j | f <= i < |this.times| && 0 <= j < |times[i]| :: min == this.times[i][j])
+    && (forall i, j | f <= i < |this.times| && 0 <= j < |times[i]| :: min <= this.times[i][j])
+  }
 }

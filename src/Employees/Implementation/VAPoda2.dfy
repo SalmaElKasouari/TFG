@@ -102,6 +102,8 @@ method {:only} Cota(ps : Solution, input : Input, min : real) returns (cota : re
       ps.Model().GreaterOrEqualTimeFromExtends(s, input.Model());
       assert s.TotalTime(input.Model().times) >= ps.totalTime;
       assert forall i | 0 <= i < ps.k :: min <= input.times[i, ps.Model().employeesAssign[i]];
+      var s' := SolutionData(s.employeesAssign, ps.k);
+      //assert s'.TotalTime(input.Model().times) == ps.totalTime;
       assert forall i | ps.k <= i < |s.employeesAssign| :: min <= input.times[i, s.employeesAssign[i]];
       assume diferencia >= (rest * min);
     }
