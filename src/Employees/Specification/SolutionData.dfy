@@ -167,7 +167,8 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     s1.EqualTimeFromEquals(SolutionData(s2.employeesAssign, s2.k-1), input);
   }
 
-  static lemma {:only} AddTimes(ps : SolutionData, s: SolutionData, input : InputData, min : real) // s1 viejo, s2 nuevo
+  static lemma AddTimesLowerBound(ps : SolutionData, s: SolutionData, input : InputData, min : real) // s1 viejo, s2 nuevo
+    decreases s.k - ps.k
     requires input.Valid()
     requires 0 < |input.times|
     requires input.IsMin(min, 0)
@@ -180,11 +181,27 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
             && s.Valid(input)
     ensures s.TotalTime(input.times) >= ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min
   {
-    assert forall t | 0 <= t < |ps.employeesAssign| :: input.times[ps.k][t] >= min;
-    var ps' := SolutionData(ps.employeesAssign[ps.k := s.employeesAssign[ps.k]], ps.k + 1);
-    assert ps'.TotalTime(input.times) >= ps.TotalTime(input.times) + min;
-    AddTimes(ps', s, input, min);
-    assume false;
+    
+    if (ps.k == s.k) { 
+      assert s.Equals(ps);
+      s.EqualTimeFromEquals(ps,input);
+      assert s.TotalTime(input.times) == ps.TotalTime(input.times); }
+    else{
+    
+      var ps' := SolutionData(ps.employeesAssign[ps.k := s.employeesAssign[ps.k]], ps.k + 1);
+      AddTimeMaintainsSumConsistency(ps,ps',input);
+      assert ps'.TotalTime(input.times) == ps.TotalTime(input.times) + input.times[ps.k][s.employeesAssign[ps.k]];
+      assert ps'.TotalTime(input.times) >= ps.TotalTime(input.times) + min;
+    
+      AddTimesLowerBound(ps', s, input, min);
+      calc{
+       s.TotalTime(input.times); 
+       >= ps'.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min; 
+       >= ps.TotalTime(input.times) + min + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min;
+       {assert min + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min == ((|ps.employeesAssign| - ps.k) as real) * min;}
+       ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min;
+      }
+    }
   }
 
 
