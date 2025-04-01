@@ -66,7 +66,7 @@ Método:
 //
 Verificación
 */
-method {:only} Cota(ps : Solution, input : Input, min : real) returns (cota : real)
+method Cota(ps : Solution, input : Input, min : real) returns (cota : real)
   requires input.Valid()
   requires ps.Partial(input)
   // requires exists k, l | 0 <= k < input.times.Length0 && 0 <= l < input.times.Length1 :: min == input.times[k, l]
