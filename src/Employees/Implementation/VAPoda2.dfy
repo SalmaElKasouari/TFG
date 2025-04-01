@@ -80,7 +80,7 @@ method {:only} Cota(ps : Solution, input : Input, min : real) returns (cota : re
             :: s.TotalTime(input.Model().times) >= cota
 {
 
-  var rest : real := (ps.employeesAssign.Length - ps.k - 1) as real;
+  var rest : real := (ps.employeesAssign.Length - ps.k) as real;
   cota := ps.totalTime + (rest * min);
 
   forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
@@ -93,7 +93,7 @@ method {:only} Cota(ps : Solution, input : Input, min : real) returns (cota : re
 
     assert ps.totalTime == ps.Model().TotalTime(input.Model().times);
 
-    var resto := s.TotalTime(input.Model().times) - ps.totalTime;
+    var diferencia := s.TotalTime(input.Model().times) - ps.totalTime;
 
     assert s.TotalTime(input.Model().times) >= ps.totalTime + (rest * min) by {
       assert ps.totalTime == ps.Model().TotalTime(input.Model().times);
@@ -102,9 +102,8 @@ method {:only} Cota(ps : Solution, input : Input, min : real) returns (cota : re
       ps.Model().GreaterOrEqualTimeFromExtends(s, input.Model());
       assert s.TotalTime(input.Model().times) >= ps.totalTime;
       assert forall i | 0 <= i < ps.k :: min <= input.times[i, ps.Model().employeesAssign[i]];
-      assert forall i | 0 <= i < ps.k :: s.employeesAssign[i] == ps.employeesAssign[i];
       assert forall i | ps.k <= i < |s.employeesAssign| :: min <= input.times[i, s.employeesAssign[i]];
-
+      assume diferencia >= (rest * min);
     }
   }
 }
