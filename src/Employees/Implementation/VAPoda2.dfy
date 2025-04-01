@@ -69,8 +69,6 @@ Verificación
 method Cota(ps : Solution, input : Input, min : real) returns (cota : real)
   requires input.Valid()
   requires ps.Partial(input)
-  // requires exists k, l | 0 <= k < input.times.Length0 && 0 <= l < input.times.Length1 :: min == input.times[k, l]
-  // requires forall f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: min <= input.times[f, c]
   requires input.IsMin(min, 0)
   ensures forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
                                     && s.k == |s.employeesAssign|
