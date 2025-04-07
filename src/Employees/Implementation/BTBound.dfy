@@ -11,8 +11,8 @@ Estructura del fichero:
     - ForallBranchesIsOptimalExtension:
 
   Métodos
-    - Cota: calcula la cota que estima que el resto del tiempo de la solución es nulo.
-    - EmployeesVA: Punto de partida para ejecutar el algoritmo VA.
+    - Bound: calcula la bound que estima que el resto del tiempo de la solución es nulo.
+    - EmployeesVA: Punto de partida para ejecutar el algoritmo BT.
     - EmployeesVABaseCase: Define la condición de terminación.
     - EmployeesVARecursiveCase: Considera una tarea específica.
 
@@ -61,13 +61,13 @@ ghost predicate ForallBranchesIsOptimalExtension(bs : SolutionData, ps : Solutio
 /* Métodos */
 
 /*
-Método: cálculo de la cota. Al tratarse de un problema de minimización (minimizar el tiempo que tardan los 
-funcionarios en realizar las tareas), necesitamos una cota inferior del tiempo de la mejor solución alcanzable. 
-En este caso, la cota estima que el tiempo que van a tardar el resto de funcionarios en hacer sus tareas es 0.
+Método: cálculo de la bound. Al tratarse de un problema de minimización (minimizar el tiempo que tardan los 
+funcionarios en realizar las tareas), necesitamos una bound inferior del tiempo de la mejor solución alcanzable. 
+En este caso, la bound estima que el tiempo que van a tardar el resto de funcionarios en hacer sus tareas es 0.
 //
 Verificación: usando el lema GreaterOrEqualTimeFromExtends.
 */
-method Cota(ps : Solution, input : Input) returns (cota : real)
+method Bound(ps : Solution, input : Input) returns (bound : real)
   requires input.Valid()
   requires ps.Partial(input)
   ensures forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
@@ -75,17 +75,17 @@ method Cota(ps : Solution, input : Input) returns (cota : real)
                                     && ps.k <= s.k
                                     && s.Extends(ps.Model())
                                     && s.Valid(input.Model())
-                                    :: s.TotalTime(input.Model().times) >= cota
+                                    :: s.TotalTime(input.Model().times) >= bound
 {
-  cota := ps.totalTime + 0.0;
-  assert cota == ps.Model().TotalTime(input.Model().times);
+  bound := ps.totalTime + 0.0;
+  assert bound == ps.Model().TotalTime(input.Model().times);
 
   forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
                                     && s.k == |s.employeesAssign|
                                     && ps.k <= s.k
                                     && s.Extends(ps.Model())
                                     && s.Valid(input.Model()) 
-  ensures s.TotalTime(input.Model().times) >= cota
+  ensures s.TotalTime(input.Model().times) >= bound
   {
     /* s.totalTime debe ser como mínimo ps.totalTime debido a que s extiende de ps */
       ps.Model().GreaterOrEqualTimeFromExtends(s, input.Model());
@@ -94,10 +94,10 @@ method Cota(ps : Solution, input : Input) returns (cota : real)
 
 
 /* 
-Método: punto de partida del algoritmo VA. El método explora todas las posibles asignaciones funcionario-tarea, 
+Método: punto de partida del algoritmo BT. El método explora todas las posibles asignaciones funcionario-tarea, 
 respetando las restricciones del problema y seleccionando la asignación que minimice el tiempo total.
 Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
-  - ps es la solución parcial que se va llenando durante el proceso de vuelta atrás.
+  - ps es la solución parcial que se bt llenando durante el proceso de vuelta atrás.
   - bs mantiene la mejor solución encontrada hasta el momento.
 El árbol de búsqueda es un árbol n-ario donde:
   - Cada etapa del árbol representa al funcionario que estamos tratanto.
@@ -116,7 +116,7 @@ También se añaden los asertos necesarios para verificar dos de los invariantes
 - invariante: bs es mejor que todas las ramas anteriores que han sido exploradas
 */
 method EmployeesVA(input: Input, ps: Solution, bs: Solution)
-  decreases ps.Bound(),1 // Función de cota
+  decreases ps.Bound(),1 // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
 
@@ -240,7 +240,7 @@ Método:
 Verificación
 */
 method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
-  decreases ps.Bound() // Función de cota
+  decreases ps.Bound() // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
 
@@ -305,7 +305,7 @@ Método:
 Verificación
 */
 method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int)
-  decreases ps.Bound(),0 // Función de cota
+  decreases ps.Bound(),0 // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
 
@@ -386,8 +386,8 @@ method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : in
     }
   }
 
-  var cota := Cota(ps, input);
-  if (cota <= bs.totalTime) {
+  var bound := Bound(ps, input);
+  if (bound <= bs.totalTime) {
     EmployeesVA(input, ps, bs);
   }
 

@@ -11,7 +11,7 @@ Estructura del fichero:
     - ForallBranchesIsOptimalExtension:
 
   Métodos
-    - EmployeesVA: Punto de partida para ejecutar el algoritmo VA.
+    - EmployeesVA: Punto de partida para ejecutar el algoritmo BT.
     - EmployeesVABaseCase: Define la condición de terminación.
     - EmployeesVARecursiveCase: Considera una tarea específica.
 
@@ -55,10 +55,10 @@ ghost predicate ForallBranchesIsOptimalExtension(bs : SolutionData, ps : Solutio
 
 
 /* 
-Método: punto de partida del algoritmo VA. El método explora todas las posibles asignaciones funcionario-tarea, 
+Método: punto de partida del algoritmo BT. El método explora todas las posibles asignaciones funcionario-tarea, 
 respetando las restricciones del problema y seleccionando la asignación que minimice el tiempo total.
 Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
-  - ps es la solución parcial que se va llenando durante el proceso de vuelta atrás.
+  - ps es la solución parcial que se bt llenando durante el proceso de vuelta atrás.
   - bs mantiene la mejor solución encontrada hasta el momento.
 El árbol de búsqueda es un árbol n-ario donde:
   - Cada etapa del árbol representa al funcionario que estamos tratanto.
@@ -77,7 +77,7 @@ También se añaden los asertos necesarios para verificar dos de los invariantes
 - invariante: bs es mejor que todas las ramas anteriores que han sido exploradas
 */
 method EmployeesVA(input: Input, ps: Solution, bs: Solution)
-  decreases ps.Bound(),1 // Función de cota
+  decreases ps.Bound(),1 // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
 
@@ -196,7 +196,7 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
 }
 
 method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
-  decreases ps.Bound() // Función de cota
+  decreases ps.Bound() // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
 
@@ -256,7 +256,7 @@ method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
 }
 
 method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int)
-  decreases ps.Bound(),0 // Función de cota
+  decreases ps.Bound(),0 // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
 

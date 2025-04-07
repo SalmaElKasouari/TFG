@@ -209,7 +209,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   el valor del nuevo elemento.
   //
   Propósito: garantizar la consistencia de los datos entre las versiones antigua y actual del modelo de la solución 
-  en el lema PartialConsistency de VA.dfy.
+  en el lema PartialConsistency de BT.dfy.
   //
   Demostración: mediante el lema EqualValueWeightFromEquals.
   */
@@ -236,7 +236,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   el peso/valor del objeto como se ve en la definición de Totalweight y TotalValue).
   //
   Propósito: demostrar que ps sigue siendo Partial después de asignar el objeto k a false en KnapsackVAFalseBranch 
-  de VA.dfy.
+  de BT.dfy.
   //
   Demostración: mediante el lema EqualValueWeightFromEquals.
   */
@@ -288,9 +288,9 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   iguales al peso total y valor total de ps. Esto es por que el contenido de employeesAssign de cada solución es 
   igual hasta this.k.
   //
-  Propósito: demostrar el lema InvalidExtensionsFromInvalidPs de VA.dfy.
+  Propósito: demostrar el lema InvalidExtensionsFromInvalidPs de BT.dfy.
   //
-  Demostración: mediante inducción en s, esta se va reduciendo hasta this.k.
+  Demostración: mediante inducción en s, esta se bt reduciendo hasta this.k.
   */
   lemma {:induction s} GreaterOrEqualValueWeightFromExtends(s: SolutionData, input: InputData)
     decreases s.k
@@ -317,7 +317,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   Lema: dadas dos soluciones parciales ps1 y ps2 que son idénticas (igualdad de campos) y 
   sabiendo que bs es una extension óptima de ps1, entonces bs también es extensión optima de ps2.
   //
-  Propósito: verificar que bs es la extensión óptima de ps al salir de la rama true en KnapsackVA de VA.dfy.
+  Propósito: verificar que bs es la extensión óptima de ps al salir de la rama true en KnapsackVA de BT.dfy.
   //
   Demostración: mediante el lema EqualValueWeightFromEquals.
   */
@@ -348,9 +348,9 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
   /* 
   Lema: dada una solución parcial ps y otra solución ps' que extiende a ella con todos las asignaciones a true, 
-  entonces ps' siempre es cota superior de cualquier otra extensión de ps.
+  entonces ps' siempre es bound superior de cualquier otra extensión de ps.
   //
-  Propósito: verificar el método Cota en VAPoda.dfy.
+  Propósito: verificar el método Bound en BTBound.dfy.
   //
   Demostración: usando los lemas EqualValueWeightFromEquals y AllTruesIsUpperBound.
   */
@@ -381,7 +381,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
   /* 
   Lema: dada una solución parcial ps, una solución completa ps' que extiende a ella con todos las asignaciones a 
-  true, y otra solución completa s que extiende a ps, entonces ps' es cota superior a s.
+  true, y otra solución completa s que extiende a ps, entonces ps' es bound superior a s.
   //
   Propósito: demostrar el lema AllTruesIsUpperBoundForAll.
   //

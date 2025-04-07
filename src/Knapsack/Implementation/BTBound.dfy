@@ -6,14 +6,14 @@ los objetos que se deben tratar, mientras que las ramas del árbol representan l
 no un objeto en la solución. Se incluye una poda.
 
 Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
-  - ps es la solución parcial que se va llenando durante el proceso de vuelta atrás.
+  - ps es la solución parcial que se bt llenando durante el proceso de vuelta atrás.
   - bs mantiene la mejor solución encontrada hasta el momento.
 
 
 Estructura del fichero:
    Métodos
-    - Cota: calcula la cota que selecciona todos los items restantes para podar el árbol de exploración.
-    - KnapsackVA: Punto de partida para ejecutar el algoritmo VA.
+    - Bound: calcula la bound que selecciona todos los items restantes para podar el árbol de exploración.
+    - KnapsackVA: Punto de partida para ejecutar el algoritmo BT.
     - KnapsackVABaseCase: Define la condición de terminación.
     - KnapsackVAFalseBranch: Considera no incluir un elemento en la mochila.
     - KnapsackVATrueBranch: Considera incluir un elemento en la mochila.
@@ -37,13 +37,13 @@ include "Input.dfy"
 /* Métodos */
 
 /*
-Método: cálculo de la cota. Al tratarse de un problema de maximización (maximizar el valor de los objetos), necesitamos 
-una cota superior del valor de la mejor solución alcanzable. En este caso, la cota consiste en seleccionar todos 
+Método: cálculo de la bound. Al tratarse de un problema de maximización (maximizar el valor de los objetos), necesitamos 
+una bound superior del valor de la mejor solución alcanzable. En este caso, la bound consiste en seleccionar todos 
 los objetos restantes.
 //
 Verificación: usando el lema AllTruesIsUpperBoundForAll.
 */
-method Cota (ps : Solution, input : Input) returns (cota : real)
+method Bound (ps : Solution, input : Input) returns (bound : real)
   requires input.Valid()
   requires ps.Partial(input)
   ensures forall s : SolutionData | && |s.itemsAssign| == |ps.Model().itemsAssign|
@@ -51,24 +51,24 @@ method Cota (ps : Solution, input : Input) returns (cota : real)
                                     && ps.k <= s.k
                                     && s.Extends(ps.Model())
                                     && s.Valid(input.Model())
-                                    :: s.TotalValue(input.Model().items) <= cota
+                                    :: s.TotalValue(input.Model().items) <= bound
 {
   ghost var ps' := SolutionData(ps.Model().itemsAssign, ps.k);
   assert |ps'.itemsAssign| == |ps.Model().itemsAssign|;
-  cota := ps.totalValue;
+  bound := ps.totalValue;
 
-  assert cota == ps'.TotalValue(input.Model().items);
+  assert bound == ps'.TotalValue(input.Model().items);
  
   for i := ps.k to ps.itemsAssign.Length
     invariant ps.k <= ps'.k <= |ps'.itemsAssign| == |ps.Model().itemsAssign|
     invariant ps'.Extends(ps.Model())
     invariant forall j | ps.k <= j < i :: ps'.itemsAssign[j]
     invariant i == ps'.k
-    invariant cota == ps'.TotalValue(input.Model().items)
+    invariant bound == ps'.TotalValue(input.Model().items)
   {
     var oldps' := ps';
     ps' := SolutionData(ps'.itemsAssign[ps'.k := true], ps'.k+1);
-    cota := cota + input.items[i].value;
+    bound := bound + input.items[i].value;
     SolutionData.AddTrueMaintainsSumConsistency(oldps', ps', input.Model());
   }
   SolutionData.AllTruesIsUpperBoundForAll(ps.Model(), ps', input.Model());
@@ -76,7 +76,7 @@ method Cota (ps : Solution, input : Input) returns (cota : real)
 
 
 /* 
-Método: punto de partida del algoritmo VA. El método explora todas las posibles asignaciones de objetos, 
+Método: punto de partida del algoritmo BT. El método explora todas las posibles asignaciones de objetos, 
 respetando las restricciones de peso maxWeight) y seleccionando las combinaciones que maximicen el valor total.
 En este contexto, se inicializa bs con todo a false, ya que es un problema de maximización (se busca el valor
 más alto). El árbol de búsqueda es un árbol binario que cuenta con dos ramas:
@@ -96,7 +96,7 @@ Verfificación:
     que los valores de peso y valor se mantengan consistentes con el estado anterior.
 */
 method KnapsackVA(input: Input, ps: Solution, bs: Solution)
-  decreases ps.Bound(),1 // Función de cota
+  decreases ps.Bound(),1 // Función de bound
   modifies ps`totalValue, ps`totalWeight, ps`k, ps.itemsAssign
   modifies bs`totalValue, bs`totalWeight, bs`k, bs.itemsAssign
 
@@ -184,7 +184,7 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
 
 
 /* 
-Método: Caso base del algoritmo VA (cuando ya se han tratado todos los objetos). Comparte todas las precondiciones 
+Método: Caso base del algoritmo BT (cuando ya se han tratado todos los objetos). Comparte todas las precondiciones 
 y postcondiciones que KnapsackVA pero incluye la precondicion de que la etapa del arbol de exploración (k) es igual
 que número de objetos de la entrada.
 //
@@ -198,7 +198,7 @@ Verificación:
   el valor de bs, se asegura que bs sigue almacenando la solución óptima.
 */
 method KnapsackVABaseCase(input: Input, ps: Solution, bs: Solution)
-  decreases ps.Bound() // Función de cota
+  decreases ps.Bound() // Función de bound
   modifies ps`totalValue, ps`totalWeight, ps`k, ps.itemsAssign
   modifies bs`totalValue, bs`totalWeight, bs`k, bs.itemsAssign
 
@@ -257,7 +257,7 @@ method KnapsackVABaseCase(input: Input, ps: Solution, bs: Solution)
 
 
 /* 
-Método: rama false del algoritmo VA: método que trata la rama de NO coger el objeto. Comparte todas las 
+Método: rama false del algoritmo BT: método que trata la rama de NO coger el objeto. Comparte todas las 
 precondiciones y postcondiciones que KnapsackVA pero incluye la precondicion de que la etapa del arbol de 
 exploración (k) es menor que número de objetos de la entrada.
   - Se asigna la posición actual (ps.k) a false en ps.itemsAssign, lo que significa que el objeto no se selecciona.  
@@ -273,7 +273,7 @@ Verificación:
   del retroceso.
 */
 method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
-  decreases ps.Bound(),0 // Función de cota
+  decreases ps.Bound(),0 // Función de bound
   modifies ps`totalValue, ps`totalWeight, ps`k, ps.itemsAssign
   modifies bs`totalValue, bs`totalWeight, bs`k, bs.itemsAssign
 
@@ -315,8 +315,8 @@ method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
     input.InputDataItems(ps.k-1);
   }
 
-  var cota := Cota(ps, input);
-  if (cota >= bs.totalValue) {
+  var bound := Bound(ps, input);
+  if (bound >= bs.totalValue) {
     KnapsackVA(input, ps, bs);
   }
 
@@ -337,7 +337,7 @@ method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
 }
 
 /* 
-Método: Rama true del algoritmo VA: método que trata la rama de SI coger el objeto. Comparte todas las 
+Método: Rama true del algoritmo BT: método que trata la rama de SI coger el objeto. Comparte todas las 
 precondiciones y postcondiciones que KnapsackVA pero incluye la precondicion de que la etapa del arbol de 
 exploración (k) es menor que número de objetos de la entrada.
   - Se asigna la posición actual (ps.k) a false en ps.itemsAssign, lo que significa que el objeto se selecciona.  
@@ -355,7 +355,7 @@ Verificación:
     del retroceso.
 */
 method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
-  decreases ps.Bound(),0 // Función de cota
+  decreases ps.Bound(),0 // Función de bound
   modifies ps`totalValue, ps`totalWeight, ps`k, ps.itemsAssign
   modifies bs`totalValue, bs`totalWeight, bs`k, bs.itemsAssign
 
@@ -400,8 +400,8 @@ method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
 
   PartialConsistency(ps, oldps, input, oldtotalWeight, oldtotalValue);
   
-  var cota := Cota(ps, input);
-  if (cota > bs.totalValue) {
+  var bound := Bound(ps, input);
+  if (bound > bs.totalValue) {
     KnapsackVA(input, ps, bs);
   }  
 

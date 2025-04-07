@@ -118,7 +118,7 @@ class Input {
   Lema: dada una posición k, el peso y el valor del objeto Item en dicha posición del array items, son iguales al
   peso y el valor correspondientes en el modelo de items. 
   //
-  Propósito: demostrar el lema PartialConsistency en VA.dfy para asegurar que una solución sigue siendo parcial. 
+  Propósito: demostrar el lema PartialConsistency en BT.dfy para asegurar que una solución sigue siendo parcial. 
   Demostrar el lema InputDataItemsForAll.
   //
   Demostración: trivial.

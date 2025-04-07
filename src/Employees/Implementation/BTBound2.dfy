@@ -11,9 +11,9 @@ Estructura del fichero:
     - ForallBranchesIsOptimalExtension:
 
   Métodos
-    - Cota: calcula la cota que estima que los funcionarios que quedan por asignar tardan el mismo tiempo y el 
+    - Bound: calcula la bound que estima que los funcionarios que quedan por asignar tardan el mismo tiempo y el 
       mínimo posible.
-    - EmployeesVA: Punto de partida para ejecutar el algoritmo VA.
+    - EmployeesVA: Punto de partida para ejecutar el algoritmo BT.
     - EmployeesVABaseCase: Define la condición de terminación.
     - EmployeesVARecursiveCase: Considera una tarea específica.
 
@@ -66,7 +66,7 @@ Método:
 //
 Verificación
 */
-method Cota(ps : Solution, input : Input, min : real) returns (cota : real)
+method Bound(ps : Solution, input : Input, min : real) returns (bound : real)
   requires input.Valid()
   requires ps.Partial(input)
   requires input.IsMin(min, 0)
@@ -75,18 +75,18 @@ method Cota(ps : Solution, input : Input, min : real) returns (cota : real)
                                     && ps.k <= s.k
                                     && s.Extends(ps.Model())
                                     && s.Valid(input.Model())
-            :: s.TotalTime(input.Model().times) >= cota
+            :: s.TotalTime(input.Model().times) >= bound
 {
 
   var rest : real := (ps.employeesAssign.Length - ps.k) as real;
-  cota := ps.totalTime + (rest * min);
+  bound := ps.totalTime + (rest * min);
 
   forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
                             && s.k == |s.employeesAssign|
                             && ps.k <= s.k
                             && s.Extends(ps.Model())
                             && s.Valid(input.Model())
-    ensures s.TotalTime(input.Model().times) >= cota
+    ensures s.TotalTime(input.Model().times) >= bound
   {
     SolutionData.AddTimesLowerBound(ps.Model(),s,input.Model(),min);   
   }
@@ -94,10 +94,10 @@ method Cota(ps : Solution, input : Input, min : real) returns (cota : real)
 
 
 /* 
-Método: punto de partida del algoritmo VA. El método explora todas las posibles asignaciones funcionario-tarea, 
+Método: punto de partida del algoritmo BT. El método explora todas las posibles asignaciones funcionario-tarea, 
 respetando las restricciones del problema y seleccionando la asignación que minimice el tiempo total.
 Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
-  - ps es la solución parcial que se va llenando durante el proceso de vuelta atrás.
+  - ps es la solución parcial que se bt llenando durante el proceso de vuelta atrás.
   - bs mantiene la mejor solución encontrada hasta el momento.
 El árbol de búsqueda es un árbol n-ario donde:
   - Cada etapa del árbol representa al funcionario que estamos tratanto.
@@ -116,7 +116,7 @@ También se añaden los asertos necesarios para verificar dos de los invariantes
 - invariante: bs es mejor que todas las ramas anteriores que han sido exploradas
 */
 method EmployeesVA(input: Input, ps: Solution, bs: Solution, min : real)
-  decreases ps.Bound(),1 // Función de cota
+  decreases ps.Bound(),1 // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
 
@@ -242,7 +242,7 @@ Método:
 Verificación
 */
 method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
-  decreases ps.Bound() // Función de cota
+  decreases ps.Bound() // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
 
@@ -307,7 +307,7 @@ Método:
 Verificación
 */
 method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int, min : real)
-  decreases ps.Bound(),0 // Función de cota
+  decreases ps.Bound(),0 // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
 
@@ -321,6 +321,7 @@ method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : in
 
   requires ps.k < input.times.Length0
   requires !ps.tasks[t]
+  requires input.IsMin(min, 0) 
 
   ensures ps.Partial(input)
   ensures ps.Model().Equals(old(ps.Model()))
@@ -388,8 +389,8 @@ method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : in
     }
   }
 
-  var cota := Cota(ps, input, min);
-  if (cota <= bs.totalTime) {
+  var bound := Bound(ps, input, min);
+  if (bound <= bs.totalTime) {
     EmployeesVA(input, ps, bs, min);
   }
 

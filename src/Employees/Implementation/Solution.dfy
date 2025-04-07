@@ -109,7 +109,7 @@ class Solution {
   }
 
   /*
-  Función: calcula el número de etapas restantes en la solución parcial. Es la función de cota del algoritmo
+  Función: calcula el número de etapas restantes en la solución parcial. Es la función de bound del algoritmo
   de vuelta atrás.
   */
   ghost function Bound() : int
@@ -170,7 +170,7 @@ class Solution {
   Lema: dada una solución s que es válida por un input dado, y this tiene el mismo modelo, tiempo acumulado 
   que s, entonces this también será válida para el mismo input. 
   //
-  Propósito: demostrar que el TotalTime de ps es igual al TotalTime de bs en KnapsackVABaseCase de VA.dfy.
+  Propósito: demostrar que el TotalTime de ps es igual al TotalTime de bs en KnapsackVABaseCase de BT.dfy.
   //
   Demostración: trivial.
   */

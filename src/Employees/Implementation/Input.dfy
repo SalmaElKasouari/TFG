@@ -63,9 +63,9 @@ class Input {
   }
 
   ghost predicate IsMin(min : real, f : int)
-  reads this, times
-  requires this.Valid()
-  requires 0 <= f < this.times.Length0
+    reads this, times
+    requires this.Valid()
+    requires 0 <= f < this.times.Length0
   {
     this.Model().IsMin(min, f)
     // && (exists i, j | f <= i < this.times.Length0 && 0 <= j < this.times.Length1 :: min == this.times[i, j])

@@ -12,21 +12,21 @@ Estructura del fichero:
 
 include "../../Math.dfy"
 include "../../ContainersOps.dfy"
-include "VA.dfy"
+include "BT.dfy"
 include "Input.dfy"
 
 /* Métodos */
 
 /*
 Método: dado un input, encuentra la solución óptima mediante la llamada a un método de vuelta atrás (KnapsackVA)
-implementado en VA.dfy. Se construyen dos soluciones:
-	- Una solución parcial (ps): va generando la solución actual (decide las asignaciones de los objetos).
+implementado en BT.dfy. Se construyen dos soluciones:
+	- Una solución parcial (ps): bt generando la solución actual (decide las asignaciones de los objetos).
 	- Una mejor solución (bs): almacena la mejor solución encontrada hasta el momento. 
 Ambas soluciones se inicializan con el array de asignaciones a falsos.
 //
 Verificación: se asegura que la mejor solución encontrada (bs) es tanto válida como óptima:
-	- bs.Valid(input): mediante la postcondición en VA que asegura que bs es válida.
-	- bs.Optimal (input): mediante varias poscondiciones en VA que aseguran que bs es óptima.
+	- bs.Valid(input): mediante la postcondición en BT que asegura que bs es válida.
+	- bs.Optimal (input): mediante varias poscondiciones en BT que aseguran que bs es óptima.
 */
 method ComputeSolution(input: Input) returns (bs: Solution)
 	requires input.Valid()
@@ -61,11 +61,11 @@ method ComputeSolution(input: Input) returns (bs: Solution)
 	KnapsackVA(input, ps, bs);
 
 	/* Primera postcondición: bs.Valid(input) 
-		Se verifica gracias a la postcondición en VA que asegura que bs es válida.
+		Se verifica gracias a la postcondición en BT que asegura que bs es válida.
 	*/
 
 	/* Segunda postcondición: bs.Optimal(input) 
-		Se verifica gracias a varias poscondiciones en VA que aseguran que bs es óptima.
+		Se verifica gracias a varias poscondiciones en BT que aseguran que bs es óptima.
 	*/
 	assert bs.Optimal(input) by {
 		forall s: SolutionData | s.Valid(input.Model()) 

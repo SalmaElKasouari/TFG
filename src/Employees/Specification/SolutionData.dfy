@@ -236,7 +236,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   Lema: dadas dos soluciones parciales ps1 y ps2 que son idénticas (igualdad de campos) y 
   sabiendo que bs es una extension óptima de ps1, entonces bs también es extensión optima de ps2.
   //
-  Propósito: verificar que bs es la extensión óptima de ps al salir de la rama t-esima en EmployeesVA de VA.dfy.
+  Propósito: verificar que bs es la extensión óptima de ps al salir de la rama t-esima en EmployeesVA de BT.dfy.
   //
   Demostración: mediante el lema EqualTimeFromEquals.
   */
@@ -266,9 +266,9 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   Lema: sea una solución s que extiende a this, entonces el tiempo total de s debe ser al menos el tiempo total 
   de ps. Esto es por que el contenido de employeesAssign de cada solución es igual hasta this.k.
   //
-  Propósito: demostrar el lema InvalidExtensionsFromInvalidPs de VA.dfy.
+  Propósito: demostrar el lema InvalidExtensionsFromInvalidPs de BT.dfy.
   //
-  Demostración: mediante inducción en s, esta se va reduciendo hasta this.k.
+  Demostración: mediante inducción en s, esta se bt reduciendo hasta this.k.
   */
   lemma {:induction s} GreaterOrEqualTimeFromExtends(s: SolutionData, input: InputData)
     decreases s.k
