@@ -123,7 +123,7 @@ method Precalculation(input : Input) returns (submatrixMin : array<real>)
         min := input.times[i, j];
       }
     }
-    submatrixMin[i+1] := min;
+    submatrixMin[i] := min;
   }
 
 }
