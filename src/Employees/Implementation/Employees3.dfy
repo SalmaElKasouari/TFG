@@ -105,25 +105,35 @@ method Precalculation(input : Input) returns (submatrixMin : array<real>)
   requires input.Valid()
   ensures submatrixMin.Length == input.times.Length0
   ensures forall i | 0 <= i < input.times.Length0 :: input.IsMin(submatrixMin[i], i)
+  ensures fresh(submatrixMin)
 {
   submatrixMin := new real[input.times.Length0];
-  var min := input.times[input.times.Length0 - 1, input.times.Length1 - 1];
-
-  for i := input.times.Length0 - 1 downto 0
-    invariant forall f | i < f < input.times.Length0 :: input.IsMin(submatrixMin[f], f)
-    //invariant forall f, c | i < f < input.times.Length0 && 0 <= c < input.times.Length1 :: min <= input.times[f, c]
-    invariant exists f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: min == input.times[f, c]
+  var i := input.times.Length0 - 1; 
+  while i >= 0
+    invariant -1 <= i <= input.times.Length0 - 1
+    invariant forall f | i < f < input.times.Length0 :: input.IsMin(submatrixMin[f],f)
   {
-    for j := 0 to input.times.Length1
-      //invariant forall f, c | i < f < input.times.Length0 && 0 <= c < input.times.Length1 :: min <= input.times[f, c]
+    var j := 1; var min :=  input.times[i,0];
+    while j < input.times.Length1
+      invariant 0 <= j <= input.times.Length1
       invariant forall c | 0 <= c < j :: min <= input.times[i,c]
-      invariant exists f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: min == input.times[f, c]
+      invariant exists c | 0 <= c < j :: min == input.times[i,c]
+      invariant forall f | i < f < input.times.Length0 :: input.IsMin(submatrixMin[f],f)
     {
       if input.times[i, j] <= min {
         min := input.times[i, j];
       }
+      j := j + 1;
     }
-    submatrixMin[i] := min;
+    if (i == input.times.Length0 - 1) 
+         { submatrixMin[i] := min; }
+    else {
+         if (min < submatrixMin[i+1])
+            {submatrixMin[i] := min;}
+         else 
+           {submatrixMin[i] := submatrixMin[i+1];}
+    }
+    i := i - 1;
   }
 
 }
