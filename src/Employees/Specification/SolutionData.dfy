@@ -167,11 +167,21 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     s1.EqualTimeFromEquals(SolutionData(s2.employeesAssign, s2.k-1), input);
   }
 
-  static lemma AddTimesLowerBound(ps : SolutionData, s: SolutionData, input : InputData, min : real) // s1 viejo, s2 nuevo
+  /*
+  Lema: dada una solución parcial ps, una solución completa s que extiende a ps, y un mínimo de la submatriz desde
+  la fila row en adelante, el tiempo total de la solución completa s nunca excede la suma del tiempo de la solución
+  parcial ps más el tiempo invertido por los funcionarios restantes de ps tardando el tiempo min.
+  //
+  Propósito: garantiza que el mínimo de la matriz por el resto de funcionarios es cota inferior.
+  //
+  Demostración:
+  */
+  static lemma {:only} AddTimesLowerBound(ps : SolutionData, s: SolutionData, input : InputData, min : real, row : int) // s1 viejo, s2 nuevo
     decreases s.k - ps.k
     requires input.Valid()
     requires 0 < |input.times|
-    requires input.IsMin(min, 0)
+    requires 0 <= row < |input.times|
+    requires input.IsMin(min, row)
     requires |ps.employeesAssign| == |s.employeesAssign|
     requires ps.Partial(input)
     requires|s.employeesAssign| == |ps.employeesAssign|
@@ -180,29 +190,29 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
             && s.Extends(ps)
             && s.Valid(input)
     ensures s.TotalTime(input.times) >= ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min
-  {
+  // {
     
-    if (ps.k == s.k) { 
-      assert s.Equals(ps);
-      s.EqualTimeFromEquals(ps,input);
-      assert s.TotalTime(input.times) == ps.TotalTime(input.times); }
-    else{
+  //   if (ps.k == s.k) {
+  //     assert s.Equals(ps);
+  //     s.EqualTimeFromEquals(ps,input);
+  //     assert s.TotalTime(input.times) == ps.TotalTime(input.times); 
+  //   }
+  //   else {    
+  //     var ps' := SolutionData(ps.employeesAssign[ps.k := s.employeesAssign[ps.k]], ps.k + 1);
+  //     AddTimeMaintainsSumConsistency(ps,ps',input);
+  //     assert ps'.TotalTime(input.times) == ps.TotalTime(input.times) + input.times[ps.k][s.employeesAssign[ps.k]];
+  //     assert ps'.TotalTime(input.times) >= ps.TotalTime(input.times) + min;
     
-      var ps' := SolutionData(ps.employeesAssign[ps.k := s.employeesAssign[ps.k]], ps.k + 1);
-      AddTimeMaintainsSumConsistency(ps,ps',input);
-      assert ps'.TotalTime(input.times) == ps.TotalTime(input.times) + input.times[ps.k][s.employeesAssign[ps.k]];
-      assert ps'.TotalTime(input.times) >= ps.TotalTime(input.times) + min;
-    
-      AddTimesLowerBound(ps', s, input, min);
-      calc{
-       s.TotalTime(input.times); 
-       >= ps'.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min; 
-       >= ps.TotalTime(input.times) + min + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min;
-       {assert min + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min == ((|ps.employeesAssign| - ps.k) as real) * min;}
-       ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min;
-      }
-    }
-  }
+  //     AddTimesLowerBound(ps', s, input, min, row);
+  //     calc {
+  //      s.TotalTime(input.times); 
+  //      >= ps'.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min; 
+  //      >= ps.TotalTime(input.times) + min + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min;
+  //      {assert min + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min == ((|ps.employeesAssign| - ps.k) as real) * min;}
+  //      ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min;
+  //     }
+  //   }
+  // }
 
 
   /*

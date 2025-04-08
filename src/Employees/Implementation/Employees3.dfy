@@ -1,4 +1,4 @@
-/*---------------------------------------------------------------------------------------------------------------------
+/*--------------------------------------------------------------------------------------------------------------------_
 
 Este fichero incluye la resolución del problema de los funcionarios.
 
@@ -12,7 +12,7 @@ Estructura del fichero:
 
 include "../../Math.dfy"
 include "../../ContainersOps.dfy"
-include "BTBound2.dfy"
+include "BTBound3.dfy"
 include "Input.dfy"
 include "Solution.dfy"
 
@@ -83,8 +83,8 @@ method ComputeSolution(input: Input) returns (bs: Solution)
   }
 
   /* Llamada inicial de la vuelta atrás */
-  var min := Precalculation(input);
-  //EmployeesVA(input, ps, bs, min);
+  var submatrixMin := Precalculation(input);
+  EmployeesVA(input, ps, bs, submatrixMin);
 
   /* Primera postcondición: bs.Valid(input)
    Se verifica gracias a la postcondición en BT que asegura que bs es válida.
@@ -101,27 +101,31 @@ method ComputeSolution(input: Input) returns (bs: Solution)
   }
 }
 
-method {:only} Precalculation(input : Input) returns (submatrixMin : array<real>)
+method Precalculation(input : Input) returns (submatrixMin : array<real>)
   requires input.Valid()
   ensures submatrixMin.Length == input.times.Length0
   ensures forall i | 0 <= i < input.times.Length0 :: input.IsMin(submatrixMin[i], i)
 {
   submatrixMin := new real[input.times.Length0];
   var min := input.times[input.times.Length0 - 1, input.times.Length1 - 1];
-  var i := input.times.Length0 - 1;
-  var j := input.times.Length1 - 1;
 
-    while i >= 0 {
-      j := input.times.Length1 - 1;
-      while j >= 0 {
-        if input.times[i, j] <= min {
-          min := input.times[i, j];
-        }
-        j := j - 1;
+  for i := input.times.Length0 - 1 downto 0
+    invariant forall f | i < f < input.times.Length0 :: input.IsMin(submatrixMin[f], f)
+    //invariant forall f, c | i < f < input.times.Length0 && 0 <= c < input.times.Length1 :: min <= input.times[f, c]
+    invariant exists f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: min == input.times[f, c]
+  {
+    for j := 0 to input.times.Length1
+      //invariant forall f, c | i < f < input.times.Length0 && 0 <= c < input.times.Length1 :: min <= input.times[f, c]
+      invariant forall c | 0 <= c < j :: min <= input.times[i,c]
+      invariant exists f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: min == input.times[f, c]
+    {
+      if input.times[i, j] <= min {
+        min := input.times[i, j];
       }
-      submatrixMin[i] := min;
-      i := i - 1;
     }
+    submatrixMin[i+1] := min;
+  }
+
 }
 
 /*

@@ -66,29 +66,30 @@ Método:
 //
 Verificación
 */
-method Bound(ps : Solution, input : Input, min : real) returns (bound : real)
+method Bound(ps : Solution, input : Input, submatrixMin : array<real>) returns (bound : real)
   requires input.Valid()
   requires ps.Partial(input)
-  requires input.IsMin(min, 0)
+  requires 0 <= ps.k < ps.employeesAssign.Length == submatrixMin.Length == input.times.Length0
+  requires forall i | 0 <= i < input.times.Length0 :: input.IsMin(submatrixMin[i], i)
   ensures forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
                                     && s.k == |s.employeesAssign|
                                     && ps.k <= s.k
                                     && s.Extends(ps.Model())
                                     && s.Valid(input.Model())
             :: s.TotalTime(input.Model().times) >= bound
-{
 
+{
   var rest : real := (ps.employeesAssign.Length - ps.k) as real;
-  bound := ps.totalTime + (rest * min);
+  bound := ps.totalTime + (rest * submatrixMin[ps.k]);
 
   forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
-                            && s.k == |s.employeesAssign|
-                            && ps.k <= s.k
-                            && s.Extends(ps.Model())
-                            && s.Valid(input.Model())
-    ensures s.TotalTime(input.Model().times) >= bound
-  {
-    SolutionData.AddTimesLowerBound(ps.Model(),s,input.Model(),min, 0);   
+                                    && s.k == |s.employeesAssign|
+                                    && ps.k <= s.k
+                                    && s.Extends(ps.Model())
+                                    && s.Valid(input.Model())
+  ensures s.TotalTime(input.Model().times) >= bound
+  { 
+    SolutionData.AddTimesLowerBound(ps.Model(),s,input.Model(), submatrixMin[ps.k], ps.k);
   }
 }
 
@@ -115,7 +116,7 @@ También se añaden los asertos necesarios para verificar dos de los invariantes
 
 - invariante: bs es mejor que todas las ramas anteriores que han sido exploradas
 */
-method EmployeesVA(input: Input, ps: Solution, bs: Solution, min : real)
+method EmployeesVA(input: Input, ps: Solution, bs: Solution, submatrixMin : array<real>)
   decreases ps.Bound(),1 // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -126,8 +127,8 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution, min : real)
   requires bs.employeesAssign != ps.employeesAssign
   requires bs.tasks != ps.tasks
   requires bs != ps
-  requires exists k, l | 0 <= k < input.times.Length0 && 0 <= l < input.times.Length1 :: min == input.times[k, l]
-  requires forall f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: min <= input.times[f, c]
+  requires submatrixMin.Length == input.times.Length0
+  requires forall i | 0 <= i < input.times.Length0 :: input.IsMin(submatrixMin[i], i)
 
   ensures ps.Partial(input)
   ensures ps.Model().Equals(old(ps.Model())) // las ps actual y antigua deben ser iguales hasta la k
@@ -178,7 +179,7 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution, min : real)
 
       /* La tarea t no ha sido asignada a ningún funcionario */
       if (!ps.tasks[t]) {
-        EmployeesVARecursiveCase(input, ps, bs, t, min);
+        EmployeesVARecursiveCase(input, ps, bs, t, submatrixMin);
       }
       /* La tarea t ya ha sido asignada a un funcionario */
       else {
@@ -306,7 +307,7 @@ Método:
 //
 Verificación
 */
-method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int, min : real)
+method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int, submatrixMin : array<real>)
   decreases ps.Bound(),0 // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -321,7 +322,8 @@ method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : in
 
   requires ps.k < input.times.Length0
   requires !ps.tasks[t]
-  requires input.IsMin(min, 0) 
+  requires forall i | 0 <= i < input.times.Length0 :: input.IsMin(submatrixMin[i], i)
+  requires 0 <= ps.k < ps.employeesAssign.Length == submatrixMin.Length == input.times.Length0
 
   ensures ps.Partial(input)
   ensures ps.Model().Equals(old(ps.Model()))
@@ -389,9 +391,9 @@ method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : in
     }
   }
 
-  var bound := Bound(ps, input, min);
+  var bound := Bound(ps, input, submatrixMin);
   if (bound <= bs.totalTime) {
-    EmployeesVA(input, ps, bs, min);
+    EmployeesVA(input, ps, bs, submatrixMin);
   }
 
   assert ps.Model().Equals(old(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k+1)));
