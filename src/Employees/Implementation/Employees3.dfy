@@ -108,6 +108,7 @@ method Precalculation(input : Input) returns (submatrixMin : array<real>)
   ensures fresh(submatrixMin)
 {
   submatrixMin := new real[input.times.Length0];
+
   var i := input.times.Length0 - 1; 
   while i >= 0
     invariant -1 <= i <= input.times.Length0 - 1
