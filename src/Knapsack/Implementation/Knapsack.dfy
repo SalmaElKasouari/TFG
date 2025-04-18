@@ -18,7 +18,7 @@ include "Input.dfy"
 /* Métodos */
 
 /*
-Método: dado un input, encuentra la solución óptima mediante la llamada a un método de vuelta atrás (KnapsackVA)
+Método: dado un input, encuentra la solución óptima mediante la llamada a un método de vuelta atrás (KnapsackBT)
 implementado en BT.dfy. Se construyen dos soluciones:
 	- Una solución parcial (ps): bt generando la solución actual (decide las asignaciones de los objetos).
 	- Una mejor solución (bs): almacena la mejor solución encontrada hasta el momento. 
@@ -58,7 +58,7 @@ method ComputeSolution(input: Input) returns (bs: Solution)
 	}
 
 	/* Llamada inicial de la vuelta atrás */
-	KnapsackVA(input, ps, bs);
+	KnapsackBT(input, ps, bs);
 
 	/* Primera postcondición: bs.Valid(input) 
 		Se verifica gracias a la postcondición en BT que asegura que bs es válida.

@@ -3,14 +3,14 @@
 Este fichero cuenta con la implementación del problema de la mochila (knapsack problem) utilizando el algoritmo 
 de vuelta atrás. Se implementa de manera que el árbol de exploración es un árbol binario, donde las etapas son 
 los objetos que se deben tratar, mientras que las ramas del árbol representan las decisiones sobre si incluir o 
-no un objeto en la solución. Se incluye una poda.
+no un objeto en la solución.
 
 Estructura del fichero:
   Métodos
-    - KnapsackVA: Punto de partida para ejecutar el algoritmo BT.
-    - KnapsackVABaseCase: Define la condición de terminación.
-    - KnapsackVAFalseBranch: Considera no incluir un elemento en la mochila.
-    - KnapsackVATrueBranch: Considera incluir un elemento en la mochila.
+    - KnapsackBT: Punto de partida para ejecutar el algoritmo BT.
+    - KnapsackBTBaseCase: Define la condición de terminación.
+    - KnapsackBTFalseBranch: Considera no incluir un elemento en la mochila.
+    - KnapsackBTTrueBranch: Considera incluir un elemento en la mochila.
 
   Lemas
     - PartialConsistency: si el peso de una solución oldps mas el peso de un objeto no excede el peso maximo (es 
@@ -39,18 +39,15 @@ más alto). El árbol de búsqueda es un árbol binario que cuenta con dos ramas
   - Rama False: el objeto no es seleccionado.
 //
 Verfificación:
-  - Antes de las llamadas recursivas a las ramas (KnapsackVATrueBranch y KnapsackVAFalseBranch), se capturan ciertos
+  - En caso de no ejecutar la rama true porque el ítem no cabe en la mochila,
+se invoca el lema InvalidExtensionsFromInvalidPs(ps, input).
+  - Antes de las llamadas recursivas a las ramas (KnapsackBTTrueBranch y KnapsackBTFalseBranch), se capturan ciertos
     estados y se asegura que las soluciones parciales y óptimas sigan siendo consistentes.
-  - Si la solución encontrada en la rama false no mejora la mejor solución (bs), se asegura que no haya cambios 
-    en ella.
-  - Si la solución de la rama true mejora la solución parcial, se actualiza la mejor solución (bs).
-  - Se utiliza la etiqueta L para capturar el estado de la solución antes de las decisiones recursivas. Se verifica 
-    que las extensiones óptimas se mantengan consistentes en cada una de las ramas y que, en el caso de no mejorar 
-    la solución, la mejor solución (bs) permanezca igual.
-  - Después de la llamada a la rama false, se valida que la solución parcial se restaure correctamente, asegurando
-    que los valores de peso y valor se mantengan consistentes con el estado anterior.
+  - Después de la ejecución de las ramas, se valida que la solución parcial se restaure correctamente, garantizando 
+    que los valores de peso y valor coincidan con el estado previo a la llamada. Además, en este punto se presentan 
+    tres posibles escenarios
 */
-method KnapsackVA(input: Input, ps: Solution, bs: Solution)
+method KnapsackBT(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),1 // Función de bound
   modifies ps`totalValue, ps`totalWeight, ps`k, ps.itemsAssign
   modifies bs`totalValue, bs`totalWeight, bs`k, bs.itemsAssign
@@ -63,7 +60,7 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
 
   ensures ps.Partial(input)
   ensures ps.Model().Equals(old(ps.Model()))
-  ensures ps.k == old (ps.k)
+  ensures ps.k == old(ps.k)
   ensures ps.totalValue == old(ps.totalValue)
   ensures ps.totalWeight == old(ps.totalWeight)
 
@@ -83,11 +80,11 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
 {
 
   if (ps.k == input.items.Length) { // hemos tratado todos los objetos
-    KnapsackVABaseCase(input, ps, bs);
+    KnapsackBTBaseCase(input, ps, bs);
   }
   else {
     if (ps.totalWeight + input.items[ps.k].weight <= input.maxWeight) {
-      KnapsackVATrueBranch(input, ps, bs);
+      KnapsackBTTrueBranch(input, ps, bs);
     }
     else {
       InvalidExtensionsFromInvalidPs(ps, input);
@@ -101,7 +98,7 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
            || oldbs.Equals(old(bs.Model()));
 
 
-    KnapsackVAFalseBranch(input, ps, bs);
+    KnapsackBTFalseBranch(input, ps, bs);
 
     assert bs.Model().OptimalExtension(SolutionData(ps.Model().itemsAssign[ps.k:=false], ps.k+1), input.Model())
            || bs.Model().Equals(oldbs);
@@ -139,7 +136,7 @@ method KnapsackVA(input: Input, ps: Solution, bs: Solution)
 
 /* 
 Método: Caso base del algoritmo BT (cuando ya se han tratado todos los objetos). Comparte todas las precondiciones 
-y postcondiciones que KnapsackVA pero incluye la precondicion de que la etapa del arbol de exploración (k) es igual
+y postcondiciones que KnapsackBT pero incluye la precondicion de que la etapa del arbol de exploración (k) es igual
 que número de objetos de la entrada.
 //
 Verificación:
@@ -151,7 +148,7 @@ Verificación:
   el valor de cualquier solución que sea extensión de ps es igual al valor de ps y como esta es menor o igual que 
   el valor de bs, se asegura que bs sigue almacenando la solución óptima.
 */
-method KnapsackVABaseCase(input: Input, ps: Solution, bs: Solution)
+method KnapsackBTBaseCase(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound() // Función de bound
   modifies ps`totalValue, ps`totalWeight, ps`k, ps.itemsAssign
   modifies bs`totalValue, bs`totalWeight, bs`k, bs.itemsAssign
@@ -214,10 +211,10 @@ method KnapsackVABaseCase(input: Input, ps: Solution, bs: Solution)
 
 /* 
 Método: rama false del algoritmo BT: método que trata la rama de NO coger el objeto. Comparte todas las 
-precondiciones y postcondiciones que KnapsackVA pero incluye la precondicion de que la etapa del arbol de 
+precondiciones y postcondiciones que KnapsackBT pero incluye la precondicion de que la etapa del arbol de 
 exploración (k) es menor que número de objetos de la entrada.
   - Se asigna la posición actual (ps.k) a false en ps.itemsAssign, lo que significa que el objeto no se selecciona.  
-  - Se avanza a la siguiente posición (ps.k := ps.k + 1) y se invoca recursivamente al método KnapsackVA para 
+  - Se avanza a la siguiente posición (ps.k := ps.k + 1) y se invoca recursivamente al método KnapsackBT para 
     continuar con la exploración. 
   - Una vez finalizada la recursión, se restaura ps.k a su valor original (ps.k := ps.k - 1) para volver al estado
     previo.
@@ -228,7 +225,7 @@ Verificación:
   sido restaurados. Esto permite validar que el estado de la solución parcial se restaura correctamente después 
   del retroceso.
 */
-method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
+method KnapsackBTFalseBranch(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),0 // Función de bound
   modifies ps`totalValue, ps`totalWeight, ps`k, ps.itemsAssign
   modifies bs`totalValue, bs`totalWeight, bs`k, bs.itemsAssign
@@ -271,7 +268,7 @@ method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
     input.InputDataItems(ps.k-1);
   }
 
-  KnapsackVA(input, ps, bs);
+  KnapsackBT(input, ps, bs);
 
   label L:
 
@@ -291,11 +288,11 @@ method KnapsackVAFalseBranch(input: Input, ps: Solution, bs: Solution)
 
 /* 
 Método: Rama true del algoritmo BT: método que trata la rama de SI coger el objeto. Comparte todas las 
-precondiciones y postcondiciones que KnapsackVA pero incluye la precondicion de que la etapa del arbol de 
+precondiciones y postcondiciones que KnapsackBT pero incluye la precondicion de que la etapa del arbol de 
 exploración (k) es menor que número de objetos de la entrada.
-  - Se asigna la posición actual (ps.k) a false en ps.itemsAssign, lo que significa que el objeto se selecciona.  
+  - Se asigna la posición actual (ps.k) a true en ps.itemsAssign, lo que significa que el objeto se selecciona.  
   - Se actualizan el peso y el valor total de la solución parcial (ps).
-  - Se avanza a la siguiente posición (ps.k := ps.k + 1) y se invoca recursivamente al método KnapsackVA para 
+  - Se avanza a la siguiente posición (ps.k := ps.k + 1) y se invoca recursivamente al método KnapsackBT para 
     continuar con la exploración. 
 // 
 Verificación:
@@ -307,7 +304,7 @@ Verificación:
     sido restaurados. Esto permite validar que el estado de la solución parcial se restaura correctamente después 
     del retroceso.
 */
-method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
+method KnapsackBTTrueBranch(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),0 // Función de bound
   modifies ps`totalValue, ps`totalWeight, ps`k, ps.itemsAssign
   modifies bs`totalValue, bs`totalWeight, bs`k, bs.itemsAssign
@@ -353,7 +350,7 @@ method KnapsackVATrueBranch(input: Input, ps: Solution, bs: Solution)
 
   PartialConsistency(ps, oldps, input, oldtotalWeight, oldtotalValue);
 
-  KnapsackVA(input, ps, bs);
+  KnapsackBT(input, ps, bs);
 
   label L:
 
@@ -381,7 +378,7 @@ Lema: si extendemos una solución parcial (oldps) añadiendo un elemento asignad
 dando lugar a una nueva solución parcial (ps), entonces ps también cumple con las propiedades de consistencia 
 parcial definidas por el método Partial. 
 //
-Propósito: garantizar que ps sigue siendo Partial en KnapsackVATrueBranch después de añadirle un objeto cuyo peso 
+Propósito: garantizar que ps sigue siendo Partial en KnapsackBTTrueBranch después de añadirle un objeto cuyo peso 
 no hacía exceder el peso maximo.
 //
 Verificación: se realizan cálculos formales para demostrar que el valor y peso de ps son consistentes con oldps:
@@ -449,9 +446,9 @@ lemma PartialConsistency(ps: Solution, oldps: SolutionData, input: Input, oldtot
 Lema: si una solución parcial ps extendida con true no es válida, entonces ninguna de sus extensiones tampoco 
 será válida. 
 //
-Propósito: garantizar en KnapsackVA que en el caso de que no se ejecute la rama true es porque no se han encontrado
+Propósito: garantizar en KnapsackBT que en el caso de que no se ejecute la rama true es porque no se han encontrado
 soluciones válidas. Por lo tanto, ninguna solución óptima que salga de dicha rama puede ser mejor que bs.
-Se aplica después de haber ejecutado KnapsackVAFalseBranch (rama false) en los siguientes 
+Se aplica después de haber ejecutado KnapsackBTFalseBranch (rama false) en los siguientes 
 casos:
   - La bs (extensión óptima de ps) se ha encontrado en dicha rama.
   - La bs (extensión óptima de ps) no se ha encontrado en dicha rama, y por lo tanto es igual a la antigua, (la que 

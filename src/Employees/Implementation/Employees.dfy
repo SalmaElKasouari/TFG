@@ -19,7 +19,7 @@ include "Solution.dfy"
 /* Métodos */
 
 /*
-Método: dado un input, encuentra la solución óptima mediante la llamada a un método de vuelta atrás (EmployeesVA)
+Método: dado un input, encuentra la solución óptima mediante la llamada a un método de vuelta atrás (EmployeesBT)
 implementado en BT.dfy. Se construyen dos soluciones:
   - Una solución parcial (ps): bt generando la solución actual (decide qué tarea realiza cada funcionario).
   - Una mejor solución (bs): almacena la mejor solución encontrada hasta el momento.
@@ -39,7 +39,7 @@ method ComputeSolution(input: Input) returns (bs: Solution)
   /*
     Construimos una solución mejor (bs). Como se trata de una solución completa (k == employeesAssign.Length) que
     debe ser válida, el array de asignaciones se inicializa de manera que todos los funcionarios realizan tareas 
-    diferentes, por ejemplo, al funcionario i le asignamos la tarea i. El marcador de tareas estará llenos de trues,
+    diferentes, por ejemplo, al funcionario i le asignamos la tarea i. El marcador de tareas estará llenos de falses,
     lo que indica que todas las tareas han sido asignadas.
   */
   var bs_employeesAssign := new int[n];
@@ -83,7 +83,7 @@ method ComputeSolution(input: Input) returns (bs: Solution)
   }
 
   /* Llamada inicial de la vuelta atrás */
-  EmployeesVA(input, ps, bs);
+  EmployeesBT(input, ps, bs);
 
   /* Primera postcondición: bs.Valid(input)
    Se verifica gracias a la postcondición en BT que asegura que bs es válida.

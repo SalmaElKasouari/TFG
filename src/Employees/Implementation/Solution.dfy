@@ -1,16 +1,17 @@
 /*---------------------------------------------------------------------------------------------------------------------
 
-La clase Solution implementa una representación formal de las soluciones del problema de la mochila, y proporciona
-las herramientas necesarias para verificar diferentes configuraciones de una solución.
+La clase Solution implementa una representación formal de las soluciones del problema de los funcionarios, y
+proporciona las herramientas necesarias para verificar diferentes configuraciones de una solución.
 
 Estructura del fichero:
 
   Atributos y constructor
-    - employeesAssign: array de int de tamaño número de objetos donde cada posición corresponde a un funcionario y cuyo 
-      valor almacenado indica la tarea que debe realizar.
-    - totalTime: tiempo total que tardan los funcionarios en hacer sus correspondientes tareas que son asignadas en employeesAssign).
+    - employeesAssign: array de int de tamaño número de funcionarios donde cada posición corresponde a un 
+    funcionario y cuyo valor almacenado indica la tarea que debe realizar.
+    - totalTime: tiempo total que tardan los funcionarios en hacer sus correspondientes tareas que son asignadas en employeesAssign.
     - k: etapa del árbol de exploración de la solución. Denota el número de funcionarios tratados de employeesAssign.
-
+    - tasks: marcaje para comporbar que si una tarea ha sido asignada (tasks[i] = true) o no (tasks[i] = false).
+    
   Predicados
     - Partial: el modelo de una solución es válido y el tiempo total de la solución coincide con el del modelo.
     - Valid: la solución es completa y es válida.
@@ -170,7 +171,7 @@ class Solution {
   Lema: dada una solución s que es válida por un input dado, y this tiene el mismo modelo, tiempo acumulado 
   que s, entonces this también será válida para el mismo input. 
   //
-  Propósito: demostrar que el TotalTime de ps es igual al TotalTime de bs en KnapsackVABaseCase de BT.dfy.
+  Propósito: demostrar que el TotalTime de ps es igual al TotalTime de bs en KnapsackBTBaseCase de BT.dfy.
   //
   Demostración: trivial.
   */

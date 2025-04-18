@@ -19,7 +19,7 @@ include "Solution.dfy"
 /* Métodos */
 
 /*
-Método: dado un input, encuentra la solución óptima mediante la llamada a un método de vuelta atrás (EmployeesVA)
+Método: dado un input, encuentra la solución óptima mediante la llamada a un método de vuelta atrás (EmployeesBT)
 implementado en BT.dfy. Se construyen dos soluciones:
   - Una solución parcial (ps): bt generando la solución actual (decide qué tarea realiza cada funcionario).
   - Una mejor solución (bs): almacena la mejor solución encontrada hasta el momento.
@@ -84,7 +84,7 @@ method ComputeSolution(input: Input) returns (bs: Solution)
 
   /* Llamada inicial de la vuelta atrás */
   var submatrixMin := Precalculation(input);
-  EmployeesVA(input, ps, bs, submatrixMin);
+  EmployeesBT(input, ps, bs, submatrixMin);
 
   /* Primera postcondición: bs.Valid(input)
    Se verifica gracias a la postcondición en BT que asegura que bs es válida.

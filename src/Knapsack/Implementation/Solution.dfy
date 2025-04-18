@@ -166,7 +166,7 @@ class Solution {
   Lema: dada una solución s que es válida por un input dado, y this tiene el mismo modelo, peso acumulado 
   y valor acumulado que s, entonces this también será válida para el mismo input. 
   //
-  Propósito: demostrar que el TotalValue de ps es igual al TotalValue de bs en KnapsackVABaseCase de BT.dfy.
+  Propósito: demostrar que el TotalValue de ps es igual al TotalValue de bs en KnapsackBTBaseCase de BT.dfy.
   //
   Demostración: trivial.
   */

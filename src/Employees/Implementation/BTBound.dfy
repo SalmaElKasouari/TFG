@@ -12,9 +12,9 @@ Estructura del fichero:
 
   Métodos
     - Bound: calcula la bound que estima que el resto del tiempo de la solución es nulo.
-    - EmployeesVA: Punto de partida para ejecutar el algoritmo BT.
-    - EmployeesVABaseCase: Define la condición de terminación.
-    - EmployeesVARecursiveCase: Considera una tarea específica.
+    - EmployeesBT: Punto de partida para ejecutar el algoritmo BT.
+    - EmployeesBTBaseCase: Define la condición de terminación.
+    - EmployeesBTRecursiveCase: Considera una tarea específica.
 
  Lemas
     - InvalidExtensionsFromInvalidPs:
@@ -115,7 +115,7 @@ También se añaden los asertos necesarios para verificar dos de los invariantes
 
 - invariante: bs es mejor que todas las ramas anteriores que han sido exploradas
 */
-method EmployeesVA(input: Input, ps: Solution, bs: Solution)
+method EmployeesBT(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),1 // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -147,7 +147,7 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
 
 {
   if (ps.k == input.times.Length0) { // hemos tratado todos los funcionarios
-    EmployeesVABaseCase(input, ps, bs);
+    EmployeesBTBaseCase(input, ps, bs);
   }
   else {
     var t := 0;
@@ -176,7 +176,7 @@ method EmployeesVA(input: Input, ps: Solution, bs: Solution)
 
       /* La tarea t no ha sido asignada a ningún funcionario */
       if (!ps.tasks[t]) {
-        EmployeesVARecursiveCase(input, ps, bs, t);
+        EmployeesBTRecursiveCase(input, ps, bs, t);
       }
       /* La tarea t ya ha sido asignada a un funcionario */
       else {
@@ -239,7 +239,7 @@ Método:
 //
 Verificación
 */
-method EmployeesVABaseCase(input: Input, ps: Solution, bs: Solution)
+method EmployeesBTBaseCase(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound() // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -304,7 +304,7 @@ Método:
 //
 Verificación
 */
-method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : int)
+method EmployeesBTRecursiveCase(input: Input, ps: Solution, bs: Solution, t : int)
   decreases ps.Bound(),0 // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -388,7 +388,7 @@ method EmployeesVARecursiveCase(input: Input, ps: Solution, bs: Solution, t : in
 
   var bound := Bound(ps, input);
   if (bound <= bs.totalTime) {
-    EmployeesVA(input, ps, bs);
+    EmployeesBT(input, ps, bs);
   }
 
   assert ps.Model().Equals(old(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k+1)));
@@ -420,7 +420,7 @@ Lema: si una solución parcial ps la extendemos con un funcionario más asignand
 asignada (ps.tasks[t] = true) generando una solución invalidPs, entonces cualquier extensión s de invalidPs
 tampoco será válida.
 //
-Propósito: garantizar en EmployeesVA que en el caso de que no se ejecute la rama t-esima (ps.tasks[t] = true), es 
+Propósito: garantizar en EmployeesBT que en el caso de que no se ejecute la rama t-esima (ps.tasks[t] = true), es 
 porque no se van a encontrar soluciones válidas. Por lo tanto, ninguna solución que salga de dicha rama puede ser
 mejor que bs.
 //

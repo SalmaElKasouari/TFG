@@ -42,7 +42,7 @@ class Input {
   ghost predicate Valid()
     reads this, times
   {
-    && times.Length0 == times.Length1 > 0 //puede sobrar por la siguiente linea
+    && times.Length0 == times.Length1 > 0
     && this.Model().Valid()
   }
 

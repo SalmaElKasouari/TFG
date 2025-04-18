@@ -6,7 +6,7 @@ Proporciona las herramientas necesarias para verificar diferentes configuracione
 Estructura del fichero:
 
   Datatype
-  - employeesAssign: array de enteros de tamaño número de funcionarios/tareas donde cada posición corresponde a 
+  - employeesAssign: secuencia de enteros de tamaño número de funcionarios donde cada posición corresponde a 
     un funcionario y cuyo valor almacenado representa el tarea asignado a ese funcionario.
   - k: etapa del árbol de exploración de la solución. Denota el número de funcionarios tratados de employeesAssign 
     hasta el momento.
@@ -176,7 +176,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   //
   Demostración:
   */
-  static lemma {:only} AddTimesLowerBound(ps : SolutionData, s: SolutionData, input : InputData, min : real, row : int) // s1 viejo, s2 nuevo
+  static lemma AddTimesLowerBound(ps : SolutionData, s: SolutionData, input : InputData, min : real, row : int) // s1 viejo, s2 nuevo
     decreases s.k - ps.k
     requires input.Valid()
     requires 0 < |input.times|
@@ -246,7 +246,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   Lema: dadas dos soluciones parciales ps1 y ps2 que son idénticas (igualdad de campos) y 
   sabiendo que bs es una extension óptima de ps1, entonces bs también es extensión optima de ps2.
   //
-  Propósito: verificar que bs es la extensión óptima de ps al salir de la rama t-esima en EmployeesVA de BT.dfy.
+  Propósito: verificar que bs es la extensión óptima de ps al salir de la rama t-esima en EmployeesBT de BT.dfy.
   //
   Demostración: mediante el lema EqualTimeFromEquals.
   */

@@ -7,7 +7,7 @@ Estructura del fichero:
 
   Datatype
   - itemsAssign: array de bool de tamaño número de objetos donde cada posición corresponde a un objeto y cuyo 
-      valor almacenado indica si el objeto ha sido seleccionado (true) o no (false).
+    valor almacenado indica si el objeto ha sido seleccionado (true) o no (false).
   - k: etapa del árbol de exploración de la solución. Denota el número de objetos tratados de itemsAssign. 
 
   Funciones
@@ -235,7 +235,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   solución s2, la sumas de los pesos y los valores siguen siendo las mismas y no se ven alteradas (ya que no sumaría 
   el peso/valor del objeto como se ve en la definición de Totalweight y TotalValue).
   //
-  Propósito: demostrar que ps sigue siendo Partial después de asignar el objeto k a false en KnapsackVAFalseBranch 
+  Propósito: demostrar que ps sigue siendo Partial después de asignar el objeto k a false en KnapsackBTFalseBranch 
   de BT.dfy.
   //
   Demostración: mediante el lema EqualValueWeightFromEquals.
@@ -317,7 +317,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   Lema: dadas dos soluciones parciales ps1 y ps2 que son idénticas (igualdad de campos) y 
   sabiendo que bs es una extension óptima de ps1, entonces bs también es extensión optima de ps2.
   //
-  Propósito: verificar que bs es la extensión óptima de ps al salir de la rama true en KnapsackVA de BT.dfy.
+  Propósito: verificar que bs es la extensión óptima de ps al salir de la rama true en KnapsackBT de BT.dfy.
   //
   Demostración: mediante el lema EqualValueWeightFromEquals.
   */
