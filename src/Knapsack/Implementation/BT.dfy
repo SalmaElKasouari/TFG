@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------------------------------
 
-Este fichero cuenta con la implementación del problema de la mochila (knapsack problem) utilizando el algoritmo 
+Este fichero cuenta con la implementación del problema de la mochila (knapsack problem) utilizando el método algorítmico 
 de vuelta atrás. Se implementa de manera que el árbol de exploración es un árbol binario, donde las etapas son 
 los objetos que se deben tratar, mientras que las ramas del árbol representan las decisiones sobre si incluir o 
 no un objeto en la solución.
 
 Estructura del fichero:
   Métodos
-    - KnapsackBT: Punto de partida para ejecutar el algoritmo BT.
+    - KnapsackBT: Punto de partida para ejecutar el método algorítmico BT.
     - KnapsackBTBaseCase: Define la condición de terminación.
     - KnapsackBTFalseBranch: Considera no incluir un elemento en la mochila.
     - KnapsackBTTrueBranch: Considera incluir un elemento en la mochila.
@@ -28,10 +28,10 @@ include "Input.dfy"
 /* Métodos */
 
 /* 
-Método: punto de partida del algoritmo BT. El método explora todas las posibles asignaciones de objetos, 
+Método: punto de partida del método algorítmico BT. El método explora todas las posibles asignaciones de objetos, 
 respetando las restricciones de peso maxWeight) y seleccionando las combinaciones que maximicen el valor total.
 Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
-  - ps es la solución parcial que se bt llenando durante el proceso de vuelta atrás.
+  - ps es la solución parcial que se va llenando durante el proceso de vuelta atrás.
   - bs mantiene la mejor solución encontrada hasta el momento
 En este contexto, se inicializa bs con todo a false, ya que es un problema de maximización (se busca el valor
 más alto). El árbol de búsqueda es un árbol binario que cuenta con dos ramas:
@@ -135,7 +135,7 @@ method KnapsackBT(input: Input, ps: Solution, bs: Solution)
 }
 
 /* 
-Método: Caso base del algoritmo BT (cuando ya se han tratado todos los objetos). Comparte todas las precondiciones 
+Método: Caso base del método algorítmico BT (cuando ya se han tratado todos los objetos). Comparte todas las precondiciones 
 y postcondiciones que KnapsackBT pero incluye la precondicion de que la etapa del arbol de exploración (k) es igual
 que número de objetos de la entrada.
 //
@@ -210,8 +210,8 @@ method KnapsackBTBaseCase(input: Input, ps: Solution, bs: Solution)
 
 
 /* 
-Método: rama false del algoritmo BT: método que trata la rama de NO coger el objeto. Comparte todas las 
-precondiciones y postcondiciones que KnapsackBT pero incluye la precondicion de que la etapa del arbol de 
+Método: rama false del método algorítmico BT. Es un método que trata la rama de NO coger el objeto. Comparte todas 
+las precondiciones y postcondiciones que KnapsackBT pero incluye la precondicion de que la etapa del arbol de 
 exploración (k) es menor que número de objetos de la entrada.
   - Se asigna la posición actual (ps.k) a false en ps.itemsAssign, lo que significa que el objeto no se selecciona.  
   - Se avanza a la siguiente posición (ps.k := ps.k + 1) y se invoca recursivamente al método KnapsackBT para 
@@ -283,12 +283,11 @@ method KnapsackBTFalseBranch(input: Input, ps: Solution, bs: Solution)
   //Cualquier extension optima de ps, su valor debe ser menor o igual que la mejor solucion (bs).
   assert forall s : SolutionData | s.Valid(input.Model()) && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k:=false],ps.k+1)) ::
       s.TotalValue(input.Model().items) <= bs.Model().TotalValue(input.Model().items);
-
 }
 
 /* 
-Método: Rama true del algoritmo BT: método que trata la rama de SI coger el objeto. Comparte todas las 
-precondiciones y postcondiciones que KnapsackBT pero incluye la precondicion de que la etapa del arbol de 
+Método: rama true del método algorítmico BT. Es un método que trata la rama de SI coger el objeto. Comparte todas 
+las precondiciones y postcondiciones que KnapsackBT pero incluye la precondicion de que la etapa del arbol de 
 exploración (k) es menor que número de objetos de la entrada.
   - Se asigna la posición actual (ps.k) a true en ps.itemsAssign, lo que significa que el objeto se selecciona.  
   - Se actualizan el peso y el valor total de la solución parcial (ps).

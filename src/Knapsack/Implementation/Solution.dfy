@@ -114,7 +114,7 @@ class Solution {
   }
 
   /*
-  Función: calcula el número de etapas restantes en la solución parcial. Es la función de bound del algoritmo
+  Función: calcula el número de etapas restantes en la solución parcial. Es la función de bound del método algorítmico
   de vuelta atrás.
   */
   ghost function Bound() : int

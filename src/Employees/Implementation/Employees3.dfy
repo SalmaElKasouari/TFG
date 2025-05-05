@@ -5,7 +5,7 @@ Este fichero incluye la resolución del problema de los funcionarios.
 Estructura del fichero:
 
   Métodos:
-    - ComputeSolution: encuentra una solución óptima que resuelve el problema mediante al algoritmo de vuelta atrás.
+    - ComputeSolution: encuentra una solución óptima que resuelve el problema mediante al método algorítmico de vuelta atrás.
     - Main: ejecuta el programa principal y muestra la solución.
 
 ---------------------------------------------------------------------------------------------------------------------*/
@@ -21,7 +21,7 @@ include "Solution.dfy"
 /*
 Método: dado un input, encuentra la solución óptima mediante la llamada a un método de vuelta atrás (EmployeesBT)
 implementado en BT.dfy. Se construyen dos soluciones:
-  - Una solución parcial (ps): bt generando la solución actual (decide qué tarea realiza cada funcionario).
+  - Una solución parcial (ps): va generando la solución actual (decide qué tarea realiza cada funcionario).
   - Una mejor solución (bs): almacena la mejor solución encontrada hasta el momento.
 //
 Verificación: se asegura que la mejor solución encontrada (bs) es tanto válida como óptima:
@@ -136,7 +136,6 @@ method Precalculation(input : Input) returns (submatrixMin : array<real>)
     }
     i := i - 1;
   }
-
 }
 
 /*

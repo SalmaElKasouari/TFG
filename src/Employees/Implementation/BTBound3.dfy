@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------------------------------------------------------
 
-Este fichero cuenta con la implementación del problema de los funcionarios utilizando el algoritmo de vuelta atrás. 
+Este fichero cuenta con la implementación del problema de los funcionarios utilizando el método algorítmico de vuelta atrás. 
 Se implementa de manera que el árbol de exploración es un árbol n-ario, donde las etapas son los funcionarios que 
 se deben tratar, y las ramas las distintas tareas que pueden realizar. Se incluye una poda.
 
@@ -13,7 +13,7 @@ Estructura del fichero:
   Métodos
     - Bound: calcula la bound que estima que los funcionarios que quedan por asignar tardan el mismo tiempo y el 
       mínimo posible.
-    - EmployeesBT: Punto de partida para ejecutar el algoritmo BT.
+    - EmployeesBT: Punto de partida para ejecutar el método algorítmico BT.
     - EmployeesBTBaseCase: Define la condición de terminación.
     - EmployeesBTRecursiveCase: Considera una tarea específica.
 
@@ -26,8 +26,6 @@ include "Solution.dfy"
 include "../Specification/SolutionData.dfy"
 include "Input.dfy"
 include "../../Ord.dfy"
-
-/* Predicados */
 
 /* Predicado: bs es una extensión óptima de alguna ps extendida con una de las tareas anteriores */
 ghost predicate ExistsBranchIsOptimalExtension(bs : SolutionData, ps : SolutionData, input : InputData, t : int)
@@ -62,9 +60,10 @@ ghost predicate ForallBranchesIsOptimalExtension(bs : SolutionData, ps : Solutio
 /* Métodos */
 
 /*
-Método:
+Método: considerar que el resto de funcionarios tardan el mismo tiempo, el mínimo de la submatriz de times que 
+comienza desde la fila k en adelante.
 //
-Verificación
+Verificación: mediante el lema AddTimesLowerBound y EqualTimeFromEquals.
 */
 method Bound(ps : Solution, input : Input, submatrixMin : array<real>) returns (bound : real)
   requires input.Valid()
@@ -80,10 +79,12 @@ method Bound(ps : Solution, input : Input, submatrixMin : array<real>) returns (
 
 {
   var rest : real := (ps.employeesAssign.Length - ps.k) as real;
-  if (ps.k < ps.employeesAssign.Length)
-    {bound := ps.totalTime + (rest * submatrixMin[ps.k]);}
-  else 
-    {bound := ps.totalTime;}
+  if (ps.k < ps.employeesAssign.Length) {
+    bound := ps.totalTime + (rest * submatrixMin[ps.k]);
+  }
+  else {
+    bound := ps.totalTime;
+  }
 
   forall s : SolutionData | && |s.employeesAssign| == |ps.Model().employeesAssign|
                                     && s.k == |s.employeesAssign|
@@ -92,37 +93,41 @@ method Bound(ps : Solution, input : Input, submatrixMin : array<real>) returns (
                                     && s.Valid(input.Model())
   ensures s.TotalTime(input.Model().times) >= bound
   { 
-    if (ps.k < ps.employeesAssign.Length)
-     {SolutionData.AddTimesLowerBound(ps.Model(),s,input.Model(), submatrixMin[ps.k], ps.k);}
-    else 
-     { s.EqualTimeFromEquals(ps.Model(),input.Model());}
+    if (ps.k < ps.employeesAssign.Length) {
+      SolutionData.AddTimesLowerBound(ps.Model(),s,input.Model(), submatrixMin[ps.k], ps.k);
+    }
+    else {
+      s.EqualTimeFromEquals(ps.Model(),input.Model());
+    }
   }
 }
 
 
 /* 
-Método: punto de partida del algoritmo BT. El método explora todas las posibles asignaciones funcionario-tarea, 
-respetando las restricciones del problema y seleccionando la asignación que minimice el tiempo total.
+Método: punto de partida del método algorítmico BT. El método explora todas las posibles asignaciones funcionario-tarea, 
+respetando las restricciones del problema y seleccionando la asignación que minimice el tiempo total invertido en
+realizar todas las tareas.
 Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
-  - ps es la solución parcial que se bt llenando durante el proceso de vuelta atrás.
+  - ps es la solución parcial que se va llenando durante el proceso de vuelta atrás.
   - bs mantiene la mejor solución encontrada hasta el momento.
 El árbol de búsqueda es un árbol n-ario donde:
   - Cada etapa del árbol representa al funcionario que estamos tratanto.
-  - Cada rama representa un tarea  arealizar por el funcionario k.
+  - Cada rama representa un tarea a realizar por el funcionario k.
 //
 Verfificación: se añaden todos los invariantes necesarios al bucle que explora las diferentes tareas que un
-funcionario puede realizar. En caso de que la tarea ya había sido asignada (ps.tasks[t] == true) se llama al lema InvalidExtensionsFromInvalidPs 
-para garantizar que si se asignara dicha tarea, ps no sería válida y generaría soluciones inválidas que no pueden 
-ser mejor que la bs.
+funcionario puede realizar. En caso de que la tarea ya había sido asignada (ps.tasks[t] == true) se llama al lema 
+InvalidExtensionsFromInvalidPs para garantizar que si se asignara dicha tarea, ps no sería válida y generaría 
+soluciones inválidas que no pueden ser mejor que la bs.
 También se añaden los asertos necesarios para verificar dos de los invariantes:
 - invariante: bs no ha cambiado o es una extensión óptima de una de las ramas anteriores. Distinguimos 3 casos:
-  - bs no ha cambiado en ninguna de las ramas y sigue siendo igual a la que entró en el método: trivial por que es exactamente una parte de la disyuncion
-  - bs ha cambiado después de la llamada recursiva con t, entonces es extensión óptima de ps + t
-  - bs no ha cambiado después de la llamada recursiva con t, tiene que ser extendion óptima de una de las ramas anteriores a t
+  - bs no ha cambiado en ninguna de las ramas y sigue siendo igual a la que entró en el método: se verifica trivialmente
+  - bs ha cambiado después de la llamada recursiva con t, entonces es extensión óptima de ps + t: se verifica trivialmente 
+  - bs no ha cambiado después de la llamada recursiva con t, tiene que ser extension óptima de una de las ramas 
+    anteriores a t: se verifica por inducción, la propiedad válida hasta t en old@L se extiende a t+1.
 
 - invariante: bs es mejor que todas las ramas anteriores que han sido exploradas
 */
-method EmployeesBT(input: Input, ps: Solution, bs: Solution, submatrixMin : array<real>)
+method EmployeesBT(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound(),1 // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -133,9 +138,6 @@ method EmployeesBT(input: Input, ps: Solution, bs: Solution, submatrixMin : arra
   requires bs.employeesAssign != ps.employeesAssign
   requires bs.tasks != ps.tasks
   requires bs != ps
-  requires submatrixMin.Length == input.times.Length0
-  requires forall i | 0 <= i < input.times.Length0 :: input.IsMin(submatrixMin[i], i)
-
 
   ensures ps.Partial(input)
   ensures ps.Model().Equals(old(ps.Model())) // las ps actual y antigua deben ser iguales hasta la k
@@ -186,7 +188,7 @@ method EmployeesBT(input: Input, ps: Solution, bs: Solution, submatrixMin : arra
 
       /* La tarea t no ha sido asignada a ningún funcionario */
       if (!ps.tasks[t]) {
-        EmployeesBTRecursiveCase(input, ps, bs, t, submatrixMin);
+        EmployeesBTRecursiveCase(input, ps, bs, t);
       }
       /* La tarea t ya ha sido asignada a un funcionario */
       else {
@@ -195,7 +197,7 @@ method EmployeesBT(input: Input, ps: Solution, bs: Solution, submatrixMin : arra
 
       assert bs.Model().Equals(old(bs.Model()))
              || ExistsBranchIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1) by {
-
+        
         /* bs no ha cambiado en ninguna de las ramas, sigue siendo igual a la que entró en el método */
         if bs.Model().Equals(old(bs.Model())) {
 
@@ -215,7 +217,7 @@ method EmployeesBT(input: Input, ps: Solution, bs: Solution, submatrixMin : arra
                      ext.Partial(input.Model())
                      && old@L(bs.Model()).OptimalExtension(ext, input.Model());
             var ext := old@L(SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1));
-            assert old@L(SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1)).Equals(SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1));
+            assert ext.Equals(SolutionData(ps.Model().employeesAssign[ps.k := i], ps.k + 1));
             assert ExistsBranchIsOptimalExtension(old@L(bs.Model()), ps.Model(), input.Model(), t);
             assert ExistsBranchIsOptimalExtension(old@L(bs.Model()), ps.Model(), input.Model(), t+1);
             assert ExistsBranchIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t+1);
@@ -244,10 +246,19 @@ method EmployeesBT(input: Input, ps: Solution, bs: Solution, submatrixMin : arra
   }
 }
 
-/*
-Método:
+/* 
+Método: Caso base del método algorítmico BT (cuando ya se han asignado todos los funcionarios). Comparte todas las
+precondiciones y postcondiciones que EmployeesBT pero incluye la precondición de que la etapa del arbol de 
+exploración (k) es igual que número de funcionarios de la entrada.
 //
-Verificación
+Verificación:
+ - Caso ps.totalValue < bs.totalValue: se usa el lema EqualTimeFromEquals para asegurar que el valor de cualquier 
+    solución que sea extensión de ps es igual al valor de ps. Esto asegura que por tanto no hay otra solución con un
+    valor mejor, y con el lema CopyModel se confirma que bs se actualizó correctamente y por tanto guarda la solución
+    optima.
+ - Caso ps.totalValue >= bs.totalValue: se usa el lema EqualTimeFromEquals para asegurar que el tiempo de cualquier
+    extensión de ps es igual al tiempo de ps y como esta es mayor o igual que el tiempo de bs, se asegura que bs
+    sigue almacenando la solución óptima.
 */
 method EmployeesBTBaseCase(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound() // Función de bound
@@ -264,7 +275,7 @@ method EmployeesBTBaseCase(input: Input, ps: Solution, bs: Solution)
   requires ps.k == input.times.Length0
 
   ensures ps.Partial(input)
-  ensures ps.Model().Equals(old(ps.Model())) // las ps actual y antigua deben ser iguales hasta la k
+  ensures ps.Model().Equals(old(ps.Model()))
   ensures ps.k == old (ps.k)
   ensures ps.totalTime == old(ps.totalTime)
 
@@ -309,12 +320,23 @@ method EmployeesBTBaseCase(input: Input, ps: Solution, bs: Solution)
   }
 }
 
-/*
-Método:
-//
-Verificación
+/* 
+Método: es el encargado de manejar la rama t-ésima, que corresponde a la tarea \code{t}. Su especificación es similar a la del 
+método principal EmployeesBT, con la excepción de que incluye tres precondiciones adicionales:
+  - ps.k < ps.employeesAssign
+  - 0 <= t < input.times.Length0
+  - !ps.tasks[t]
+Verificación: 
+  - Para verificar que el tiempo total acumulado en ps coincide con su modelo, un bloque calc (líneas 12-18) establece 
+    la consistencia entre el tiempo actual de ps y su estado previo (oldps).
+  - Para verificar que el marcador de tareas cumple el invariante de represenctación se distinguen dos casos según
+    el valor de la variable i:
+      - i == t: trivial
+      - i < t : El modelo antes del cambio (old(ps)) hasta el índice ps.k es igual al modelo actual hasta 
+        ps.k-1. Luego, se deduce que la tarea i está en el modelo actual hasta el índice ps.k-1, y por tanto, 
+        también está en el modelo actual hasta el índice ps.k.
 */
-method EmployeesBTRecursiveCase(input: Input, ps: Solution, bs: Solution, t : int, submatrixMin : array<real>)
+method EmployeesBTRecursiveCase(input: Input, ps: Solution, bs: Solution, t : int)
   decreases ps.Bound(),0 // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -329,8 +351,6 @@ method EmployeesBTRecursiveCase(input: Input, ps: Solution, bs: Solution, t : in
 
   requires ps.k < input.times.Length0
   requires !ps.tasks[t]
-  requires 0 <= ps.k < ps.employeesAssign.Length == submatrixMin.Length == input.times.Length0 
-  requires forall i | 0 <= i < input.times.Length0 :: input.IsMin(submatrixMin[i], i)
 
   ensures ps.Partial(input)
   ensures ps.Model().Equals(old(ps.Model()))
@@ -398,10 +418,7 @@ method EmployeesBTRecursiveCase(input: Input, ps: Solution, bs: Solution, t : in
     }
   }
 
-  var bound := Bound(ps, input, submatrixMin);
-  if (bound <= bs.totalTime) {
-    EmployeesBT(input, ps, bs, submatrixMin);
-  }
+  EmployeesBT(input, ps, bs);
 
   assert ps.Model().Equals(old(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k+1)));
 
@@ -436,8 +453,8 @@ Propósito: garantizar en EmployeesBT que en el caso de que no se ejecute la ram
 porque no se van a encontrar soluciones válidas. Por lo tanto, ninguna solución que salga de dicha rama puede ser
 mejor que bs.
 //
-Verificación: demostrando que invalidPs es invalido por no respetar la restricción de no repetir las tareas. Como 
-sabemos que s extiende a InvalidPs (son iguales hasta invalidPs.k), se infiere que s tampoco respeta dicha 
+Verificación: demostrando que invalidPs no es válida por no respetar la restricción de no repetir las tareas. Como 
+sabemos que s extiende a invalidPs (son iguales hasta invalidPs.k), se infiere que s tampoco respeta dicha 
 restricción, luego s no es válida.
 */
 lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input, t : int)

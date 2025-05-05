@@ -5,13 +5,11 @@ Este fichero incluye la resolución del problema de la mochila.
 Estructura del fichero:
 
   Métodos:
-	- ComputeSolution: encuentra una solución óptima que resuelve el problema mediante al algoritmo de vuelta atrás.
+	- ComputeSolution: encuentra una solución óptima que resuelve el problema mediante al método algorítmico de vuelta atrás.
   - Main: ejecuta el programa principal y muestra la solución.
 
 ---------------------------------------------------------------------------------------------------------------------*/
 
-include "../../Math.dfy"
-include "../../ContainersOps.dfy"
 include "BT.dfy"
 include "Input.dfy"
 
@@ -20,7 +18,7 @@ include "Input.dfy"
 /*
 Método: dado un input, encuentra la solución óptima mediante la llamada a un método de vuelta atrás (KnapsackBT)
 implementado en BT.dfy. Se construyen dos soluciones:
-	- Una solución parcial (ps): bt generando la solución actual (decide las asignaciones de los objetos).
+	- Una solución parcial (ps): va generando la solución actual (decide las asignaciones de los objetos).
 	- Una mejor solución (bs): almacena la mejor solución encontrada hasta el momento. 
 Ambas soluciones se inicializan con el array de asignaciones a falsos.
 //

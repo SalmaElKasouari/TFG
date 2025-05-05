@@ -62,9 +62,10 @@ ghost predicate ForallBranchesIsOptimalExtension(bs : SolutionData, ps : Solutio
 /* Métodos */
 
 /*
-Método:
+Método: se estima que todos los funcionarios restantes tardarán en realizar sus tareas el tiempo mínimo, 
+considerando para ello el mínimo global de la matriz times.
 //
-Verificación
+Verificación: mediante el lema AddTimesLowerBound.
 */
 method Bound(ps : Solution, input : Input, min : real) returns (bound : real)
   requires input.Valid()
@@ -88,30 +89,32 @@ method Bound(ps : Solution, input : Input, min : real) returns (bound : real)
                             && s.Valid(input.Model())
     ensures s.TotalTime(input.Model().times) >= bound
   {
-    SolutionData.AddTimesLowerBound(ps.Model(),s,input.Model(),min, 0);   
+    SolutionData.AddTimesLowerBound(ps.Model(),s,input.Model(),min, 0);
   }
 }
 
 
 /* 
-Método: punto de partida del algoritmo BT. El método explora todas las posibles asignaciones funcionario-tarea, 
-respetando las restricciones del problema y seleccionando la asignación que minimice el tiempo total.
+Método: punto de partida del método algorítmico BT. El método explora todas las posibles asignaciones funcionario-tarea, 
+respetando las restricciones del problema y seleccionando la asignación que minimice el tiempo total invertido en
+realizar todas las tareas.
 Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
-  - ps es la solución parcial que se bt llenando durante el proceso de vuelta atrás.
+  - ps es la solución parcial que se va llenando durante el proceso de vuelta atrás.
   - bs mantiene la mejor solución encontrada hasta el momento.
 El árbol de búsqueda es un árbol n-ario donde:
   - Cada etapa del árbol representa al funcionario que estamos tratanto.
-  - Cada rama representa un tarea  arealizar por el funcionario k.
+  - Cada rama representa un tarea a realizar por el funcionario k.
 //
 Verfificación: se añaden todos los invariantes necesarios al bucle que explora las diferentes tareas que un
-funcionario puede realizar. En caso de que la tarea ya había sido asignada (ps.tasks[t] == true) se llama al lema InvalidExtensionsFromInvalidPs 
-para garantizar que si se asignara dicha tarea, ps no sería válida y generaría soluciones inválidas que no pueden 
-ser mejor que la bs.
+funcionario puede realizar. En caso de que la tarea ya había sido asignada (ps.tasks[t] == true) se llama al lema 
+InvalidExtensionsFromInvalidPs para garantizar que si se asignara dicha tarea, ps no sería válida y generaría 
+soluciones inválidas que no pueden ser mejor que la bs.
 También se añaden los asertos necesarios para verificar dos de los invariantes:
 - invariante: bs no ha cambiado o es una extensión óptima de una de las ramas anteriores. Distinguimos 3 casos:
-  - bs no ha cambiado en ninguna de las ramas y sigue siendo igual a la que entró en el método: trivial por que es exactamente una parte de la disyuncion
-  - bs ha cambiado después de la llamada recursiva con t, entonces es extensión óptima de ps + t
-  - bs no ha cambiado después de la llamada recursiva con t, tiene que ser extendion óptima de una de las ramas anteriores a t
+  - bs no ha cambiado en ninguna de las ramas y sigue siendo igual a la que entró en el método: se verifica trivialmente
+  - bs ha cambiado después de la llamada recursiva con t, entonces es extensión óptima de ps + t: se verifica trivialmente 
+  - bs no ha cambiado después de la llamada recursiva con t, tiene que ser extension óptima de una de las ramas 
+    anteriores a t: se verifica por inducción, la propiedad válida hasta t en old@L se extiende a t+1.
 
 - invariante: bs es mejor que todas las ramas anteriores que han sido exploradas
 */
@@ -236,10 +239,19 @@ method EmployeesBT(input: Input, ps: Solution, bs: Solution, min : real)
   }
 }
 
-/*
-Método:
+/* 
+Método: Caso base del método algorítmico BT (cuando ya se han asignado todos los funcionarios). Comparte todas las
+precondiciones y postcondiciones que EmployeesBT pero incluye la precondición de que la etapa del arbol de 
+exploración (k) es igual que número de funcionarios de la entrada.
 //
-Verificación
+Verificación:
+ - Caso ps.totalValue < bs.totalValue: se usa el lema EqualTimeFromEquals para asegurar que el valor de cualquier 
+    solución que sea extensión de ps es igual al valor de ps. Esto asegura que por tanto no hay otra solución con un
+    valor mejor, y con el lema CopyModel se confirma que bs se actualizó correctamente y por tanto guarda la solución
+    optima.
+ - Caso ps.totalValue >= bs.totalValue: se usa el lema EqualTimeFromEquals para asegurar que el tiempo de cualquier
+    extensión de ps es igual al tiempo de ps y como esta es mayor o igual que el tiempo de bs, se asegura que bs
+    sigue almacenando la solución óptima.
 */
 method EmployeesBTBaseCase(input: Input, ps: Solution, bs: Solution)
   decreases ps.Bound() // Función de bound
@@ -301,10 +313,21 @@ method EmployeesBTBaseCase(input: Input, ps: Solution, bs: Solution)
   }
 }
 
-/*
-Método:
-//
-Verificación
+/* 
+Método: es el encargado de manejar la rama t-ésima, que corresponde a la tarea \code{t}. Su especificación es similar a la del 
+método principal EmployeesBT, con la excepción de que incluye tres precondiciones adicionales:
+  - ps.k < ps.employeesAssign
+  - 0 <= t < input.times.Length0
+  - !ps.tasks[t]
+Verificación: 
+  - Para verificar que el tiempo total acumulado en ps coincide con su modelo, un bloque calc (líneas 12-18) establece 
+    la consistencia entre el tiempo actual de ps y su estado previo (oldps).
+  - Para verificar que el marcador de tareas cumple el invariante de represenctación se distinguen dos casos según
+    el valor de la variable i:
+      - i == t: trivial
+      - i < t : El modelo antes del cambio (old(ps)) hasta el índice ps.k es igual al modelo actual hasta 
+        ps.k-1. Luego, se deduce que la tarea i está en el modelo actual hasta el índice ps.k-1, y por tanto, 
+        también está en el modelo actual hasta el índice ps.k.
 */
 method EmployeesBTRecursiveCase(input: Input, ps: Solution, bs: Solution, t : int, min : real)
   decreases ps.Bound(),0 // Función de bound

@@ -1,19 +1,19 @@
 /* ---------------------------------------------------------------------------------------------------------------------
 
-Este fichero cuenta con la implementación del problema de la mochila (knapsack problem) utilizando el algoritmo 
+Este fichero cuenta con la implementación del problema de la mochila (knapsack problem) utilizando el método algorítmico 
 de vuelta atrás. Se implementa de manera que el árbol de exploración es un árbol binario, donde las etapas son 
 los objetos que se deben tratar, mientras que las ramas del árbol representan las decisiones sobre si incluir o 
 no un objeto en la solución. Se incluye una poda.
 
 Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
-  - ps es la solución parcial que se bt llenando durante el proceso de vuelta atrás.
+  - ps es la solución parcial que se va llenando durante el proceso de vuelta atrás.
   - bs mantiene la mejor solución encontrada hasta el momento.
 
 
 Estructura del fichero:
    Métodos
     - Bound: calcula la bound que selecciona todos los items restantes para podar el árbol de exploración.
-    - KnapsackBT: Punto de partida para ejecutar el algoritmo BT.
+    - KnapsackBT: Punto de partida para ejecutar el método algorítmico BT.
     - KnapsackBTBaseCase: Define la condición de terminación.
     - KnapsackBTFalseBranch: Considera no incluir un elemento en la mochila.
     - KnapsackBTTrueBranch: Considera incluir un elemento en la mochila.
@@ -76,7 +76,7 @@ method Bound (ps : Solution, input : Input) returns (bound : real)
 
 
 /* 
-Método: punto de partida del algoritmo BT. El método explora todas las posibles asignaciones de objetos, 
+Método: punto de partida del método algorítmico BT. El método explora todas las posibles asignaciones de objetos, 
 respetando las restricciones de peso maxWeight) y seleccionando las combinaciones que maximicen el valor total.
 En este contexto, se inicializa bs con todo a false, ya que es un problema de maximización (se busca el valor
 más alto). El árbol de búsqueda es un árbol binario que cuenta con dos ramas:
@@ -184,7 +184,7 @@ method KnapsackBT(input: Input, ps: Solution, bs: Solution)
 
 
 /* 
-Método: Caso base del algoritmo BT (cuando ya se han tratado todos los objetos). Comparte todas las precondiciones 
+Método: Caso base del método algorítmico BT (cuando ya se han tratado todos los objetos). Comparte todas las precondiciones 
 y postcondiciones que KnapsackBT pero incluye la precondicion de que la etapa del arbol de exploración (k) es igual
 que número de objetos de la entrada.
 //
@@ -257,7 +257,7 @@ method KnapsackBTBaseCase(input: Input, ps: Solution, bs: Solution)
 
 
 /* 
-Método: rama false del algoritmo BT: método que trata la rama de NO coger el objeto. Comparte todas las 
+Método: rama false del método algorítmico BT: método que trata la rama de NO coger el objeto. Comparte todas las 
 precondiciones y postcondiciones que KnapsackBT pero incluye la precondicion de que la etapa del arbol de 
 exploración (k) es menor que número de objetos de la entrada.
   - Se asigna la posición actual (ps.k) a false en ps.itemsAssign, lo que significa que el objeto no se selecciona.  
@@ -316,7 +316,7 @@ method KnapsackBTFalseBranch(input: Input, ps: Solution, bs: Solution)
   }
 
   var bound := Bound(ps, input);
-  if (bound >= bs.totalValue) {
+  if (bound > bs.totalValue) {
     KnapsackBT(input, ps, bs);
   }
 
@@ -337,7 +337,7 @@ method KnapsackBTFalseBranch(input: Input, ps: Solution, bs: Solution)
 }
 
 /* 
-Método: Rama true del algoritmo BT: método que trata la rama de SI coger el objeto. Comparte todas las 
+Método: Rama true del método algorítmico BT: método que trata la rama de SI coger el objeto. Comparte todas las 
 precondiciones y postcondiciones que KnapsackBT pero incluye la precondicion de que la etapa del arbol de 
 exploración (k) es menor que número de objetos de la entrada.
   - Se asigna la posición actual (ps.k) a false en ps.itemsAssign, lo que significa que el objeto se selecciona.  

@@ -174,9 +174,14 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   //
   Propósito: garantiza que el mínimo de la matriz por el resto de funcionarios es cota inferior.
   //
-  Demostración:
+  Demostración: por inducción en la diferencia de índices entre s.k y ps.k, es decir, en el número de funcionarios
+  que aún no ha asignado ps.
+    - Caso base: ambas soluciones son equivalentes y por lo tanto también lo son sus tiempos totales.
+    - Caso inductivo: ps se extiende a ps' según s en la posición ps.k, manteniendo la consistencia del tiempo con 
+      AddTimeMaintainsSumConsistency. Por hipótesis inductiva:
+                 s.TotalTime >= ps'.TotalTime + (n - ps.k - 1) * min >= ps.TotalTime + (n - ps.k) * min
   */
-  static lemma AddTimesLowerBound(ps : SolutionData, s: SolutionData, input : InputData, min : real, row : int) // s1 viejo, s2 nuevo
+  static lemma {:induction ps, s} AddTimesLowerBound(ps : SolutionData, s: SolutionData, input : InputData, min : real, row : int)
     decreases s.k - ps.k
     requires input.Valid()
     requires 0 < |input.times|
@@ -190,33 +195,33 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
             && s.Extends(ps)
             && s.Valid(input)
     ensures s.TotalTime(input.times) >= ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min
-  // {
+  {
     
-  //   if (ps.k == s.k) {
-  //     assert s.Equals(ps);
-  //     s.EqualTimeFromEquals(ps,input);
-  //     assert s.TotalTime(input.times) == ps.TotalTime(input.times); 
-  //   }
-  //   else {    
-  //     var ps' := SolutionData(ps.employeesAssign[ps.k := s.employeesAssign[ps.k]], ps.k + 1);
-  //     AddTimeMaintainsSumConsistency(ps,ps',input);
-  //     assert ps'.TotalTime(input.times) == ps.TotalTime(input.times) + input.times[ps.k][s.employeesAssign[ps.k]];
-  //     assert ps'.TotalTime(input.times) >= ps.TotalTime(input.times) + min;
+    if (ps.k == s.k) {
+      assert s.Equals(ps);
+      s.EqualTimeFromEquals(ps,input);
+      assert s.TotalTime(input.times) == ps.TotalTime(input.times); 
+    }
+    else {    
+      var ps' := SolutionData(ps.employeesAssign[ps.k := s.employeesAssign[ps.k]], ps.k + 1);
+      AddTimeMaintainsSumConsistency(ps,ps',input);
+      assert ps'.TotalTime(input.times) == ps.TotalTime(input.times) + input.times[ps.k][s.employeesAssign[ps.k]];
+      assert ps'.TotalTime(input.times) >= ps.TotalTime(input.times) + min;
     
-  //     AddTimesLowerBound(ps', s, input, min, row);
-  //     calc {
-  //      s.TotalTime(input.times); 
-  //      >= ps'.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min; 
-  //      >= ps.TotalTime(input.times) + min + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min;
-  //      {assert min + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min == ((|ps.employeesAssign| - ps.k) as real) * min;}
-  //      ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min;
-  //     }
-  //   }
-  // }
+      AddTimesLowerBound(ps', s, input, min, row);
+      calc {
+       s.TotalTime(input.times); 
+       >= ps'.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min; 
+       >= ps.TotalTime(input.times) + min + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min;
+       {assert min + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min == ((|ps.employeesAssign| - ps.k) as real) * min;}
+       ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min;
+      }
+    }
+  }
 
 
   /*
-  Lema: si dos soluciones (this y s) son idénticas (igualdad de campos), entonces tienen la misma sumas de timpos. 
+  Lema: si dos soluciones (this y s) son idénticas (igualdad de campos), entonces tienen la misma sumas de tiempos. 
   Esto es por que el contenido de employeesAssign de cada solución es igual y el cálculo acumulativo de tiempos
   serán idéntico.
   //
@@ -278,7 +283,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   //
   Propósito: demostrar el lema InvalidExtensionsFromInvalidPs de BT.dfy.
   //
-  Demostración: mediante inducción en s, esta se bt reduciendo hasta this.k.
+  Demostración: mediante inducción en s, esta se va reduciendo hasta this.k.
   */
   lemma {:induction s} GreaterOrEqualTimeFromExtends(s: SolutionData, input: InputData)
     decreases s.k

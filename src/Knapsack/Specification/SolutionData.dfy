@@ -290,7 +290,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   //
   Propósito: demostrar el lema InvalidExtensionsFromInvalidPs de BT.dfy.
   //
-  Demostración: mediante inducción en s, esta se bt reduciendo hasta this.k.
+  Demostración: mediante inducción en s, esta se va reduciendo hasta this.k.
   */
   lemma {:induction s} GreaterOrEqualValueWeightFromExtends(s: SolutionData, input: InputData)
     decreases s.k
@@ -381,7 +381,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
 
   /* 
   Lema: dada una solución parcial ps, una solución completa ps' que extiende a ella con todos las asignaciones a 
-  true, y otra solución completa s que extiende a ps, entonces ps' es bound superior a s.
+  true, y otra solución completa s que extiende a ps, entonces ps' es cota superior a s.
   //
   Propósito: demostrar el lema AllTruesIsUpperBoundForAll.
   //
