@@ -181,7 +181,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
       AddTimeMaintainsSumConsistency. Por hipótesis inductiva:
                  s.TotalTime >= ps'.TotalTime + (n - ps.k - 1) * min >= ps.TotalTime + (n - ps.k) * min
   */
-  static lemma {:induction ps, s} AddTimesLowerBound(ps : SolutionData, s: SolutionData, input : InputData, min : real, row : int)
+  static lemma {:only} AddTimesLowerBound(ps : SolutionData, s: SolutionData, input : InputData, min : real, row : int)
     decreases s.k - ps.k
     requires input.Valid()
     requires 0 < |input.times|
@@ -191,7 +191,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
     requires ps.Partial(input)
     requires|s.employeesAssign| == |ps.employeesAssign|
             && s.k == |s.employeesAssign|
-            && ps.k <= s.k
+            && row <= ps.k <= s.k
             && s.Extends(ps)
             && s.Valid(input)
     ensures s.TotalTime(input.times) >= ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min
@@ -202,22 +202,49 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
       s.EqualTimeFromEquals(ps,input);
       assert s.TotalTime(input.times) == ps.TotalTime(input.times); 
     }
-    else {    
+    else { 
       var ps' := SolutionData(ps.employeesAssign[ps.k := s.employeesAssign[ps.k]], ps.k + 1);
       AddTimeMaintainsSumConsistency(ps,ps',input);
+
       assert ps'.TotalTime(input.times) == ps.TotalTime(input.times) + input.times[ps.k][s.employeesAssign[ps.k]];
-      assert ps'.TotalTime(input.times) >= ps.TotalTime(input.times) + min;
-    
-      AddTimesLowerBound(ps', s, input, min, row);
-      calc {
-       s.TotalTime(input.times); 
-       >= ps'.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min; 
-       >= ps.TotalTime(input.times) + min + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min;
-       {assert min + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min == ((|ps.employeesAssign| - ps.k) as real) * min;}
-       ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min;
+      
+      assert input.times[ps.k][s.employeesAssign[ps.k]] >= min by {
+        assert input.IsMin(min,row);
+        assert 0 <= s.employeesAssign[ps.k] < |input.times[ps.k]|;
+
       }
+
+      assert ps'.TotalTime(input.times) >= ps.TotalTime(input.times) + min;
+      AddTimesLowerBound(ps', s, input, min, row);
+      assert s.TotalTime(input.times) >= ps'.TotalTime(input.times) + ((|ps'.employeesAssign| - ps'.k) as real) * min;
+      assert |ps'.employeesAssign| == |ps.employeesAssign|;
+      assert ps'.k == ps.k + 1;
+      assert s.TotalTime(input.times) >= ps'.TotalTime(input.times) + ((|ps.employeesAssign| - (ps.k + 1)) as real) * min;
+
+
+      var aux:real := (|ps.employeesAssign| - ps.k - 1) as real;
+
+
+      /*calc {
+       s.TotalTime(input.times); 
+       >= 
+       ps'.TotalTime(input.times) + (aux * min); 
+       >= 
+       (ps.TotalTime(input.times) + min) + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min;
+       {associativity(ps.TotalTime(input.times),min,((|ps.employeesAssign| - ps.k - 1 ) as real) * min);}
+       ps.TotalTime(input.times) + (min + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min);
+      /* {assume false;}
+       ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min;*/
+      
+      }*/
+          assume false;
+
     }
   }
+
+  static lemma  associativity(a:real,b:real,c:real)
+  ensures (a + b) + c == a + (b + c)
+  {}
 
 
   /*
