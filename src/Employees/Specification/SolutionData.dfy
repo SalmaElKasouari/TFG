@@ -215,8 +215,10 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
 
       }
       }
-      //assert ps'.TotalTime(input.times) >= ps.TotalTime(input.times) + min;
+
       AddTimesLowerBound(ps', s, input, min, row);
+
+      
       assert s.TotalTime(input.times) >= ps'.TotalTime(input.times) + ((|ps'.employeesAssign| - ps'.k) as real) * min;
       assert |ps'.employeesAssign| == |ps.employeesAssign|;
       assert ps'.k == ps.k + 1;
@@ -228,16 +230,11 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
       calc {
        s.TotalTime(input.times); 
        >= 
-       //ps'.TotalTime(input.times) + (aux * min); 
-       //>= 
        (ps.TotalTime(input.times) + min) + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min;
        {associativity(ps.TotalTime(input.times),min,((|ps.employeesAssign| - ps.k - 1 ) as real) * min);}
        ps.TotalTime(input.times) + (min + (((|ps.employeesAssign| - ps.k) - 1 ) as real) * min);
-       {asrealMultApp(ps,input,min);}
-       ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min;
-      
       }
-          assume false;
+      asrealMultApp(ps,input,min);
 
     }
   }
@@ -256,9 +253,6 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
 
   static lemma asrealMultApp(ps : SolutionData, input : InputData, min : real)
     requires input.Valid()
-    //requires 0 < |input.times|
-    //requires 0 <= row < |input.times|
-    //requires input.IsMin(min, row)
     requires ps.Partial(input)
     ensures ps.TotalTime(input.times) + (min + (((|ps.employeesAssign| - ps.k) - 1 ) as real) * min) ==
     ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min
