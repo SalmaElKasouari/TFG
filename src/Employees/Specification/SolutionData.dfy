@@ -206,6 +206,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
       var ps' := SolutionData(ps.employeesAssign[ps.k := s.employeesAssign[ps.k]], ps.k + 1);
       AddTimeMaintainsSumConsistency(ps,ps',input);
 
+      assert ps'.TotalTime(input.times) >= ps.TotalTime(input.times) + min by{
       assert ps'.TotalTime(input.times) == ps.TotalTime(input.times) + input.times[ps.k][s.employeesAssign[ps.k]];
       
       assert input.times[ps.k][s.employeesAssign[ps.k]] >= min by {
@@ -213,30 +214,35 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
         assert 0 <= s.employeesAssign[ps.k] < |input.times[ps.k]|;
 
       }
-
-      assert ps'.TotalTime(input.times) >= ps.TotalTime(input.times) + min;
+      }
+      //assert ps'.TotalTime(input.times) >= ps.TotalTime(input.times) + min;
       AddTimesLowerBound(ps', s, input, min, row);
       assert s.TotalTime(input.times) >= ps'.TotalTime(input.times) + ((|ps'.employeesAssign| - ps'.k) as real) * min;
       assert |ps'.employeesAssign| == |ps.employeesAssign|;
       assert ps'.k == ps.k + 1;
+      asrealEqual(ps'.k,  ps.k + 1, |ps'.employeesAssign|,|ps.employeesAssign|);
+      assert ((|ps'.employeesAssign| - ps'.k) as real) == ((|ps.employeesAssign| - (ps.k + 1)) as real);
+      assert ((|ps'.employeesAssign| - ps'.k) as real) == ((|ps.employeesAssign| - ps.k - 1) as real);
       assert s.TotalTime(input.times) >= ps'.TotalTime(input.times) + ((|ps.employeesAssign| - (ps.k + 1)) as real) * min;
+     
+     
 
-
-      var aux:real := (|ps.employeesAssign| - ps.k - 1) as real;
-
-
-      /*calc {
+      calc {
        s.TotalTime(input.times); 
        >= 
-       ps'.TotalTime(input.times) + (aux * min); 
-       >= 
+       //ps'.TotalTime(input.times) + (aux * min); 
+       //>= 
        (ps.TotalTime(input.times) + min) + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min;
        {associativity(ps.TotalTime(input.times),min,((|ps.employeesAssign| - ps.k - 1 ) as real) * min);}
        ps.TotalTime(input.times) + (min + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min);
-      /* {assume false;}
-       ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min;*/
+      /* {ghost var a := |ps.employeesAssign| - ps.k;
+        asrealMult(|ps.employeesAssign| - ps.k,min);
+        assert min + (((|ps.employeesAssign| - ps.k) - 1 ) as real) * min == ((|ps.employeesAssign| - ps.k) as real) * min;
+       }*/
+      // {assume false;}
+      // ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min;
       
-      }*/
+      }
           assume false;
 
     }
@@ -244,6 +250,19 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
 
   static lemma  associativity(a:real,b:real,c:real)
   ensures (a + b) + c == a + (b + c)
+  {}
+
+  static  lemma asrealPlusOne(a:int)
+  ensures  (a + 1) as real == (a as real) + (1 as real)
+  {}
+
+  static  lemma asrealMult(a:int, x:real)
+  ensures  x + ((a - 1) as real) * x == (a as real) * x
+  {}
+
+  static lemma asrealEqual(a:int,b:int,c:int,d:int)
+  requires a == b && c == d
+  ensures (c - a) as real == (d - b) as real
   {}
 
 
