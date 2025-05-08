@@ -25,7 +25,6 @@ Estructura del fichero:
 include "Solution.dfy"
 include "../Specification/SolutionData.dfy"
 include "Input.dfy"
-include "../../Ord.dfy"
 
 /* Predicados */
 

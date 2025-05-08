@@ -25,7 +25,6 @@ Estructura del fichero:
 include "Solution.dfy"
 include "../Specification/SolutionData.dfy"
 include "Input.dfy"
-include "../../Ord.dfy"
 
 /* Predicado: bs es una extensión óptima de alguna ps extendida con una de las tareas anteriores */
 ghost predicate ExistsBranchIsOptimalExtension(bs : SolutionData, ps : SolutionData, input : InputData, t : int)
@@ -127,7 +126,7 @@ También se añaden los asertos necesarios para verificar dos de los invariantes
 
 - invariante: bs es mejor que todas las ramas anteriores que han sido exploradas
 */
-method EmployeesBT(input: Input, ps: Solution, bs: Solution)
+method EmployeesBT(input: Input, ps: Solution, bs: Solution, submatrixMin : array<real>)
   decreases ps.Bound(),1 // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -138,6 +137,8 @@ method EmployeesBT(input: Input, ps: Solution, bs: Solution)
   requires bs.employeesAssign != ps.employeesAssign
   requires bs.tasks != ps.tasks
   requires bs != ps
+  requires input.times.Length0 == submatrixMin.Length
+  requires forall i | 0 <= i < submatrixMin.Length :: input.IsMin(submatrixMin[i], i)
 
   ensures ps.Partial(input)
   ensures ps.Model().Equals(old(ps.Model())) // las ps actual y antigua deben ser iguales hasta la k
@@ -188,7 +189,7 @@ method EmployeesBT(input: Input, ps: Solution, bs: Solution)
 
       /* La tarea t no ha sido asignada a ningún funcionario */
       if (!ps.tasks[t]) {
-        EmployeesBTRecursiveCase(input, ps, bs, t);
+        EmployeesBTRecursiveCase(input, ps, bs, t, submatrixMin);
       }
       /* La tarea t ya ha sido asignada a un funcionario */
       else {
@@ -271,7 +272,6 @@ method EmployeesBTBaseCase(input: Input, ps: Solution, bs: Solution)
   requires bs.employeesAssign != ps.employeesAssign
   requires bs.tasks != ps.tasks
   requires bs != ps
-
   requires ps.k == input.times.Length0
 
   ensures ps.Partial(input)
@@ -336,7 +336,7 @@ Verificación:
         ps.k-1. Luego, se deduce que la tarea i está en el modelo actual hasta el índice ps.k-1, y por tanto, 
         también está en el modelo actual hasta el índice ps.k.
 */
-method EmployeesBTRecursiveCase(input: Input, ps: Solution, bs: Solution, t : int)
+method EmployeesBTRecursiveCase(input: Input, ps: Solution, bs: Solution, t : int, submatrixMin : array<real>)
   decreases ps.Bound(),0 // Función de bound
   modifies ps`totalTime, ps`k, ps.employeesAssign, ps.tasks
   modifies bs`totalTime, bs`k, bs.employeesAssign, bs.tasks
@@ -349,8 +349,9 @@ method EmployeesBTRecursiveCase(input: Input, ps: Solution, bs: Solution, t : in
   requires bs.tasks != ps.tasks
   requires bs != ps
 
-  requires ps.k < input.times.Length0
+  requires ps.k < input.times.Length0 == submatrixMin.Length
   requires !ps.tasks[t]
+  requires forall i | 0 <= i < submatrixMin.Length :: input.IsMin(submatrixMin[i], i)
 
   ensures ps.Partial(input)
   ensures ps.Model().Equals(old(ps.Model()))
@@ -418,7 +419,10 @@ method EmployeesBTRecursiveCase(input: Input, ps: Solution, bs: Solution, t : in
     }
   }
 
-  EmployeesBT(input, ps, bs);
+  var bound := Bound(ps, input, submatrixMin);
+  if (bound <= bs.totalTime) {
+    EmployeesBT(input, ps, bs, submatrixMin);
+  }
 
   assert ps.Model().Equals(old(SolutionData(ps.Model().employeesAssign[ps.k := t], ps.k+1)));
 

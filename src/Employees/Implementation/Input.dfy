@@ -69,4 +69,5 @@ class Input {
   {
     this.Model().IsMin(min, f)
   }
+
 }

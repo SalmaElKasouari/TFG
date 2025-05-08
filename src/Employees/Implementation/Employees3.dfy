@@ -10,7 +10,6 @@ Estructura del fichero:
 
 ---------------------------------------------------------------------------------------------------------------------*/
 
-include "../../Math.dfy"
 include "../../ContainersOps.dfy"
 include "BTBound3.dfy"
 include "Input.dfy"

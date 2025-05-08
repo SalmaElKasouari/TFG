@@ -23,7 +23,6 @@ Estructura del fichero:
 include "Solution.dfy"
 include "../Specification/SolutionData.dfy"
 include "Input.dfy"
-include "../../Ord.dfy"
 
 /* Predicado: bs es una extensión óptima de alguna ps extendida con una de las tareas anteriores */
 ghost predicate ExistsBranchIsOptimalExtension(bs : SolutionData, ps : SolutionData, input : InputData, t : int)
