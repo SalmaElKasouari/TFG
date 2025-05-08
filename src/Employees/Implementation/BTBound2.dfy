@@ -128,8 +128,7 @@ method EmployeesBT(input: Input, ps: Solution, bs: Solution, min : real)
   requires bs.employeesAssign != ps.employeesAssign
   requires bs.tasks != ps.tasks
   requires bs != ps
-  requires exists k, l | 0 <= k < input.times.Length0 && 0 <= l < input.times.Length1 :: min == input.times[k, l]
-  requires forall f, c | 0 <= f < input.times.Length0 && 0 <= c < input.times.Length1 :: min <= input.times[f, c]
+  requires input.IsMin(min,0) 
 
   ensures ps.Partial(input)
   ensures ps.Model().Equals(old(ps.Model())) // las ps actual y antigua deben ser iguales hasta la k
@@ -175,6 +174,7 @@ method EmployeesBT(input: Input, ps: Solution, bs: Solution, min : real)
       invariant ForallBranchesIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t)
 
       invariant bs.Model().TotalTime(input.Model().times) <= old(bs.Model().TotalTime(input.Model().times))
+      invariant input.IsMin(min,0) 
     {
       label L: // capturamos el momento antes de la llamada
 

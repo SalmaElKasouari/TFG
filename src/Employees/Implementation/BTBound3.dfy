@@ -184,6 +184,8 @@ method EmployeesBT(input: Input, ps: Solution, bs: Solution, submatrixMin : arra
       invariant ForallBranchesIsOptimalExtension(bs.Model(), ps.Model(), input.Model(), t)
 
       invariant bs.Model().TotalTime(input.Model().times) <= old(bs.Model().TotalTime(input.Model().times))
+
+      invariant forall i | 0 <= i < submatrixMin.Length :: input.IsMin(submatrixMin[i], i)
     {
       label L: // capturamos el momento antes de la llamada
 
