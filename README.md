@@ -48,8 +48,8 @@ Para compilar y verificar se recomienda usar **Visual Studio Code** con la exten
 
 * **Salma El Kasouari Qessouri**
 * Universidad Complutense de Madrid - Grado en Ingeniería Informática
-* Año: 2025
+* Curso acádemico 2024-2025
 
-# Directores del trabajo
+## Directores del trabajo
 * Clara María Segura Díaz
 * Jorge Blázquez Saborido
