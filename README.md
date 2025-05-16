@@ -1,4 +1,4 @@
-# Trabajo de Fin de Grado – Verificación de algoritmos de exploración enespacios de estados en Dafny
+# Trabajo de Fin de Grado – Verificación de algoritmos de exploración en espacios de estados en Dafny
 Este repositorio contiene el código fuente del Trabajo de Fin de Grado titulado **“Verificación de algoritmos de exploración enespacios de estados en Dafny”**, desarrollado en el lenguaje de verificación **Dafny**.
 
 ## Requisitos
@@ -49,3 +49,7 @@ Para compilar y verificar se recomienda usar **Visual Studio Code** con la exten
 * **Salma El Kasouari Qessouri**
 * Universidad Complutense de Madrid - Grado en Ingeniería Informática
 * Año: 2025
+
+# Directores del trabajo
+* Clara María Segura Díaz
+* Jorge Blázquez Saborido
