@@ -471,7 +471,7 @@ lemma InvalidExtensionsFromInvalidPs(ps: Solution, input: Input)
 {
 
   forall s : SolutionData |
-    && |s.itemsAssign| == |(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1)).itemsAssign|
+    && |s.itemsAssign| == |SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1).itemsAssign|
     && s.k <= |s.itemsAssign|
     && ps.k + 1 <= s.k
     && s.Extends(SolutionData(ps.Model().itemsAssign[ps.k := true], ps.k+1))

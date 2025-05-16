@@ -196,29 +196,27 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
             && s.Valid(input)
     ensures s.TotalTime(input.times) >= ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min
   {
-    
+
     if (ps.k == s.k) {
       assert s.Equals(ps);
       s.EqualTimeFromEquals(ps,input);
-      assert s.TotalTime(input.times) == ps.TotalTime(input.times); 
+      assert s.TotalTime(input.times) == ps.TotalTime(input.times);
     }
-    else { 
+    else {
       var ps' := SolutionData(ps.employeesAssign[ps.k := s.employeesAssign[ps.k]], ps.k + 1);
       AddTimeMaintainsSumConsistency(ps,ps',input);
 
       assert ps'.TotalTime(input.times) >= ps.TotalTime(input.times) + min by{
-      assert ps'.TotalTime(input.times) == ps.TotalTime(input.times) + input.times[ps.k][s.employeesAssign[ps.k]];
-      
-      assert input.times[ps.k][s.employeesAssign[ps.k]] >= min by {
-        assert input.IsMin(min,row);
-        assert 0 <= s.employeesAssign[ps.k] < |input.times[ps.k]|;
+        assert ps'.TotalTime(input.times) == ps.TotalTime(input.times) + input.times[ps.k][s.employeesAssign[ps.k]];
 
-      }
+        assert input.times[ps.k][s.employeesAssign[ps.k]] >= min by {
+          assert input.IsMin(min,row);
+          assert 0 <= s.employeesAssign[ps.k] < |input.times[ps.k]|;
+        }
       }
 
       AddTimesLowerBound(ps', s, input, min, row);
 
-      
       assert s.TotalTime(input.times) >= ps'.TotalTime(input.times) + ((|ps'.employeesAssign| - ps'.k) as real) * min;
       assert |ps'.employeesAssign| == |ps.employeesAssign|;
       assert ps'.k == ps.k + 1;
@@ -226,50 +224,48 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
       assert ((|ps'.employeesAssign| - ps'.k) as real) == ((|ps.employeesAssign| - (ps.k + 1)) as real);
       assert ((|ps'.employeesAssign| - ps'.k) as real) == ((|ps.employeesAssign| - ps.k - 1) as real);
       assert s.TotalTime(input.times) >= ps'.TotalTime(input.times) + ((|ps.employeesAssign| - (ps.k + 1)) as real) * min;
-     
+
       calc {
-       s.TotalTime(input.times); 
-       >= 
-       (ps.TotalTime(input.times) + min) + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min;
-       {associativity(ps.TotalTime(input.times),min,((|ps.employeesAssign| - ps.k - 1 ) as real) * min);}
-       ps.TotalTime(input.times) + (min + (((|ps.employeesAssign| - ps.k) - 1 ) as real) * min);
+        s.TotalTime(input.times);
+      >=
+        (ps.TotalTime(input.times) + min) + ((|ps.employeesAssign| - ps.k - 1 ) as real) * min;
+        {associativity(ps.TotalTime(input.times),min,((|ps.employeesAssign| - ps.k - 1 ) as real) * min);}
+        ps.TotalTime(input.times) + (min + (((|ps.employeesAssign| - ps.k) - 1 ) as real) * min);
       }
       asrealMultApp(ps,input,min);
-
     }
   }
 
   static lemma  associativity(a:real,b:real,c:real)
-  ensures (a + b) + c == a + (b + c)
+    ensures (a + b) + c == a + (b + c)
   {}
 
   static  lemma asrealPlusOne(a:int)
-  ensures  (a + 1) as real == (a as real) + (1 as real)
+    ensures  (a + 1) as real == (a as real) + (1 as real)
   {}
 
   static  lemma asrealMult(y:real, a:int, x:real)
-  ensures  y + (x + ((a - 1) as real) * x) == y + (a as real) * x
+    ensures  y + (x + ((a - 1) as real) * x) == y + (a as real) * x
   {}
 
   static lemma asrealMultApp(ps : SolutionData, input : InputData, min : real)
     requires input.Valid()
     requires ps.Partial(input)
     ensures ps.TotalTime(input.times) + (min + (((|ps.employeesAssign| - ps.k) - 1 ) as real) * min) ==
-    ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min
-   {
-  
+            ps.TotalTime(input.times) + ((|ps.employeesAssign| - ps.k) as real) * min
+  {
     asrealMult(ps.TotalTime(input.times),|ps.employeesAssign| - ps.k,min);
-   }
+  }
 
   static lemma asrealEqual(a:int,b:int,c:int,d:int)
-  requires a == b && c == d
-  ensures (c - a) as real == (d - b) as real
+    requires a == b && c == d
+    ensures (c - a) as real == (d - b) as real
   {}
 
- 
 
 
- 
+
+
   /*
   Lema: si dos soluciones (this y s) son idénticas (igualdad de campos), entonces tienen la misma sumas de tiempos. 
   Esto es por que el contenido de employeesAssign de cada solución es igual y el cálculo acumulativo de tiempos
@@ -279,7 +275,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   //
   Verificación: mediante inducción en this y s.
   */
-  lemma {:induction this, s} EqualTimeFromEquals(s : SolutionData, input : InputData)
+  lemma EqualTimeFromEquals(s : SolutionData, input : InputData)
     decreases k
     requires input.Valid()
     requires this.Explicit(input.times)
@@ -335,7 +331,7 @@ datatype SolutionData = SolutionData(employeesAssign : seq<int>, k : nat) {
   //
   Demostración: mediante inducción en s, esta se va reduciendo hasta this.k.
   */
-  lemma {:induction s} GreaterOrEqualTimeFromExtends(s: SolutionData, input: InputData)
+  lemma GreaterOrEqualTimeFromExtends(s: SolutionData, input: InputData)
     decreases s.k
     requires input.Valid()
     requires |this.employeesAssign| == |s.employeesAssign| == |input.times|

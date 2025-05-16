@@ -264,7 +264,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   //
   Demostración: mediante inducción en this y s.
   */
-  lemma {:induction this, s} EqualValueWeightFromEquals(s : SolutionData, input : InputData)
+  lemma EqualValueWeightFromEquals(s : SolutionData, input : InputData)
     decreases k
     requires input.Valid()
     requires |input.items| == |this.itemsAssign| == |s.itemsAssign|
@@ -292,7 +292,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   //
   Demostración: mediante inducción en s, esta se va reduciendo hasta this.k.
   */
-  lemma {:induction s} GreaterOrEqualValueWeightFromExtends(s: SolutionData, input: InputData)
+  lemma GreaterOrEqualValueWeightFromExtends(s: SolutionData, input: InputData)
     decreases s.k
     requires input.Valid()
     requires |this.itemsAssign| == |s.itemsAssign| == |input.items|
@@ -379,7 +379,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   }
 
 
-  /* 
+  /*
   Lema: dada una solución parcial ps, una solución completa ps' que extiende a ella con todos las asignaciones a 
   true, y otra solución completa s que extiende a ps, entonces ps' es cota superior a s.
   //
@@ -387,7 +387,7 @@ datatype SolutionData = SolutionData(itemsAssign: seq<bool>, k: nat) {
   //
   Demostración: mediante inducción en i.
   */
-  static lemma {:induction i} AllTruesIsUpperBound(i : int, s : SolutionData, ps : SolutionData, ps' : SolutionData, input :InputData)
+  static lemma AllTruesIsUpperBound(i : int, s : SolutionData, ps : SolutionData, ps' : SolutionData, input :InputData)
     decreases |ps.itemsAssign| - i
     requires input.Valid()
     requires ps.k <= ps'.k == |input.items| == |ps'.itemsAssign| == |ps.itemsAssign| == |s.itemsAssign|

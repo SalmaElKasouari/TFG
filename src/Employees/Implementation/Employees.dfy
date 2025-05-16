@@ -106,7 +106,7 @@ que tarda un funcionario i en realizar una tarea j.
 method Main() {
 
   /* Matriz de tiempos */
-  var times: array2<real> := new real[2,2];
+  var times := new real[2,2];
   times[0,0] := 10.0;
   times[0,1] := 20.0;
   times[1,0] := 20.0;
