@@ -7,18 +7,18 @@ se deben tratar, y las ramas las distintas tareas que pueden realizar. Se incluy
 Estructura del fichero: 
 
   Predicados
-    - ExistsBranchIsOptimalExtension:
-    - ForallBranchesIsOptimalExtension:
+    - ExistsBranchIsOptimalExtension: bs es una extensión óptima de alguna ps extendida con una de las tareas anteriores
+    - ForallBranchesIsOptimalExtension: bs es mejor que todas las soluciones que extienden a ps con cada una de las tareas anteriores 
 
   Métodos
-    - Bound: calcula la bound que estima que los funcionarios que quedan por asignar tardan el mismo tiempo y el 
+    - Bound: calcula la cota que estima que los funcionarios que quedan por asignar tardan el mismo tiempo y el 
       mínimo posible.
     - EmployeesBT: Punto de partida para ejecutar el algoritmo BT.
     - EmployeesBTBaseCase: Define la condición de terminación.
     - EmployeesBTRecursiveCase: Considera una tarea específica.
 
  Lemas
-    - InvalidExtensionsFromInvalidPs:
+    - InvalidExtensionsFromInvalidPs: si ps no es una solución válida, todas sus etensiones tampoco lo serán.
 
 ---------------------------------------------------------------------------------------------------------------------*/
 

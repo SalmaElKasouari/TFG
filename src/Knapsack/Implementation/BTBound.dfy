@@ -12,7 +12,7 @@ Tenemos ps (partial solution) y bs (best solution) de entrada y salida:
 
 Estructura del fichero:
    Métodos
-    - Bound: calcula la bound que selecciona todos los items restantes para podar el árbol de exploración.
+    - Bound: calcula la cota que selecciona todos los items restantes para podar el árbol de exploración.
     - KnapsackBT: Punto de partida para ejecutar el método algorítmico BT.
     - KnapsackBTBaseCase: Define la condición de terminación.
     - KnapsackBTFalseBranch: Considera no incluir un elemento en la mochila.
