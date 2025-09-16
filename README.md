@@ -1,5 +1,5 @@
 # Trabajo de Fin de Grado – Verificación de algoritmos de vuelta atrás en Dafny
-Este repositorio contiene el código fuente del Trabajo de Fin de Grado titulado **“Verificación de algoritmos de exploración enespacios de estados en Dafny”**, desarrollado en el lenguaje de verificación **Dafny**.
+Este repositorio contiene el código fuente del Trabajo de Fin de Grado titulado **“Verificación de algoritmos de vuelta atrás en Dafny”**, desarrollado en el lenguaje de verificación **Dafny**.
 
 ## Autor
 
