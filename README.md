@@ -1,18 +1,14 @@
 # Trabajo de Fin de Grado – Verificación de algoritmos de vuelta atrás en Dafny
-Este repositorio contiene el código fuente del Trabajo de Fin de Grado titulado **“Verificación de algoritmos de vuelta atrás en Dafny”**, desarrollado en el lenguaje de verificación **Dafny**.
+**Título:** Verificación de algoritmos de vuelta atrás en Dafny  
+**Programa:** Grado en Ingeniería Informática 
+**Universidades:** Universidad Complutense de Madrid (UCM)
+**Curso académico:** 2024-2025  
 
-## Autor
-
-* **Salma El Kasouari Qessouri**
-* Universidad Complutense de Madrid - Grado en Ingeniería Informática
-* Curso acádemico 2024-2025
-
-## Directores del trabajo
-* Clara María Segura Díaz
-* Jorge Blázquez Saborido
+## Colaboradores
+**Autor:** Salma El Kasouari Qessouri  
+**Directores:** Clara María Segura Díaz y Jorge Blázquez Saborido 
 
 ## Requisitos
-
 Para compilar y verificar se recomienda usar **Visual Studio Code** con la extensión oficial de Dafny para facilitar la edición, verificación y navegación del código.
 
 ## Estructura del proyecto
