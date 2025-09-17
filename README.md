@@ -1,7 +1,7 @@
 # Trabajo de Fin de Grado – Verificación de algoritmos de vuelta atrás en Dafny
-**Título:** Verificación de algoritmos de vuelta atrás en Dafny  
-**Programa:** Grado en Ingeniería Informática 
-**Universidades:** Universidad Complutense de Madrid (UCM)
+**Título:** Verificación de algoritmos de vuelta atrás en Dafny    
+**Programa:** Grado en Ingeniería Informática  
+**Universidades:** Universidad Complutense de Madrid (UCM)  
 **Curso académico:** 2024-2025  
 
 ## Colaboradores
